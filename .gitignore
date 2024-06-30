@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
-/cordova_app/www/*
+cordova_app
+
 
 
 # local env files
