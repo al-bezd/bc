@@ -1,4 +1,14 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
+import { createApp } from 'vue';
+import App from './App.vue';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-createApp(App).mount('#app')
+
+import { createPinia } from 'pinia';
+
+const app = createApp(App);
+const pinia = createPinia();
+
+app.use(pinia);
+app.mount('#app');
