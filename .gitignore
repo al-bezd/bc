@@ -1,6 +1,6 @@
 .DS_Store
 node_modules
-cordova_app
+/cordova_app/www/
 
 
 
