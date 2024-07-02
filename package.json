@@ -6,13 +6,15 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "build_all": "vue-cli-service build && echo > cordova_app\\www\\.nojekyll && cd cordova_app && cordova build android",
+    "build_all": "vue-cli-service build && node fix.js cordova_app/www/index.html && cd cordova_app && cordova build android",
     "adb_install": "adb install cordova_app\\platforms\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
     "adb_uninstall": "adb uninstall io.cordova.hellocordova",
+    "android_start": "adb install -r cordova_app\\platforms\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk && adb shell monkey -p io.cordova.hellocordova -c android.intent.category.LAUNCHER 1 && adb logcat",
     "deploy": "gh-pages -d cordova_app\\www"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
+    "cordova": "^9.0.0",
     "pinia": "^2.1.7",
     "regenerator-runtime": "^0.14.1",
     "vue": "^3.2.13",

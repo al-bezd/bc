@@ -1,0 +1,1646 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!---->
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>BarCode</title>
+
+  <script>
+    let torgovie_seti = []
+
+    let main_order = JSON.parse(localStorage.getItem("main_order"))
+    if (main_order !== null) {
+      main_order = main_order.Наименование
+    }
+
+    let custom_log = []
+    let old_function_log = console.log
+
+
+    console.log = (...arguments) => {
+      if (custom_log.length > 1000) {
+        custom_log.length = 0
+      }
+      item = {}
+      item.arguments = arguments
+      item.date_create = new Date()
+      item.log_type = "log"
+      custom_log.unshift(JSON.stringify(item))
+      old_function_log.apply(console, arguments)
+      setFile({ id: "1", data: JSON.stringify(custom_log) }, 'log', 'log')
+    }
+    console.error = (...arguments) => {
+      if (custom_log.length > 1000) {
+        custom_log.length = 0
+      }
+      item = {}
+      item.arguments = arguments
+      item.date_create = new Date()
+      item.log_type = "log"
+      custom_log.unshift(JSON.stringify(item))
+      old_function_log.apply(console, arguments)
+      setFile({ id: "1", data: JSON.stringify(custom_log) }, 'log', 'log')
+    }
+
+
+    window.addEventListener('error', function (e) {
+      var error = e.error
+      console.log(error)
+    })
+
+  </script>
+
+  <script src="cordova.js"></script>
+  <script src="resurse/js/indexdb.js"></script>
+  <link href="resurse/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link href="resurse/jumbotron-narrow.css" rel="stylesheet" type="text/css">
+  <script src="resurse/js/sweetalert.min.js"></script>
+  <link href="resurse/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link href="resurse/jumbotron-narrow.css" rel="stylesheet" type="text/css">
+  <script src="resurse/js/sweetalert.min.js"></script>
+
+  <style>
+    b {
+      font-size: 4vw;
+    }
+
+    .alert-orange {
+      color: black;
+      background-color: #FFA500;
+      border-color: #FF8C00;
+    }
+
+    .fast_window {
+      position: absolute;
+      background-color: white;
+      height: 100%;
+      width: 100%;
+      z-index: 3000;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+    }
+
+    .bc_input {
+      -webkit-box-shadow: inset 0px 0px 0px 11px rgba(255, 0, 0, 1);
+      -moz-box-shadow: inset 0px 0px 0px 11px rgba(255, 0, 0, 1);
+      box-shadow: inset 0px 0px 0px 11px rgba(255, 0, 0, 1);
+    }
+
+    .bc_input:active {
+      -webkit-box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+      -moz-box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+      box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+    }
+
+    .bc_input:focus {
+      -webkit-box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+      -moz-box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+      box-shadow: inset 0px 0px 0px 11px rgba(0, 123, 255, 1);
+    }
+
+    .status_bar {
+      /*height: 20px;*/
+      margin-bottom: 20px;
+      background-color: red !important;
+      color: white !important;
+      /*width: 100%;*/
+      z-index: 3000;
+    }
+
+    #button_admin {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 1031;
+      width: 8%;
+      height: 5%;
+
+    }
+
+    .setting {
+      background-image: url('resurse/img/setting.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    /* SWITCHER */
+    /* https://www.w3schools.com/howto/howto_css_switch.asp */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    /* Hide default HTML checkbox */
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    /* The slider */
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked+.slider {
+      background-color: #2196F3;
+    }
+
+    input:focus+.slider {
+      box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked+.slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+    .div-switch{
+      display: inline-flex;
+      align-items: center;
+    }
+    .span-switch{
+      text-transform: uppercase;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+
+</head>
+
+<body id="body">
+
+  <div class="container">
+
+    <!-- Выбор пользователя-->
+    <div class="col-md-12 col-sm-12 col-xs-12" id="form_select_user" v-show="seen">
+      <div class="jumbotron">
+        <h4>Отсканируйте ШК сотрудника</h4>
+
+        <div class="form-group form-group-lg">
+          <div class="">
+            <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+              @keyup.enter="get_user" id="barcode_user">
+
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+    <!-- Выбор пользователя-->
+
+    <!-- Главное меню-->
+    <div class="row form_menu" id="form_menu" v-show="seen">
+      <div class="">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <h3 style="font-weight: bold;text-align: center;text-transform: uppercase;">{{fio}}</h3>
+            </div>
+          </div>
+
+
+          <div class="well center-block" role="group">
+
+            <button @click="show_bild_orders" class="btn btn-primary btn-lg btn-block text-uppercase">Сборка заказа</button>
+            <button @click="show_getting_prod" class="btn btn-primary btn-lg btn-block text-uppercase">Прием продукции</button>
+            <button @click="exit" class="btn btn-default btn-lg btn-block text-uppercase">ВЫЙТИ</button>
+
+          </div>
+
+
+        </div>
+      </div>
+
+
+    </div>
+    <!-- Главное меню-->
+
+    <!-- Окно загрузки документа для приемки-->
+    <div class="" id="getting_prod_load" v-show="seen">
+      <div class="jumbotron">
+
+
+        <h4>Отсканируйте ШК с сопроводительной накладной в поле</h4>
+
+        <div class="form-group form-group-lg">
+          <div class="">
+            <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+              @keyup.enter="get_document_order" id="getting_prod_bc">
+
+          </div>
+
+        </div>
+
+
+
+
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="list-group">
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" @click="closeq" tabindex="-1"><b>НАЗАД</b>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="" style="margin-bottom: 10px;">
+        <div v-for="item in documents" :key="item.Ссылка.Ссылка" class="alert alert-warning">
+          <div class="row">
+            <div class=""><b>{{item.Ссылка.Наименование}}</b>
+            </div>
+          </div>
+          <div class="">
+            <button class="btn btn-info btn-block text-uppercase" @click="load_document(item.Ссылка.Ссылка)">Продолжить</button>
+            <button class="btn btn-danger btn-block text-uppercase" @click="delete_document(item.Ссылка.Ссылка)">Закрыть</button>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+
+    </div>
+    <!-- Окно загрузки документа для приемки-->
+
+    <!-- Форма сканирования для приемки-->
+    <div class="row" id="getting_prod_form" v-show="seen" style="margin-bottom: 110px;">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
+          <div class="row">
+
+            <div class="col-md-9 col-sm-9 col-xs-9">
+              <h4 class="text-muted">{{prod_doc}} </h4>
+
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-3">
+              <h5>кол. {{count_scaning}}</h5>
+              <h5>г/м. {{box_in_order}}</h5>
+            </div>
+
+          </div>
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="form-group form-group-lg">
+                <div class="div-switch">
+                  <span class="span-switch">Палетная</span>
+                  <label class="switch">
+                    <input type="checkbox" v-model="it_palet">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+
+
+                <div class="">
+                  <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+                    @keyup.enter="scaning" id="getting_prod_form_bc">
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div id="getting_prod_list"></div>
+
+
+        </div>
+      </div>
+
+      <div class="navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+        <div class="col-md-12 col-sm-12 col-xs-12 ">
+          <button class="btn btn-info btn-lg btn-block text-uppercase" onclick="HandAddItem.Show('prod_list')"
+            style="margin-bottom: 5px;">+</button>
+          <div class="btn-group btn-group-justified " role="group">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" @click="closeq" tabindex="-1"
+                style="padding: 3px;font-size: 4vw;">
+                <b>ЗАКРЫТЬ<br>ДОКУМЕНТ</b>
+              </button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" @click="clear_quest" tabindex="-1"><b>ОЧИСТИТЬ</b>
+              </button>
+            </div>
+
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" attr="check" @click="getting_prod_check.show()"
+                tabindex="-1"><b>ПРОВЕРИТЬ</b>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Форма сканирования для приемки-->
+
+    <!-- Форма проверки для приемки-->
+    <div class="row" id="getting_prod_check" v-show="seen" style="margin-bottom: 110px;">
+
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="col-md-9 col-sm-9 col-xs-9">
+          <div class="">
+            <h4 class="text-muted">{{prod_doc}}</h4>
+            <span>Поддон № {{оитНомерПалета}}</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-3 col-xs-3" style="padding: 0;" hidden>
+          <h5><b>Кол. {{count_items}}</b></h5>
+
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12" id="check_item" v-for="item in all_item" :key="item.рсУИД">
+
+          <div :class="item.cls+' bs-callout bs-callout-danger'" :name="'check'+item.Номенклатура.Наименование">
+            <div class="row">
+              <div class="col-md-10 col-sm-10 col-xs-10">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12" @click="OpenThisArticul(item.Номенклатура.Наименование)">
+                    <b>{{item.Номенклатура.Артикул}}</b> {{item.Номенклатура.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Характеристика.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Серия.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>ПЛУ : {{item.ПЛУ}}</b></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>к/к. {{item.КоличествоКоробок}}</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличество}} / зак
+                      {{item.имКоличествоВПересчетеНаКг}} кг</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличествоВЕдиницахИзмерения}} / зак
+                      {{item.КоличествоУпаковок}} {{item.Номенклатура.ЕдиницаИзмерения.Наименование}}</b></div>
+                </div>
+
+              </div>
+              <div class="col-md-2 col-sm-2 col-xs-2">
+                <div class="row">
+                  <div class="col">
+                    <b>{{item.ВПроцСоотношении}}%</b><br>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <h5><b>Итог {{box_count}} Кор. из {{item_order.оитКоличествоКоробок}}</b></h5>
+          <h5><b>Итог {{weight_count}} Кг. </b></h5>
+        </div>
+      </div>
+
+      <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+        style="padding-bottom: 5px;background-color: white;">
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="btn-group btn-group-justified" role="group">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="closeq" tabindex="-1"><b>НАЗАД</b>
+                </button>
+              </div>
+
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="save" tabindex="-1"><b>СОХРАНИТЬ</b>
+                </button>
+              </div>
+
+
+
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="send" tabindex="-1">
+                  <b>ПРИНЯТЬ</b></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fast_window" v-if="articul_list_seen">
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-bottom: 13%;"><span>Коробок
+            <b>{{CountThisArticul}}</b> Шт.</span>
+
+
+
+          <div class="col-md-12 col-sm-12 col-xs-12" id="fast_window_getting_prod_check">
+            <div>
+
+
+              <div v-for="item in prod_list" :key="item.IDSec">
+                <scaning-tmp v-bind:item="item" obj="'getting_prod_check'"></scaning-tmp>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;" v-if="articul_list_seen">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="show" tabindex="-1"><b>НАЗАД</b>
+                  </button>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+    <!--Форма проверки для приемки-->
+
+    <!-- Окно загрузки документа-->
+    <div class="" id="load_doc" v-show="seen">
+      <div class="jumbotron">
+
+
+        <h4>Отсканируйте ШК с листа сборки в поле</h4>
+
+        <div class="form-group form-group-lg">
+          <div class="">
+            <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+              @keyup.enter="get_document_order" id="load_doc_bc">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="list-group">
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" 
+              @click="eval(`form_doc_free.show('Остатки');form_doc_free.ClearScaning()`)"
+                tabindex="-1" style="padding: 9px;font-size: 4vw;">
+                <b>ОТРАЖЕНИЕ ОСТАТКОВ</b>
+              </button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase"
+                @click="eval(`form_doc_free.show('ИнфоЛист');form_doc_free.ClearScaning()`)" tabindex="-1" style="padding: 9px;font-size: 4vw;">
+                <b>СОЗДАНИЕ ИНФ. ЛИСТА</b>
+              </button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" @click="ShowLoadOrders"
+                tabindex="-1"><b>ЗАГРУЗИТЬ ЗАДАНИЯ</b>
+              </button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" @click="closeq" tabindex="-1"><b>НАЗАД</b>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-for="item in documents" :key="item.Ссылка.Ссылка">
+        <div v-if="!item.completed" class=" alert alert-warning">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12"><b>{{item.Ссылка.Наименование}}</b>
+            </div>
+          </div>
+          <div class="">
+            <button class="btn btn-info btn-block text-uppercase" @click="load_document(item.Ссылка.Ссылка)">Продолжить</button>
+            <button class="btn btn-danger btn-block text-uppercase" @click="delete_document(item.Ссылка.Ссылка)">Закрыть</button>
+          </div>
+        </div>
+        <div v-if="item.completed" class=" alert alert-success">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12"><b>{{item.Ссылка.Наименование}} СОБРАН!</b>
+            </div>
+          </div>
+          <div class="">
+            <button class="btn btn-info btn-block text-uppercase" @click="load_document(item.Ссылка.Ссылка)">Продолжить</button>
+            <button class="btn btn-danger btn-block text-uppercase" @click="delete_document(item.Ссылка.Ссылка)">Закрыть</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" tabindex="-1" role="dialog" id="LoadOrders">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                  aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">{{add_orders.Заголовок}}</h4>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="datab" class="control-label">Дата начала</label>
+                <input type="date" class="form-control" id="datab" v-model="add_orders.ДатаНачала">
+              </div>
+              <div class="form-group">
+                <label for="datae" class="control-label">Дата окончания</label>
+                <input type="date" class="form-control" id="datae" v-model="add_orders.ДатаОкончания">
+              </div>
+              <div class="form-group">
+                <label for="Количество" class="control-label">Склад</label>
+                <input type="text" class="form-control" id="Склад" v-model="add_orders.Склад">
+              </div>
+            </div>
+            <div class="modal-footer">
+
+              <button type="button" class="btn btn-primary btn-lg btn-block text-uppercase"
+                @click="LoadOrdersExecute('orders')">Загрузить заказы</button>
+              <button type="button" class="btn btn-primary btn-lg btn-block text-uppercase"
+                @click="LoadOrdersExecute('info_sheets')">Загрузить инфо. листы</button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" data-dismiss="modal"
+                @click="LoadOrdersClose()">Закрыть</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+    </div>
+    <!-- Окно загрузки документа-->
+
+    <!-- Форма сканирования-->
+    <div class="row" id="form_doc" v-show="seen" style="margin-bottom: 110px;">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
+          <div class="row">
+
+            <div class="col-md-9 col-sm-9 col-xs-9">
+              <h4 class="text-muted">{{current_doc}} </h4>
+
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-3">
+              <h5>кол. {{count_scaning}}</h5>
+              <h5>г/м. {{box_in_order}}</h5>
+            </div>
+
+          </div>
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="form-group form-group-lg">
+                <div class="div-switch">
+                  <span class="span-switch">Палетная</span>
+                <label class="switch">
+                  <input type="checkbox" v-model="it_palet"
+                    onclick="setTimeout(function () {form_doc_bc.focus()}, 100)">
+                  <span class="slider round"></span>
+                </label>
+                </div>
+                <div class="div-switch"><span class="span-switch">Инфо. лист</span>
+                  <label class="switch">
+                    <input type="checkbox" v-model="it_info_list"
+                      onclick="setTimeout(function () {form_doc_bc.focus()}, 100)">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                
+                <div class="">
+                  <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+                    @keyup.enter="scaning" id="form_doc_bc">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="row">
+
+            <div role="group" class="btn-group btn-group-justified " style="margin-bottom: 15px;">
+              <div class="btn-group" role="group">
+                <button class="btn btn-prymary text-uppercase" @click="OrderBy('Артикул')" style="font-size: 3vw;">по Артикулу</button>
+              </div>
+              <div class="btn-group" role="group">
+                <button class="btn btn-prymary text-uppercase" @click="OrderBy('История')" style="font-size: 3vw;">по Истории</button>
+              </div>
+            </div>
+
+
+          </div>
+
+
+
+          <br>
+
+          <div id="scaning_response_list">
+
+          </div>
+
+
+        </div>
+      </div>
+
+      <div class="navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+        <div class="col-md-12 col-sm-12 col-xs-12 ">
+          <button class="btn btn-info btn-lg btn-block text-uppercase" onclick="HandAddItem.Show('form_doc')"
+            style="margin-bottom: 5px;">+</button>
+          <div class="btn-group btn-group-justified " role="group">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase zzakaz" @click="closeq" tabindex="-1"
+                style="padding: 3px;font-size: 4vw;">
+                <b>ЗАКРЫТЬ<br>ЗАКАЗ</b>
+              </button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase zochistit" @click="clear_quest"
+                tabindex="-1"><b>ОЧИСТИТЬ</b>
+              </button>
+            </div>
+
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase zproverit" attr="check" @click="eval('check_doc.show()')"
+                tabindex="-1"><b>ПРОВЕРИТЬ</b>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Форма сканирования-->
+
+    <!-- Форма проверки-->
+    <div class="row" id="check_doc" v-show="seen" style="margin-bottom: 110px;">
+
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="col-md-12 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
+          <div class="col-md-9 col-sm-9 col-xs-9">
+            <div class="">
+              <h4 class="text-muted">{{current_doc}}</h4>
+            </div>
+          </div>
+
+          <div class="col-md-3 col-sm-3 col-xs-3 text-uppercase" style="padding: 0;">
+            <h5><b>Кол. {{count_items}}</b></h5>
+            <button class="btn btn-success text-uppercase" @click="document_container.show"><b>Тара</b></button>
+          </div>
+        </div>
+
+
+        <div class="col-md-12 col-sm-12 col-xs-12" id="check_item" v-for="item in all_item" :key="item.рсУИД">
+
+          <div :class="item.cls+' bs-callout bs-callout-danger'" :name="'check'+item.Номенклатура.Наименование">
+            <div class="row">
+              <div class="col-md-10 col-sm-10 col-xs-10">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12" @click="OpenThisArticul(item.Номенклатура.Наименование)">
+                    <b>{{item.Номенклатура.Артикул}}</b> {{item.Номенклатура.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Характеристика.Наименование}}</div>
+                </div>
+                <div class="row" hidden>
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Серия.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>ПЛУ : {{item.ПЛУ}}</b></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>к/к. {{item.КоличествоКоробок}}</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличество}} / зак
+                      {{item.имКоличествоВПересчетеНаКг}} кг</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличествоВЕдиницахИзмерения}} / зак
+                      {{item.КоличествоУпаковок}} {{item.Номенклатура.ЕдиницаИзмерения.Наименование}}</b></div>
+                </div>
+
+              </div>
+              <div class="col-md-2 col-sm-2 col-xs-2">
+                <div class="row">
+                  <div class="col">
+                    <b>{{item.ВПроцСоотношении}}%</b><br>
+                  </div>
+                  <div class="col">
+                    <button type="button" name="button" @click="AddItemShow(item)">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <h5><b>Итог {{box_count}} Коробок</b></h5>
+          <h5><b>Итог {{weight_count}} Кг. </b></h5>
+        </div>
+      </div>
+
+      <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+        style="padding-bottom: 5px;background-color: white;" v-if="!articul_list_seen">
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="btn-group btn-group-justified" role="group">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="closeq" tabindex="-1"><b>НАЗАД</b>
+                </button>
+              </div>
+
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="save" tabindex="-1"><b>СОХРАНИТЬ</b>
+                </button>
+              </div>
+
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default btn-lg text-uppercase" @click="send({'Режим':'проверка'})"
+                  tabindex="-1">
+                  <b>ОТПРАВИТЬ</b></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fast_window" v-if="articul_list_seen">
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-bottom: 13%;"><span>Коробок
+            <b>{{CountThisArticul}}</b> Шт.</span>
+
+
+
+          <div class="col-md-12 col-sm-12 col-xs-12" id="fast_window_check_doc">
+            <div>
+
+
+              <div v-for="item in scaning_response" :key="item.id">
+                <scaning-tmp v-bind:item="item" obj="'check_doc'"></scaning-tmp>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;" v-if="articul_list_seen">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="eval('check_doc.show()')"
+                    tabindex="-1"><b>НАЗАД</b>
+                  </button>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fast_window" v-if="document_container.seen">
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-bottom: 13%;">
+          <h3 style="font-weight: bold;text-align: center;text-transform: uppercase;">Список тары</h3>
+
+
+
+          <div class="col-md-12 col-sm-12 col-xs-12">
+
+
+
+            <div v-for="item in document_container.containers" :key="item.ИД" :id="item.ИД">
+              <div class="row alert alert-info" role="alert">
+
+                <div class="col-md-10 col-sm-10 col-xs-10">
+                  <div class="row">
+                    <div class="col-md-12 col-sm-12 col-xs-12 " view="Тара">
+                      <b>{{item.Тара.Наименование}}</b><br>
+                      <label>Вес</label>
+                      <div class="input-group">
+                        <input type="text" view="Вес" v-model="item.Вес" class="form-control">
+                      </div>
+                      <label>Количество</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" view="Количество" v-model="item.Количество"
+                          @blur="document_container.UpdateWeight(item)" @click="document_container.UpdateWeight(item)"
+                          @keyup.enter="document_container.UpdateWeight(item)">
+
+
+                      </div>
+                    </div>
+
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;" v-if="document_container.seen">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="eval('check_doc.show()')"
+                    tabindex="-1"><b>НАЗАД</b>
+                  </button>
+                </div>
+
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="document_container.save"
+                    tabindex="-1"><b>СОХРАНИТЬ</b>
+                  </button>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" tabindex="-1" role="dialog" id="AddItemModal">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                  aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">{{add_item.Заголовок}}</h4>
+            </div>
+            <div class="modal-body">
+
+              <div class="form-group">
+                <label for="datab" class="control-label">Дата производства</label>
+                <input type="date" class="form-control" id="datab" v-model="add_item.Серия.ДатаПроизводства">
+              </div>
+              <div class="form-group">
+                <label for="datae" class="control-label">Годен до</label>
+                <input type="date" class="form-control" id="datae" v-model="add_item.Серия.ГоденДо">
+              </div>
+              <div class="form-group">
+                <label for="Количество" class="control-label">Вес на коробке</label>
+                <input type="number" step="0.001" class="form-control" id="Количество" v-model="add_item.Количество">
+              </div>
+              <div class="form-group">
+                <label for="ЕдиницаИзмерения" class="control-label">Единица измерения</label>
+                <input type="text" class="form-control" id="ЕдиницаИзмерения"
+                  v-model="add_item.ЕдиницаИзмерения.Наименование" readonly>
+              </div>
+              <div class="form-group">
+                <label for="КоличествоВЕдиницахИзмерения" class="control-label">Количество в единицах измерения</label>
+                <div class="input-group">
+                  <input type="number" step="1" v-if="add_item.ЕдиницаИзмерения.Наименование=='шт'" class="form-control"
+                    id="КоличествоВЕдиницахИзмерения" v-model="add_item.КоличествоВЕдиницахИзмерения">
+                  <input type="number" step="0.001" v-if="add_item.ЕдиницаИзмерения.Наименование!='шт'"
+                    class="form-control" id="КоличествоВЕдиницахИзмерения"
+                    v-model="add_item.КоличествоВЕдиницахИзмерения">
+
+                  <span class="input-group-btn">
+                    <button class="btn btn-default text-uppercase" type="button"
+                      @click="add_item.КоличествоВЕдиницахИзмерения=add_item.Количество">КП</button>
+                  </span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="Грузоместа" class="control-label">Количество коробок</label>
+                <input type="number" class="form-control" id="Грузоместа" v-model="add_item.Грузоместа">
+              </div>
+
+
+
+
+            </div>
+            <div class="modal-footer">
+
+              <button type="button" class="btn btn-primary btn-lg btn-block text-uppercase" @click=AddItemSave()>Сохранить</button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" data-dismiss="modal"
+                @click="AddItemClose()">Закрыть</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+
+
+    </div>
+    <!--Форма проверки-->
+
+    <!-- Форма сканирования (без документа)-->
+    <div class="row" id="form_doc_free" v-show="seen" style="margin-bottom: 110px;">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="row">
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="form-group form-group-lg">
+              <div class="div-switch"><span class="span-switch">Палетная</span>
+                <label class="switch">
+                  <input type="checkbox" v-model="it_palet"
+                    onclick="setTimeout(function () {form_doc_bc_free.focus();}, 100);">
+                  <span class="slider round"></span>
+                </label></div>
+              
+
+
+              <div class="">
+                <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
+                  @keyup.enter="scaning" id="form_doc_bc_free">
+              </div>
+              <div class="hidden" style="margin-top: 5px">
+                <button type="button" class="btn btn-primary btn-block text-uppercase">Добавить в ручную</button>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+        <div class="">
+          <div role="group" class="btn-group btn-group-justified " style="margin-bottom: 15px;">
+            <div class="btn-group" role="group">
+              <button class="btn btn-prymary text-uppercase" style="font-size: 3vw;" @click="OrderBy('Артикул')">по Артикулу</button>
+            </div>
+            <div class="btn-group" role="group">
+              <button class="btn btn-prymary text-uppercase" style="font-size: 3vw;" @click="OrderBy('История')">по Истории</button>
+            </div>
+            <div class="btn-group" role="group">
+              <button disabled="disabled" class="btn btn-prymary text-uppercase">Кол.кор 0</button></div>
+          </div>
+
+          <br>
+
+
+
+
+
+          <div class="col-md-12 col-sm-12 col-xs-12" id="scaning_response_list_free">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+        <div class="col-md-12 col-sm-12 col-xs-12 ">
+          <button class="btn btn-info btn-lg btn-block" onclick="HandAddItem.Show('form_doc_free')"
+            style="margin-bottom: 5px;">+</button>
+          <div class="btn-group btn-group-justified " role="group">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" @click="closeq" tabindex="-1">
+                <b>ЗАКРЫТЬ</b>
+              </button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" @click="clear_quest" tabindex="-1"><b>ОЧИСТИТЬ</b>
+              </button>
+            </div>
+
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default btn-lg text-uppercase" attr="check"
+                onclick="check_doc_free.show(GetData('no_order_mode'))" tabindex="-1"><b>ПРОВЕРИТЬ</b>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Форма сканирования (без документа)-->
+
+    <!-- Форма проверки сканирования (без документа)-->
+    <div class="row" id="check_doc_free" v-show="seen" style="margin-bottom: 110px;">
+
+      <div class="col-md-12 col-sm-12 col-xs-12">
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
+
+
+
+
+          <div role="group" class="btn-group btn-group-justified " style="margin-bottom: 15px;">
+            <div class="btn-group" role="group">
+              <div :class="'btn btn-primary text-uppercase '+nx_status" @click="show_with_mode('nx')">НОМ+ХАР</div>
+            </div>
+            <div class="btn-group" role="group">
+              <div :class="'btn btn-primary text-uppercase '+nxc_status" @click="show_with_mode('nxc')">НОМ+ХАР+СЕР</div>
+            </div>
+          </div>
+
+        </div>
+
+
+
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
+          <small>Склад</small>
+          <select class="form-control" v-model="selected_sklad">
+            <option v-for="(i, index) in sklad" v-if="index===0" selected :value="i">{{i}}</option>
+            <option v-for="(i, index) in sklad" v-if="index!==0" :value="i">{{i}}</option>
+          </select>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12" style="margin-bottom: 10px;" v-if="form_doc_free.mode==='ИнфоЛист'">
+          <small>Сеть</small>
+          <select class="form-control" v-model="selected_torgovaya_set">
+            <option v-for="(i, index) in torgovie_seti" v-if="index===0" selected :value="i">{{i.Наименование}}</option>
+            <option v-for="(i, index) in torgovie_seti" v-if="index!==0" :value="i">{{i.Наименование}}</option>
+          </select>
+          <small>Номер поддона</small>
+          <input type="text" class="form-control" v-model="НомерПоддона">
+          <small>Вес поддона</small>
+          <input type="number" class="form-control" v-model="ВесПоддона">
+        </div>
+        <br>
+
+        <div class="col-md-12 col-sm-12 col-xs-12" id="check_item" v-for="item in scaning_free"
+          :key="item.Номенклатура.Ссылка">
+
+
+
+
+          <div class="alert alert-info bs-callout bs-callout-danger" :name="'check'+item.Номенклатура.Ссылка.Ссылка">
+            <div class="row">
+              <div class="col-md-10 col-sm-10 col-xs-10">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12" @click="OpenThisArticul(item.Номенклатура.Наименование)">
+                    <b>{{item.Номенклатура.Артикул}}</b> {{item.Номенклатура.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Характеристика.Наименование}}</div>
+                </div>
+                <div class="row" v-if="nxc_status==='disabled'">
+                  <div class="col-md-12 col-sm-12 col-xs-12">{{item.Серия.Наименование}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>ПЛУ : {{item.ПЛУ}}</b></div>
+                </div>
+                <div class="row">
+
+
+
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>к/к. {{item.КоличествоКоробок}}</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличество}} / зак
+                      {{item.имКоличествоВПересчетеНаКг}} кг</b></div>
+                  <div class="col-md-12 col-sm-12 col-xs-12"><b>тек {{item.ТекущееКоличествоВЕдиницахИзмерения}} / зак
+                      {{item.КоличествоУпаковок}} {{item.Номенклатура.ЕдиницаИзмерения.Наименование}}</b></div>
+                </div>
+
+              </div>
+              <div class="col-md-2 col-sm-2 col-xs-2">
+                <div class="row">
+                  <div class="col">
+
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <h5><b>Итог {{box_count_free}} Коробок</b></h5>
+          <h5><b>Итог {{weight_count_free}} Кг. </b></h5>
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase"
+                    onclick="form_doc_free.show(GetData('no_order_mode'))" tabindex="-1"><b>НАЗАД</b>
+                  </button>
+                </div>
+
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase"
+                    onclick="check_doc_free.SaveIn1C(form_doc_free.mode)" id="button_save_in_1c"
+                    tabindex="-1"><b>СОХРАНИТЬ В 1С</b>
+                  </button>
+
+
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="fast_window" v-if="articul_list_seen_free">
+
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-bottom: 13%;"><span>Коробок
+            <b>{{CountThisArticul_free}}</b> Шт.</span>
+
+
+
+          <div class="col-md-12 col-sm-12 col-xs-12">
+            <div>
+
+
+              <div v-for="item in scaning_response_free" :key="item.IDSec">
+                <scaning-tmp v-bind:item="item" obj="'check_doc_free'"></scaning-tmp>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="show" tabindex="-1"><b>НАЗАД</b>
+                  </button>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Форма проверки сканирования (без документа)-->
+
+    <!-- форма Администратора-->
+    <div class="fast_window" id="admin" v-show="seen">
+      <div class="col-md-12 col-sm-12 col-xs-12" style="padding-bottom: 13%;">
+        <h3>Панель администратора</h3>
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+          <div class="row alert alert-info" role="alert">
+            URL:<b>{{url}}</b>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+          <div class="row alert alert-success" role="alert">
+            <b>{{fio}}</b>
+          </div>
+        </div>
+
+
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs text-uppercase" role="tablist">
+          <li role="presentation" class="active"><a href="#nav-barcode" aria-controls="nav-barcode" role="tab"
+              data-toggle="tab">ШК</a></li>
+          <li role="presentation"><a href="#nav-application" aria-controls="nav-application" role="tab"
+              data-toggle="tab">Приложение</a></li>
+          <li role="presentation"><a href="#nav-storage" aria-controls="nav-storage" role="tab"
+              data-toggle="tab">Хранилище</a></li>
+          <li role="presentation"><a href="#nav-orders" aria-controls="nav-orders" role="tab"
+              data-toggle="tab">Заказы</a></li>
+          <li role="presentation"><a href="#nav-other" aria-controls="nav-other" role="tab" data-toggle="tab">Прочее</a>
+          </li>
+          <li role="presentation"><a href="#nav-log" aria-controls="nav-log" role="tab" data-toggle="tab"
+              @click="ShowLog()">Лог</a>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+
+
+          <div id="nav-barcode" role="tabpanel" class="tab-pane active " style="margin-top: 10px">
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <input type="file" id="file"><br>
+                <button class="btn btn-default text-uppercase" onclick="readFile(document.getElementById('file'))">Загрузить ШК из
+                  файла</button>
+                <div id="out"></div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;" hidden>
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" @click="EXECUTE(`DB_GetData(1)`)">Загрузить ШК из базы</div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <button class="btn btn-default text-uppercase" onclick="SetBarcods()">Загрузить ШК(с сервера)</button>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase"
+                  @click="EXECUTE(`getStorage(function(res){alert(res.length)},'1c','barcodes')`)">Количество
+                  загруженных
+                  ШК</div>
+              </div>
+            </div>
+
+          </div>
+          <div id="nav-application" role="tabpanel" class="tab-pane " style="margin-top: 10px">
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info text-uppercase" role="alert">
+                <div class="" v-if="this_android">
+                  <div class="btn btn-default" @click="UpdateApp">Обновить приложение</div><br>
+                </div>
+
+                <div class="text-uppercase" v-if="!this_android">
+                  <a class="btn btn-default text-uppercase" :title="url+'/barcode2020/hs/barcode/app-debug.apk'"
+                    :href="url+'/barcode2020/hs/barcode/app-debug.apk'" download style="
+              margin-top: 15px;
+              ">Обновить приложение (ссылка)</a>
+                </div>
+
+                <br>
+                <div>
+                  <button class="btn btn-default text-uppercase"
+                    onclick="swal(GetData('date_update')==null?'Неизвестно':GetData('date_update'))">Дата
+                    обновления</button>
+                </div>
+
+
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;" v-if="navigator.platform!=='Win32'">
+              <div class="row alert alert-info" role="alert">
+                <a class="btn btn-default text-uppercase" @click="OpenInWeb">Открыть в браузере</a>
+              </div>
+            </div>
+
+          </div>
+          <div id="nav-storage" role="tabpanel" class="tab-pane " style="margin-top: 10px">
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="div-switch"><span class="span-switch" style="width: 70vw;">Использовать локальное хранилище</span>
+                  <label class="switch">
+                    <input type="checkbox" name="" value="" v-model="use_local_db">
+                    <span class="slider round"></span>
+                  </label></div>
+                
+
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-danger text-uppercase" @click="ClearStorage">Очистить хранилище</div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" @click="TestDB">Проверка функционирования БД</div>
+              </div>
+            </div>
+
+          </div>
+          <div id="nav-orders" role="tabpanel" class="tab-pane " style="margin-top: 10px">
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="div-switch"><span class="span-switch" style="width: 70vw;">Использовать локальное хранилище для поиска заказов</span>
+                  <label class="switch">
+                    <input type="checkbox" name="" value="" v-model="use_local_orders">
+                    <span class="slider round"></span>
+                  </label></div>
+                
+
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase"
+                  @click="EXECUTE(`getStorage(function(res){alert(res.length)},'orders','orders')`)">Количество
+                  загруженных
+                  заказов</div>
+              </div>
+            </div>
+
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" @click="EXECUTE(`load_doc.ShowLoadOrders()`)">Загрузить Заказы</div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" onclick="SetTorgovieSeti()">Загрузить Торговые Сети</div>
+              </div>
+            </div>
+
+
+          </div>
+          <div id="nav-other" role="tabpanel" class="tab-pane " style="margin-top: 10px">
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="div-switch"><span class="span-switch" style="width: 70vw;">Контроль будущей даты производства</span>
+                  <label class="switch">
+                    <input type="checkbox" name="" value="" v-model="control_future_date">
+                    <span class="slider round"></span>
+                  </label></div>
+                
+
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="div-switch"><span class="span-switch" style="width: 70vw;">Использовать буфер обмена для сканирования</span>
+                  <label class="switch">
+                    <input type="checkbox" name="" value="" v-model="use_clip_board">
+                    <span class="slider round"></span>
+                  </label></div>
+                
+
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" @click="UseServer('ikar')">
+                  <span>использовать тестовый</span><br>
+                  <span>сервер ikar.reftp.ru</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+                <div class="btn btn-default text-uppercase" @click="UseServer('lyra')">использовать сервер lyra.reftp.ru</div>
+              </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12" style="padding-right: 9%;">
+              <div class="row alert alert-info" role="alert">
+
+
+                <div class="form-group">
+
+                  <textarea class="form-control" rows="3" v-model="user_param"></textarea>
+                </div>
+                <div class="btn btn-default text-uppercase" @click="EXECUTE(user_param)">Выполнить код</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="nav-log" role="tabpanel" class="tab-pane" style="margin-top:10px">
+            <div id="log-application" style="max-height: 400px;overflow: scroll;">
+              <div v-for="i in log">{{i}}</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12 navbar-fixed-bottom"
+          style="padding-bottom: 5px;background-color: white;">
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="btn-group btn-group-justified" role="group">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-default btn-lg text-uppercase" @click="close" tabindex="-1"><b>ЗАКРЫТЬ</b>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- форма Администратора-->
+
+    <!-- Формы диалогов-->
+    <div class="row container" id="qw" v-show="seen">
+      <div class="">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="qwbody">
+            <div class="">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="">
+                  <div class="col-md-1 col-sm-1 col-xs-1">
+                  </div>
+                  <div class="col-md-10 col-sm-10 col-xs-10">
+                    <div class="jumbotron">
+                      <span class="">{{question_window_text}}</span>
+                    </div>
+                  </div>
+                  <div class="col-md-1 col-sm-1 col-xs-1">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qwfooter">
+            <div class="navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="">
+                  <div class="btn-group btn-group-justified" role="group">
+                    <div class="btn-group" role="group">
+                      <button type="button" class="btn btn-warning btn-lg text-uppercase" @click="cancel" tabindex="-1">
+                        <b>ОТМЕНА</b>
+                      </button>
+                    </div>
+
+                    <div class="btn-group" role="group" id="ok_button_id">
+                      <button type="button" class="btn btn-success btn-lg text-uppercase" @click="ok" tabindex="-1">
+                        <b>ОК</b>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row container" id="msg" v-show="seen">
+      <div class="">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="msgbody">
+            <div class="">
+              <div class="col-md-1 col-sm-1 col-xs-1">
+              </div>
+              <div class="col-md-10 col-sm-10 col-xs-10">
+                <div class="jumbotron">
+                  <span class="">{{question_window_text}}</span>
+                </div>
+              </div>
+              <div class="col-md-1 col-sm-1 col-xs-1">
+              </div>
+            </div>
+          </div>
+          <div class="msgfooter navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+            <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="btn-group btn-group-justified" role="group">
+
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-info btn-lg text-uppercase" @click="ok" tabindex="-1"><b>ОК</b>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Формы диалогов-->
+
+    <!-- Заглушка-->
+    <div class="row" id="loading_holder" v-show="seen">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <img src="resurse/img/load.gif" alt="loading">
+      </div>
+    </div>
+    <!-- Заглушка-->
+    <!--  элемент открытия окна Администрирования-->
+    <div id="button_admin" onclick="admin.show()" class="setting" aria-hidden="true"></div>
+
+    <!--  элемент открытия окна Администрирования-->
+
+    <div class="navbar-fixed-top form_menu" id="status_bar_id">
+      <div class="status_bar " v-for="msg in msgs">
+        <div class="alert" role="alert">
+          <span class="text-uppercase"><b>{{msg}}</b></span>
+        </div>
+      </div>
+    </div>
+
+
+    <!--  Модальное окно для ручного ввода продукции -->
+    <div id="AddItemModalWindowVue">
+      <div class="modal fade" tabindex="-1" role="dialog" id="AddItemModalWindow">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                  aria-hidden="true">&times;</span></button>
+              <h4 v-if="much" class="modal-title" style="font-weight: bold;">{{Артикул}} {{Номенклатура}}
+                {{Характеристика}} ПЛУ: {{ПЛУ}}</h4>
+            </div>
+            <div class="modal-body">
+
+              <div class="form-group" v-if="!much">
+
+                <h3 style="font-weight: bold;text-align: center;text-transform: uppercase;" onclick="ШК.focus()">
+                  Штрихкод</h3>
+                <input type="text" class="form-control" id="ШК" v-model="ШК" @keyup.enter="Scaning">
+              </div>
+              <div v-if="much">
+                <div class="form-group">
+                  <label for="datab" class="control-label">Дата производства</label>
+                  <input type="date" class="form-control" id="datab" v-model="ДатаПроизводства">
+                </div>
+                <div class="form-group">
+                  <label for="datae" class="control-label">Годен до</label>
+                  <input type="date" class="form-control" id="datae" v-model="ГоденДо">
+                </div>
+                <div class="form-group">
+                  <label for="Количество" class="control-label">Вес на коробке</label>
+                  <input type="number" step="0.001" class="form-control" id="Количество" v-model="Количество">
+                </div>
+                <div class="form-group">
+                  <label for="ЕдиницаИзмерения" class="control-label">Единица измерения</label>
+                  <input type="text" class="form-control" id="ЕдиницаИзмерения" v-model="ЕдиницаИзмерения" readonly>
+                </div>
+                <div class="form-group">
+                  <label for="КоличествоВЕдиницахИзмерения" class="control-label">Количество в единицах
+                    измерения</label>
+                  <div class="input-group">
+                    <input type="number" step="1" v-if="ЕдиницаИзмерения==='шт'" class="form-control"
+                      id="КоличествоВЕдиницахИзмерения" v-model="КоличествоВЕдиницахИзмерения">
+                    <input type="number" step="0.001" v-if="ЕдиницаИзмерения!=='шт'" class="form-control"
+                      id="КоличествоВЕдиницахИзмерения" v-model="КоличествоВЕдиницахИзмерения">
+
+                    <span class="input-group-btn">
+                      <button class="btn btn-default text-uppercase" type="button"
+                        @click="КоличествоВЕдиницахИзмерения=Количество">КП</button>
+                    </span>
+                  </div>
+                </div>
+                <div class="form-group" v-if="false">
+                  <label for="Грузоместа" class="control-label">Количество коробок</label>
+                  <input type="number" class="form-control" id="Грузоместа" v-model="Грузоместа">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+
+              <button type="button" class="btn btn-primary btn-lg btn-block text-uppercase" v-if="much"
+                @click="Add()">Сохранить</button>
+              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" data-dismiss="modal"
+                @click="Close()">Закрыть</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+    </div>
+    <!--  Модальное окно для ручного ввода продукции -->
+
+
+
+  </div> <!-- /container -->
+
+  <script src="resurse/js/axios.min.js"></script>
+  <script src="resurse/js/vue.min.js"></script>
+  <script src="resurse/js/341jquery.min.js"></script>
+  <script src="resurse/js/bootstrap.min.js"></script>
+  <script src="resurse/js/url_to_base.js"></script>
+  <script src="other/base.js"></script>
+  <script src="other/barcode.js"></script>
+  <script src="other/upload_cordova.js"></script>
+  <script src="other/getting_prod.js"></script>
+  <script src="other/end.js"></script>
+  <script src="this_android.js"></script>
+</body>
+
+</html>

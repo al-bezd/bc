@@ -21,9 +21,31 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-const barcode = ref("")
+import {UserManager} from '../managers/user/UserManager'
+const barcode = ref(UserManager.instance.barcode)
+
 const seen = ref(true)
+const name = ref('form_select_user')
+
+function close(){
+    seen.value = false
+}
+
+function show(){
+    seen.value = true
+}
+
+document.addEventListener('go',(event:any)=>{
+    if(event.detail[0]===name.value){
+        show()
+    }else{
+        close()
+    }
+})
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-function getUser() { }
+function getUser() { 
+  UserManager.instance.uploadUser()
+}
 </script>
 
