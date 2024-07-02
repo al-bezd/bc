@@ -45,7 +45,8 @@ document.addEventListener('go',(event:any)=>{
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function getUser() { 
-  UserManager.instance.uploadUser()
+  UserManager.instance.setBarcode(barcode.value as string)
+  UserManager.instance.uploadUser(barcode.value as string)
 }
 </script>
 

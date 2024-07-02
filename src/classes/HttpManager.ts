@@ -1,12 +1,7 @@
-interface IResponse {
-  success: boolean;
-  data: any;
-  error: any;
-}
 export class HttpManager {
   static host = "http://lyra.reftp.ru";
   static pathToServer = "/barcode2020/hs/barcode/";
-  static init(){
+  static init() {
     //
   }
   static getHeaders() {
@@ -24,8 +19,14 @@ export class HttpManager {
       const response = await fetch(this.host + this.pathToServer + action, opt);
       const json = await response.json();
       return { success: true, data: json } as IResponse;
-    } catch (e) {
-      return { success: false, data: null, error: e } as IResponse;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Caught an error:", error.message);
+      } else {
+        console.error("Caught an unknown error:", error);
+      }
+      throw error
+      //return { success: false, data: null, error: e } as IResponse;
     }
   }
 
@@ -42,8 +43,20 @@ export class HttpManager {
       );
       const json = await response.json();
       return { success: true, data: json } as IResponse;
-    } catch (e) {
-      return { success: false, data: null, error: e } as IResponse;
+    } catch (error) {
+      //return { success: false, data: null, error: e } as IResponse;
+      if (error instanceof Error) {
+        console.error("Caught an error:", error.message);
+      } else {
+        console.error("Caught an unknown error:", error);
+      }
+      throw error
     }
   }
+}
+
+export interface IResponse {
+  success: boolean;
+  data: any;
+  error: any;
 }

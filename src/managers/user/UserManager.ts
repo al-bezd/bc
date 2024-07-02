@@ -31,9 +31,9 @@ export class UserManager extends BaseManager{
       this.emit('setBarcode',[val])
     }
 
-    async uploadUser() {
+    async uploadUser(id:string) {
         const params = {
-            "ID": this.barcode// Заменяем все вхождения " " на ""
+            "ID": id// Заменяем все вхождения " " на ""
           }
         
         const response = await HttpManager.get('get_user', params)

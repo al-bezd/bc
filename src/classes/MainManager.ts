@@ -3,6 +3,7 @@ import { BaseManager } from "./BaseManager";
 import { DBManager } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
 import { ShipmentManager } from "../managers/shippment/ShipmentManager";
+import { HttpManager } from "./HttpManager";
 
 export class MainManager extends BaseManager {
   static instance: MainManager;
