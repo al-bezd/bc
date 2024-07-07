@@ -1,22 +1,43 @@
+import { Ref, ref } from "vue";
+import { LocalStorageManager } from "./LocalStorageManager";
+
+export interface IWithCheckup{
+  РезультатПроверки:boolean
+}
+
 export class HttpManager {
-  static host = "http://lyra.reftp.ru";
-  static pathToServer = "/barcode2020/hs/barcode/";
+  static host= ref("http://lyra.reftp.ru");
+  static pathToServer = ref("/barcode2020/hs/barcode/");
+
   static init() {
     //
   }
+
+  static load() {
+   
+    HttpManager.host.value = LocalStorageManager.get('host')??HttpManager.host.value
+    HttpManager.pathToServer.value = LocalStorageManager.get('pathToServer')??HttpManager.pathToServer.value
+  }
+
   static getHeaders() {
     return {
-      "Content-Type": "application/json", // Указание типа содержимого
+      //"Content-Type": "application/json", // Указание типа содержимого
     };
   }
+
   static async get(action: string, params = {}): Promise<IResponse> {
+    const queryString = new URLSearchParams(Object.assign({},params)).toString();
+
+    // Формирование полного URL с параметрами запроса
+    const url = `${this.host.value}${this.pathToServer.value}${action}?${queryString}`;
+    console.log('get url ', url)
     const opt = {
       method: "get",
-      params: params,
+      // params: params,
       headers: this.getHeaders(),
     };
     try {
-      const response = await fetch(this.host + this.pathToServer + action, opt);
+      const response = await fetch(url, opt);
       const json = await response.json();
       return { success: true, data: json } as IResponse;
     } catch (error) {
@@ -30,16 +51,18 @@ export class HttpManager {
     }
   }
 
-  static async post(action: string, data: any): Promise<IResponse> {
-    const params = {
+  static async post(action: string, data: any, params={}): Promise<IResponse> {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${this.host.value}${this.pathToServer.value}${action}?${queryString}`;
+    const opt = {
       method: "post",
       body: JSON.stringify(data),
       headers: this.getHeaders(),
     };
     try {
       const response = await fetch(
-        this.host + this.pathToServer + action,
-        params
+        url,
+        opt
       );
       const json = await response.json();
       return { success: true, data: json } as IResponse;
@@ -52,6 +75,20 @@ export class HttpManager {
       }
       throw error
     }
+  }
+
+  static setHost(host:string){
+    this.host.value = host
+    LocalStorageManager.set('host',host)
+  }
+
+  static setPath(path:string){
+    this.pathToServer.value = path
+    LocalStorageManager.set('pathToServer', path)
+  }
+
+  static getAppLink(){
+    return this.host.value+this.pathToServer.value+'/app-debug.apk'
   }
 }
 

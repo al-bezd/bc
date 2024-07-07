@@ -4,16 +4,17 @@ import { DBManager } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
 import { ShipmentManager } from "../managers/shippment/ShipmentManager";
 import { HttpManager } from "./HttpManager";
+import { Ref, ref } from "vue";
 
 export class MainManager extends BaseManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
-  public currentOption: string | null = null; /// Текущее активированное окно
-  public currentUser: any = null; /// Текущий пользователь 
+  
+  //public currentUser: any = null; /// Текущий пользователь 
   public scanings: any[] = []; /// Сканирования 
 
-  public mainStore: string | null = null; /// Основной склад
+  public mainStore: Ref<string | null> = ref(null); /// Основной склад
 
   constructor() {
     super();
@@ -21,16 +22,23 @@ export class MainManager extends BaseManager {
   }
 
   static init(): void {
+    (String.prototype as any).delSpaces = function() {
+      return this.replace(/\s/g, "");
+    };
     new MainManager();
   }
 
+  
+
+
+
   /// берем контейнеры из объекта пользователя
   initContainers() {
-    const data = this.currentUser === null ? [] : this.currentUser.containers
-    LocalStorageManager.set(
-      "containers",
-      data
-    );
+    // const data = this.currentUser === null ? [] : this.currentUser.containers
+    // LocalStorageManager.set(
+    //   "containers",
+    //   data
+    // );
   }
 
   /// Загружаем штрихкоды с сервера
@@ -38,8 +46,8 @@ export class MainManager extends BaseManager {
     //status_bar.msgs.push("ИДЕТ ЗАГРУЗКА ДАННЫХ!");
     this.emit('uploadBarcodes:start')
     const t1 = Date.now();
-    const params = { 'get_barcods': true }
-    const response = await HttpManager.get('execute', params)
+    const params = { "get_barcods": "true" }
+    const response = await HttpManager.get('/execute', params)
     if(response.success){
         const t2 = ((Date.now() - t1) / 1000) / 60;
         console.log(`база загружена за ${t2.toFixed(2)} мин.`);
@@ -54,28 +62,35 @@ export class MainManager extends BaseManager {
 
   /// Вызывается при старте страницы
   load(): void {
-    this.currentOption = LocalStorageManager.get("current_option");
-    this.currentUser = LocalStorageManager.get("current_user", true);
+    this.loadAsync()
+  }
+
+  async loadAsync(){
+    const mainStoreTmp = await DBManager.getData('mainStore')
+    if(mainStoreTmp){
+      this.mainStore.value = mainStoreTmp
+    }
+    
+    
+    //this.currentUser = LocalStorageManager.get("current_user", true);
     this.initContainers();
     this.scanings = LocalStorageManager.get("scaning_response", true) ?? [];
-    ShipmentManager.instance.load();
+    //ShipmentManager.instance.load();
 
-    if (this.currentOption) {
-      this.emit("showWindow", [this.currentOption]);
-    }
+    
   }
 
   /// Скачиваем все установленные к выбору Торговые сети (необходимо для создания информационного листа)
   async uploadTorgovieSeti(): Promise<void> {
     const params = {
-      get_torgovie_seti: true,
+      "get_torgovie_seti": "true",
     };
-    const resposne = await HttpManager.get("execute", { params: params });
+    const resposne = await HttpManager.get("/execute", params);
     if (resposne.success) {
       DBManager.deleteDatabase("torgovie_seti");
       DBManager.setFile(
-        { id: Date.now(), data: resposne.data },
-        "1c",//"torgovie_seti",
+        { id: Date.now().toString(), data: resposne.data },
+        "torgovie_seti",
         "torgovie_seti"
       );
 
@@ -107,8 +122,8 @@ export class MainManager extends BaseManager {
   }
 
   setMainStore(val:string){
-    this.mainStore = val
-    LocalStorageManager.set("mainStore", this.mainStore) 
+    this.mainStore.value = val
+    DBManager.setData("mainStore", val) 
     this.emit('setmainStore',[this.mainStore])
   }
 
@@ -119,7 +134,7 @@ export class MainManager extends BaseManager {
         }
         // В строке выше мы передаем закодированный метод на языке 1С который возвращает нам основной склад птицефабрики
         //ТекстРезультат=РФИТ_Функции.рсСериализацияСсылкиВСтруктуруПростойОбъект(РФИТ_Функции.ПолучитьСсылкуОсновногоСкладаНаСервере());
-        const response = await HttpManager.get('execute',{ params: params })
+        const response = await HttpManager.get('/execute', params)
         if(response.success){
             this.setMainStore(response.data)
             

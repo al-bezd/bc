@@ -1,20 +1,24 @@
 <template>
     <!-- Окно загрузки документа для приемки-->
-    <div class="" id="getting_prod_load" v-show="seen">
+    <div class="p-3" id="getting_prod_load" v-show="seen">
       <div class="jumbotron">
         <h4>Отсканируйте ШК с сопроводительной накладной в поле</h4>
-        <div class="form-group form-group-lg">
-          <div class="">
-            <input type="text" class="form-control bc_input" placeholder="Введите штрихкод" v-model="barcode"
-              @keyup.enter="getDocumentOrder" id="getting_prod_bc">
-          </div>
+        <div class="form-group form-group-lg mb-3">
+          <input 
+            type="text" 
+            class="form-control bc_input" 
+            placeholder="Введите штрихкод" 
+            v-model="barcode"
+            @keyup.enter="getDocumentOrder" 
+            id="getting_prod_bc">
         </div>
         <div class="row">
           <div class="col-md-12 col-sm-12 col-xs-12">
-            <div class="list-group">
-              <button type="button" class="btn btn-default btn-lg btn-block text-uppercase" @click="closeWithConfirm" tabindex="-1"><b>НАЗАД</b>
+            <button 
+              class="btn btn-outline-primary btn-lg btn-block text-uppercase w-100" 
+              @click="closeWithConfirm" 
+              tabindex="-1"><b>НАЗАД</b>
               </button>
-            </div>
           </div>
         </div>
       </div>
@@ -26,7 +30,7 @@
           </div>
           <div class="">
             <button class="btn btn-info btn-block text-uppercase" @click="getDocumentById(item.Ссылка.Ссылка)">Продолжить</button>
-            <button class="btn btn-danger btn-block text-uppercase" @click="closeDocumnetById(item.Ссылка.Ссылка)">Закрыть</button>
+            <button class="btn btn-danger btn-block text-uppercase" @click="deleteDocumnetById(item.Ссылка.Ссылка)">Закрыть</button>
           </div>
         </div>
       </div>
@@ -37,26 +41,41 @@
 import { GettingManager } from '@/managers/getting/GettingManager';
 import { NotificationManager } from '@/classes/NotificationManager';
 import {  ref } from 'vue';
-
-const name = ref('getting_prod_load')
+import { RoutingManager } from '@/classes/RoutingManager';
+import { ScanerManager } from '@/classes/ScannerManager';
 
 const seen = ref(false)
+RoutingManager.instance.registry(RoutingManager.route.gettingProductionLoad,show,close)
+
 
 const documents = ref(GettingManager.instance.documents)
-const barcode = ref(GettingManager.instance.barcode)
+const barcode = ref("")
+
+ScanerManager.instance.onScan((value)=>{
+  if(!seen.value) {
+    return
+  }
+  barcode.value = value
+  GettingManager.instance.getDocumentByBarcode(barcode.value)
+})
 
 async function closeWithConfirm(){
-    console.log('closeWithConfirm')
-    const response = await NotificationManager.showConfirm('da?')
+    const response = await NotificationManager.showConfirm('Вы уверенны что хотите перейти обратно?')
     if(response){
-        //
-        close()
+        //close()
+        GettingManager.instance.clear()
+        RoutingManager.instance.pushName(RoutingManager.route.mainMenu)
+
     }
 }
 
 /// Получить документ заказа
-function getDocumentOrder(){
-    console.log('getDocumentOrder')
+async function getDocumentOrder(){
+   const response = await GettingManager.instance.getDocumentByBarcode(barcode.value.delSpaces())
+   if(response){
+    GettingManager.instance.setCurrentDocument(response)
+    RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm)
+   }
 }
 
 function close(){
@@ -72,27 +91,23 @@ async function getDocumentById(id:string){
     const response = await GettingManager.instance.getDocumentById(id)
     if(response){
         //getting_prod_form.show()
-        GettingManager.instance.emit('go',['getting_prod_form'])
+        //GettingManager.instance.emit('go',['getting_prod_form'])
+        RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm)
 
     }
 }
-
-async function closeDocumnetById(id:string){
-    const response = await GettingManager.instance.closeDocumentById(id)
-    if(response){
-        //getting_prod_load.show()
-        GettingManager.instance.emit('go',['getting_prod_form'])
-    }
+/// удаляет ранее добавленый документ из списка документов
+async function deleteDocumnetById(id:string){
+    const response = await GettingManager.instance.deleteDocumentById(id)
+    // if(response){
+    //     //getting_prod_load.show()
+    //     //GettingManager.instance.emit('go',['getting_prod_form'])
+    //     RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm)
+    // }
 
 }
 
-document.addEventListener('go',(event:any)=>{
-    if(event.detail[0]===name.value){
-        show()
-    }else{
-        close()
-    }
-})
+
 
 
 

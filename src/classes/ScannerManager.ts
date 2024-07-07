@@ -1,17 +1,53 @@
+import { ref } from "vue";
+import { LocalStorageManager } from "./LocalStorageManager";
 import { MainManager } from "./MainManager";
 import { NotificationManager } from "./NotificationManager";
+import { BaseManager } from "./BaseManager";
 
-export class ScanerManager {
+function stringToBool(val:string|null){
+  if(val==='true'){
+    return true
+  } else if(val==='false'){
+    return false
+  } else if (val===null){
+    return null
+  }
+}
+
+export class ScanerManager extends BaseManager {
   static instance: ScanerManager;
 
-  constructor() {
-    ScanerManager.instance = this;
-  }
   /// использовать буфер обмена при работе со сканером
-  public useClipBoard = true;
+  public useClipBoard = ref(true);
 
   /// кнопка которая будет нажиматься после сканирования настраивается со стороны сканера
-  public scanKey = "";
+  public scanKey = ref("F13");
+
+  constructor() {
+    super()
+    ScanerManager.instance = this;
+  }
+
+  static init(){
+    new ScanerManager()
+  }
+
+  load(){
+    this.scanKey.value = LocalStorageManager.get('scanKey')??"F13"
+    this.useClipBoard.value = stringToBool(LocalStorageManager.get('useClipBoard'))??true
+  }
+
+  
+
+  setScanKey(value:string){
+    this.scanKey.value = value
+    LocalStorageManager.set('scanKey', value)
+  }
+
+  setUseClipBoard(value:boolean){
+    this.useClipBoard.value = value
+    LocalStorageManager.set('useClipBoard', value)
+  }
 
   /// Предварительная обработка шк
   barcodeWrapper(barcode: string) {
@@ -27,24 +63,24 @@ export class ScanerManager {
   }
 
   afterScan(event: KeyboardEvent) {
-    if (event.key === this.scanKey) {
+    if (event.key === this.scanKey.value) {
       const cordova = MainManager.instance.cordova;
       cordova.plugins.clipboard.paste((text: string) => {
         if (text !== "") {
-          document.dispatchEvent(
-            new CustomEvent("afterScan", {
-              detail: [this.barcodeWrapper(text)],
-            })
-          );
+          this.emit("onScan",[this.barcodeWrapper(text)])
         }
         cordova.plugins.clipboard.clear();
       });
     }
   }
+
+  onScan(callback:(text:string)=>void){
+    this.connect('onScan',(data)=>{callback(data[0])})
+  }
 }
 
 document.addEventListener("keyup", (event) => {
-  if (!ScanerManager.instance.useClipBoard) {
+  if (!ScanerManager.instance.useClipBoard.value) {
     return;
   }
   ScanerManager.instance.afterScan(event);

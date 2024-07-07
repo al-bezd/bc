@@ -10,7 +10,8 @@ module.exports = {
       useBuiltIns: 'entry',
       corejs: 3,
       targets: {
-         android: '7'
+         android: '7',
+         chrome:50
       }
     }]
   ]

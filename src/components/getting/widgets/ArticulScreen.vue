@@ -1,0 +1,74 @@
+<template>
+    <div class="fast_window" v-if="seen">
+
+<div class="col-12 bm-3">
+    <span>Коробок <b>{{countThisArticul}}</b> Шт.</span>
+    <div class="col-12" id="fast_window_getting_prod_check">
+        <div>
+            <GettingProdFormItem v-for="item in prodList"  :key="item.IDSec" :data="item" @delete="itemDelete" />
+            <!--<div v-for="item in prodList" :key="item.IDSec">
+            <scaning-tmp v-bind:item="item" obj="'getting_prod_check'"></scaning-tmp>
+            </div>-->
+        </div>
+    </div>
+</div>
+
+<div class="col-12 navbar-fixed-bottom" style="padding-bottom: 5px;background-color: white;">
+  <div class="row">
+    <div class="col-12">
+      <div class="btn-group btn-group-justified" role="group">
+        <button type="button" class="btn btn-primary btn-lg text-uppercase w-100" @click="close" ><b>НАЗАД</b>
+        </button>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</template>
+<script setup lang="ts">
+import { Ref, computed, ref } from 'vue';
+import GettingProdFormItem from '@/components/getting/widgets/GettingProdFormItem.vue';
+import { IScaning } from '@/interfaces/IScaning';
+import { GettingManager } from '@/managers/getting/GettingManager';
+import { NotificationManager } from '@/classes/NotificationManager';
+const seen = ref(false)
+const currentArticul:Ref<IScaning|null> = ref(null)
+const prodList = computed(()=>{
+    return GettingManager.instance.currentScanings.value.filter((x)=>{
+        return x.Номенклатура.Наименование==currentArticul.value
+    })
+})
+const countThisArticul = computed(()=>{
+    let Count = 0
+    if(currentArticul.value){
+
+        for(const item of prodList.value){
+            Count+=item.Количество
+        }
+    }
+    return Count
+})
+function close(){
+    seen.value = false
+}
+
+function show(){
+    seen.value = true
+}
+
+async function itemDelete(item:IScaning){
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+    ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`
+  const answerIsTrue = await NotificationManager.showConfirm(text)
+  if(answerIsTrue){
+    GettingManager.instance.deleteScaning(item)
+  }
+}
+
+GettingManager.instance.connect('openArticulScreen',(data)=>{
+    currentArticul.value = data[0]
+    show()
+})
+</script>

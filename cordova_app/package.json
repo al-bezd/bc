@@ -15,7 +15,6 @@
   "devDependencies": {
     "cordova-android": "^9.1.0",
     "cordova-browser": "^7.0.0",
-    "cordova-httpd": "github:floatinghotpot/cordova-httpd",
     "cordova-plugin-file": "^6.0.2",
     "cordova-plugin-whitelist": "^1.3.5"
   },
@@ -26,8 +25,8 @@
     ],
     "plugins": {
       "cordova-plugin-whitelist": {},
-      "cordova-plugin-file": {},
-      "com.rjfun.cordova.httpd": {}
+      "cordova-plugin-file": {}
+      
     }
   }
 }

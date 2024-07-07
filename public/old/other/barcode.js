@@ -115,7 +115,10 @@ try {
         getting_prod_load.show()
       },
       exit() {
-        qw.show("Вы действительно хотите выйти?",  ()=> { form_select_user.show(); RemoveData("current_user"); }, form_menu.show, {})
+        qw.show(
+          "Вы действительно хотите выйти?",  
+          ()=> { form_select_user.show(); RemoveData("current_user"); }, 
+          form_menu.show, {})
       }
     }
   })
