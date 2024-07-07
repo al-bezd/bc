@@ -4,15 +4,14 @@ import { DBManager } from "../../classes/DBManager"
 import { MainManager } from "../../classes/MainManager"
 import { NotificationManager } from "../../classes/NotificationManager"
 import { HttpManager } from "../../classes/HttpManager"
-import { Ref, ref } from "vue"
+import { Ref, ref, toRaw } from "vue"
+import { IDocument, IUser } from "@/interfaces/IDocument"
 
-export interface IUser{
-  Ссылка:any,
-  ФИО:string
-}
+
 
 export class UserManager extends BaseManager {
   static instance: UserManager
+  private baseName = 'user_docs'
 
   //public barcode:string|null = null
   public controlFutureDate = ref(false)
@@ -92,11 +91,11 @@ export class UserManager extends BaseManager {
         MainManager.instance.uploadTorgovieSeti() //SetTorgovieSeti() // Скачиваем все установленные к выбору Торговые сети (необходимо для создания информационного листа)
         MainManager.instance.uploadMainStore() // Загружаем инфу по основному складу
         this.setUser(response.data)
-        const baseName = 'user_docs'
+        //const baseName = 'user_docs'
         /// поиск в базе user_docs документов по данному пользователю
-        const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
+        const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, this.baseName, this.baseName)
         if (record !== null) {
-          await DBManager.setFileAsync( { data: { docs: [] }, id: this.user.value!.Ссылка.Ссылка }, baseName, baseName)
+          await this.saveUserDocs([])
         }
         NotificationManager.instance.playGood()
         return true
@@ -189,6 +188,39 @@ export class UserManager extends BaseManager {
     //   })
     //this.barcode = "" // очищаем поле ШК на форме авторизации пользователя
     //this.setBarcode("")
+  }
+
+  async getUserDocuments(){
+    if(this.user.value){
+      const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, this.baseName, this.baseName)
+    return docs
+    }
+    return null
+    
+  }
+
+  async saveUserDocs(docs:IDocument[]){
+    if(this.user.value){
+      const tmpData = toRaw({ data: { docs: docs.map((x:IDocument)=> toRaw(x)) }, id: this.user.value!.Ссылка.Ссылка })
+      const result = await DBManager.setFileAsync(tmpData, this.baseName, this.baseName)
+      return result
+    }
+    return false
+    
+  }
+
+  async getGettingProdDocuments():Promise<IDocument[]>{
+    const res = await this.getUserDocuments()
+    const documents = []
+    if(res){
+      const dosc:IDocument[]=res.data.docs
+      for(const doc of dosc){
+        if(doc.Ссылка.Вид==="ДвижениеПродукцииИМатериалов"){
+          documents.unshift(doc)
+        }
+      }
+    }
+    return documents
   }
 
 }

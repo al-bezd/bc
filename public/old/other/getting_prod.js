@@ -298,73 +298,73 @@ getting_prod_check = new Vue({
             y.ВЗаказе = true
         }
       }
-    }
+      }
 
-    // Сортировка
-    this.all_item.sort((a, b) =>{
-      a.Артикул - b.Артикул
-    })
+      // Сортировка
+      this.all_item.sort((a, b) =>{
+        a.Артикул - b.Артикул
+      })
 
-    for (i of this.all_item) {
-      ВПроцСоотношении=Math.round((100/i.КоличествоУпаковок)*i.ТекущееКоличествоВЕдиницахИзмерения)
-      if (String(ВПроцСоотношении)==="NaN") {
-        ВПроцСоотношении=0
+      for (i of this.all_item) {
+        ВПроцСоотношении=Math.round((100/i.КоличествоУпаковок)*i.ТекущееКоличествоВЕдиницахИзмерения)
+        if (String(ВПроцСоотношении)==="NaN") {
+          ВПроцСоотношении=0
+        }
+        if (ВПроцСоотношении===100) {
+          i.cls=" alert alert-success "
+        }
+        if (ВПроцСоотношении>100) {
+          i.cls=" alert alert-warning "
+          this.КвантыНеСоблюдены=true
+        }
+        if (ВПроцСоотношении<100) {
+          i.cls=" alert alert-info "
+        }
+        if (ВПроцСоотношении===0) {
+          i.cls=" alert alert-danger "
+        }
+      if (ВПроцСоотношении>110) {
+          i.cls=" alert alert-orange "
+        }
+        i.ВПроцСоотношении=ВПроцСоотношении
+        //this.weight_count+=i.ТекущееКоличество
       }
-      if (ВПроцСоотношении===100) {
-        i.cls=" alert alert-success "
+      //this.weight_count=rounded(this.weight_count)
+      if (this.all_item.filter(i=>i.cls===' alert alert-success ').length===this.all_item.length){
+        doc=GetData("prod_doc",'j')
+        doc.completed=true
+        SetData("prod_doc",doc)
+      }else{
+        doc=GetData("prod_doc",'j')
+        doc.completed=false
+        SetData("prod_doc",doc)
       }
-      if (ВПроцСоотношении>100) {
-        i.cls=" alert alert-warning "
-        this.КвантыНеСоблюдены=true
-      }
-      if (ВПроцСоотношении<100) {
-        i.cls=" alert alert-info "
-      }
-      if (ВПроцСоотношении===0) {
-        i.cls=" alert alert-danger "
-      }
-	  if (ВПроцСоотношении>110) {
-        i.cls=" alert alert-orange "
-      }
-      i.ВПроцСоотношении=ВПроцСоотношении
-      //this.weight_count+=i.ТекущееКоличество
-    }
-    //this.weight_count=rounded(this.weight_count)
-    if (this.all_item.filter(i=>i.cls===' alert alert-success ').length===this.all_item.length){
-      doc=GetData("prod_doc",'j')
-      doc.completed=true
-      SetData("prod_doc",doc)
-    }else{
-      doc=GetData("prod_doc",'j')
-      doc.completed=false
-      SetData("prod_doc",doc)
-    }
 
-    //this.item_from_send=arr_item;
-    // заполняем массив для отправки номенкл хар серия
-    for (i of scaning) {
-      i.ТекущееКоличество=0
-	    i.ТекущееКоличествоВЕдиницахИзмерения=0
-      Грузоместа=0
-      for (y of prod_list) {
-        if ((i.Номенклатура.Наименование   === y.Номенклатура.Наименование )&&
-        (i.Характеристика.Наименование === y.Характеристика.Наименование )&&
-        (i.Серия.Наименование          === y.Серия.Наименование ))
-        {
-          Грузоместа+=y.Грузоместа
-          i.ТекущееКоличество+=rounded(y.Количество) //Number(prod_list[y].Количество.toFixed(3))
-          i.ТекущееКоличествоВЕдиницахИзмерения+=rounded(y.КоличествоВЕдиницахИзмерения)
-          if (i.Номенклатура.ЕдиницаИзмерения.Наименование==="шт") {
-            i.ТекущееКоличествоВЕдиницахИзмерения = rounded(i.ТекущееКоличествоВЕдиницахИзмерения,0)
+      //this.item_from_send=arr_item;
+      // заполняем массив для отправки номенкл хар серия
+      for (i of scaning) {
+        i.ТекущееКоличество=0
+        i.ТекущееКоличествоВЕдиницахИзмерения=0
+        Грузоместа=0
+        for (y of prod_list) {
+          if ((i.Номенклатура.Наименование   === y.Номенклатура.Наименование )&&
+          (i.Характеристика.Наименование === y.Характеристика.Наименование )&&
+          (i.Серия.Наименование          === y.Серия.Наименование ))
+          {
+            Грузоместа+=y.Грузоместа
+            i.ТекущееКоличество+=rounded(y.Количество) //Number(prod_list[y].Количество.toFixed(3))
+            i.ТекущееКоличествоВЕдиницахИзмерения+=rounded(y.КоличествоВЕдиницахИзмерения)
+            if (i.Номенклатура.ЕдиницаИзмерения.Наименование==="шт") {
+              i.ТекущееКоличествоВЕдиницахИзмерения = rounded(i.ТекущееКоличествоВЕдиницахИзмерения,0)
+            }
           }
         }
+        i.Грузоместа = Грузоместа
       }
-      i.Грузоместа = Грузоместа
-    }
-    this.item_from_send=scaning
+      this.item_from_send=scaning
 
-    this.box_count    = GetCount(prod_list, "Грузоместа")
-    this.weight_count = rounded(GetCount(prod_list, "Количество"))
+      this.box_count    = GetCount(prod_list, "Грузоместа")
+      this.weight_count = rounded(GetCount(prod_list, "Количество"))
     },
     articul_list_seen(){
       

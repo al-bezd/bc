@@ -19,7 +19,7 @@
         <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
       </h5>
       <h5>
-        <b>Итог {{ weightCount }} Кг. </b>
+        <b>Итог {{ weightCount }} Кг. из {{ weightFromDocument }}</b>
       </h5>
     </div>
 
@@ -28,24 +28,13 @@
         type="button"
         class="btn btn-warning btn-lg text-uppercase"
         @click="closeWithQuest"
-        tabindex="-1"
       >
         <b>НАЗАД</b>
       </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-lg text-uppercase"
-        @click="save"
-        tabindex="-1"
-      >
+      <button type="button" class="btn btn-primary btn-lg text-uppercase" @click="save">
         <b>СОХРАНИТЬ</b>
       </button>
-      <button
-        type="button"
-        class="btn btn-success btn-lg text-uppercase"
-        @click="send"
-        tabindex="-1"
-      >
+      <button type="button" class="btn btn-success btn-lg text-uppercase" @click="send">
         <b>ПРИНЯТЬ</b>
       </button>
     </div>
@@ -58,12 +47,19 @@
 import GettingProdCheckItem from "./widgets/GettingProdCheckItem.vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { GettingManager } from "@/managers/getting/GettingManager";
-import { Ref, computed, ref } from "vue";
+import { Ref, computed, ref, toRaw } from "vue";
 import ArticulScreen from "./widgets/ArticulScreen.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { GetCount } from "@/functions/GetCount";
-import { IGettingProductionProductItem } from "@/managers/getting/interfaces";
+import {
+  IGettingProductionDocument,
+  IGettingProductionProductItem,
+  IGettingProductionProductTotalItem,
+} from "@/managers/getting/interfaces";
+import { rounded } from "@/functions/rounded";
+import { UserManager } from "@/managers/user/UserManager";
+import { HttpManager } from "@/classes/HttpManager";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -73,6 +69,7 @@ RoutingManager.instance.registry(
 const seen = ref(false);
 
 const allItem: Ref<any> = ref([]);
+const itemForSend: Ref<any> = ref([]);
 const оитНомерПалета = computed(() => {
   return GettingManager.instance.currentDocument.value?.оитНомерПалета;
 });
@@ -84,36 +81,135 @@ const weightCount = computed(() => {
   return GetCount(GettingManager.instance.currentScanings.value, "Количество");
 });
 
+const weightFromDocument = computed(() => {
+  return GetCount(
+    GettingManager.instance.currentDocument.value?.Товары ?? [],
+    "Количество"
+  );
+});
+
 const docName = computed(() => {
   if (GettingManager.instance.currentDocument.value) {
     return GettingManager.instance.currentDocument.value!.Наименование;
   }
   return "Документ не найден";
 });
+
 const оитКоличествоКоробок = computed(() => {
   if (GettingManager.instance.currentDocument.value) {
     return GettingManager.instance.currentDocument.value!.оитКоличествоКоробок;
   }
   return "";
 });
+
+const КвантыНеСоблюдены = ref(false);
+const sendIsStart = ref(false); /// тригер если сохранение на сервер начато, нучно что бы дважды не нажимали
+const saveIsStart = ref(false); /// тригер если сохранение в локальную БД начато, нучно что бы дважды не нажимали
+
 function close() {
   seen.value = false;
 }
 
 function show() {
   seen.value = true;
+  const totalTable = createUniqProductionList(
+    GettingManager.instance.currentDocument.value?.Товары ?? []
+  );
+
+  allItem.value = fillCurrentResult(
+    totalTable,
+    GettingManager.instance.currentScanings.value
+  );
+
+  //console.log("allItem ", toRaw(allItem.value));
 }
 
 async function closeWithQuest() {
   RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm);
 }
 
-function save() {
-  //
+/// Сохраняем текущее состояние документа в локальную базу данных
+async function save() {
+  if (saveIsStart.value) {
+    return;
+  }
+  saveIsStart.value = true;
+  const currentDocLink = GettingManager.instance.currentDocument.value?.Ссылка.Ссылка;
+  const userDocs = await UserManager.instance.getUserDocuments();
+  let isFind = false;
+  if (userDocs) {
+    for (const userDoc of userDocs.data.docs) {
+      if (userDoc.Ссылка.Ссылка == currentDocLink) {
+        isFind = true;
+        userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
+          toRaw(x)
+        );
+        const saveRes = await UserManager.instance.saveUserDocs(userDocs.data.docs);
+        if (saveRes) {
+          NotificationManager.swal("Сохранено");
+        }
+        break;
+      }
+    }
+    if (!isFind) {
+      const userDoc: IGettingProductionDocument = GettingManager.instance.currentDocument
+        .value!;
+      userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
+        toRaw(x)
+      );
+      userDocs.data.docs.unshift(userDoc);
+      const saveRes = await UserManager.instance.saveUserDocs(userDocs.data.docs);
+      if (saveRes) {
+        NotificationManager.swal("Сохранено");
+      }
+    }
+  } else {
+    const errorText =
+      "У пользователя не проинициализированы документы в локальном хранилище, нету записей по пользователю в локальном хранилище";
+    console.log(errorText);
+    NotificationManager.swal(errorText);
+  }
+  saveIsStart.value = false;
 }
 
-function send() {
-  //
+async function send() {
+  if (sendIsStart.value) {
+    return;
+  }
+  const doc: IGettingProductionDocument = GettingManager.instance.currentDocument.value!;
+  if (boxCount.value !== doc.оитКоличествоКоробок) {
+    NotificationManager.swal(
+      "Количество коробок по факту не совпадает с количеством по документу"
+    );
+    return;
+  }
+
+  const params = {
+    Наименование: doc.Ссылка.Наименование,
+    Тип: doc.Ссылка.Тип,
+    Вид: doc.Ссылка.Вид,
+    Ссылка: doc.Ссылка.Ссылка,
+    Товары: Object.assign([], toRaw(itemForSend.value)),
+    Пользователь: toRaw(UserManager.instance.user.value),
+    check_prod_doc: true,
+  };
+
+  // qw.show("",console.log,getting_prod_check.show);
+  // $('#ok_button_id').hide();
+  // qw.question_window_text = 'Ожидайте записи документа!!!';
+  sendIsStart.value = true;
+  const response = await HttpManager.post("/execute", params);
+  sendIsStart.value = false;
+  if (response.success) {
+    if (response.data.РезультатПроверки) {
+      NotificationManager.swal(response.data.Текст);
+      GettingManager.instance.clear();
+      RoutingManager.instance.pushName(RoutingManager.route.gettingProductionLoad);
+    }
+  } else {
+    NotificationManager.swal(response.data.Текст);
+    RoutingManager.instance.pushName(RoutingManager.route.gettingProductionCheck);
+  }
 }
 
 function openArticulScreen(productName: string) {
@@ -122,33 +218,119 @@ function openArticulScreen(productName: string) {
   }
 }
 
-allItem.value = createUniqProductionList(
-  GettingManager.instance.currentDocument.value?.Товары??[]
-);
-
 function createUniqProductionList(
   products: IGettingProductionProductItem[]
-): IGettingProductionProductItem[] {
+): IGettingProductionProductTotalItem[] {
   const list: any = {};
   for (const item of products) {
-    const НоменклатураСсылка = item.Номенклатура.Ссылка.Ссылка;
-    const ХарактеристикаСсылка = item.Характеристика.Ссылка.Ссылка;
-    const СерияСсылка = item.Серия.Ссылка;
-    const key = НоменклатураСсылка + ХарактеристикаСсылка + СерияСсылка;
+    const key = getRowKey(item);
+
     // eslint-disable-next-line no-prototype-builtins
     if (!list.hasOwnProperty(key)) {
       list[key] = Object.assign({}, item);
+      list[key].key = key;
+      list[key].cls = " alert alert-primary ";
+      list[key].ВПроцСоотношении = 0;
+      list[key].ТекущееКоличество = 0;
+      list[key].ТекущееКоличествоВЕдиницахИзмерения = 0;
+      list[key].КоличествоКоробок = 0;
+
       continue;
     }
-    list[key].Количество += item.Количество;
-    list[key].КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
-    list[key].Грузоместа += item.Грузоместа;
+    const dataItem: IGettingProductionProductTotalItem = list[key];
+    dataItem.Количество += item.Количество;
+    dataItem.КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
+    dataItem.КоличествоКоробок += item.Грузоместа;
+    // ВПроцСоотношении = Math.round(
+    //   (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
+    // );
   }
+
   const result = [];
   for (const key of Object.keys(list)) {
     result.unshift(list[key]);
   }
   return result;
+}
+
+function getRowKey(row: IGettingProductionProductItem) {
+  const НоменклатураСсылка = row.Номенклатура.Ссылка.Ссылка;
+  const ХарактеристикаСсылка = row.Характеристика.Ссылка.Ссылка;
+  const СерияСсылка = row.Серия.Наименование; //Используем наименование как ссылку потому что мы идентифицируем в приложении серию по наименованию
+  const key = НоменклатураСсылка + ХарактеристикаСсылка + СерияСсылка;
+  return key;
+}
+function fillCurrentResult(
+  tableTotal: IGettingProductionProductTotalItem[],
+  scanings: IScaning[]
+) {
+  for (const scan of scanings) {
+    const scanKey = getRowKey(scan);
+    for (const tableRow of tableTotal) {
+      const tableRowKey = getRowKey(tableRow);
+      if (tableRowKey == scanKey) {
+        tableRow.ТекущееКоличество += scan.Количество;
+        tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
+        tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+        ///
+        if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+            tableRow.ТекущееКоличествоВЕдиницахИзмерения,
+            0
+          );
+        } else {
+          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+            tableRow.ТекущееКоличествоВЕдиницахИзмерения
+          );
+        }
+        ///
+        tableRow.КоличествоВЕдиницахИзмерения =
+          tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
+        tableRow.КоличествоВЕдиницахИзмерения = rounded(
+          tableRow.КоличествоВЕдиницахИзмерения
+        );
+        tableRow.КоличествоКоробок += scan.Грузоместа;
+        //this.box_count+=y.Грузоместа
+        //scan.ВЗаказе = true;
+      }
+    }
+  }
+
+  // Сортировка
+  tableTotal.sort(
+    (a: IGettingProductionProductTotalItem, b: IGettingProductionProductTotalItem) => {
+      return Number(a.Номенклатура.Артикул) - Number(b.Номенклатура.Артикул);
+    }
+  );
+
+  for (const tableTotalRow of tableTotal) {
+    let ВПроцСоотношении = Math.round(
+      (100 / tableTotalRow.КоличествоУпаковок) *
+        tableTotalRow.ТекущееКоличествоВЕдиницахИзмерения
+    );
+    if (String(ВПроцСоотношении) === "NaN") {
+      ВПроцСоотношении = 0;
+    }
+    if (ВПроцСоотношении === 100) {
+      tableTotalRow.cls = " alert alert-success ";
+    }
+    if (ВПроцСоотношении > 100) {
+      tableTotalRow.cls = " alert alert-warning ";
+      КвантыНеСоблюдены.value = true;
+    }
+    if (ВПроцСоотношении < 100) {
+      tableTotalRow.cls = " alert alert-info ";
+    }
+    if (ВПроцСоотношении === 0) {
+      tableTotalRow.cls = " alert alert-danger ";
+    }
+    if (ВПроцСоотношении > 110) {
+      tableTotalRow.cls = " alert alert-orange ";
+    }
+    tableTotalRow.ВПроцСоотношении = ВПроцСоотношении;
+    //this.weight_count+=i.ТекущееКоличество
+  }
+  return tableTotal;
 }
 /*
 function prepareData() {
@@ -304,5 +486,4 @@ function prepareData() {
   this.item_from_send = scaning;
 }
 */
-
 </script>

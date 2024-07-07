@@ -13,7 +13,7 @@ import { GettingManager } from './managers/getting/GettingManager';
 import { UserManager } from './managers/user/UserManager';
 import { DBManager } from './classes/DBManager';
 import { HttpManager } from './classes/HttpManager';
-import { ScanerManager } from './classes/ScannerManager';
+import { ScanerManager } from './classes/ScanerManager';
 import { NotificationManager } from './classes/NotificationManager';
 import { RoutingManager } from './classes/RoutingManager';
 

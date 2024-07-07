@@ -18,4 +18,11 @@ export class BaseManager{
         }
         document.addEventListener(state, eventWrapper)
     }
+
+    disconnect(state:string, listener: (data: any[]) => void){
+        function eventWrapper(this:Document, event:any){
+            listener(event.detail)
+        }
+        document.removeEventListener(state, eventWrapper)
+    }
 }

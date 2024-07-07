@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {UserManager} from '../managers/user/UserManager'
-import { ScanerManager } from '@/classes/ScannerManager';
+import { ScanerManager } from '@/classes/ScanerManager';
 import { RoutingManager } from '@/classes/RoutingManager';
 const barcode = ref("")
 const scaningIsStart = ref(false)

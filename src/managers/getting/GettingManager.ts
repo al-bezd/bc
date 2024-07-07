@@ -56,7 +56,7 @@ export class GettingManager extends BaseManager {
       return
     }
     this.currentDocument.value = val
-    DBManager.setData(key, val)
+    DBManager.setData(key, toRaw(val))
     this.emit('setCurrentDocument', [val])
   }
 
@@ -68,7 +68,7 @@ export class GettingManager extends BaseManager {
       return
     }
     this.currentScanings.value = val
-    DBManager.setData(key, val)
+    DBManager.setData(key, val.map(x=>toRaw(x)))
     this.emit('setCurrnetScanings', [val])
   }
 
@@ -122,31 +122,7 @@ export class GettingManager extends BaseManager {
   }
 
 
-  /// Получаем документ пользователя из локальной БД по ид Пользователя
-  async getDocumentById(id: string): Promise<object | null> {
-    const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
-    const files = await DBManager.getFileAsync(currentUser, "user_docs", "user_docs")
-    if (files === null) {
-      return null
-    }
-    for (const i of files.data.docs) {
-      if (i.Ссылка.Ссылка === id) {
-        //LocalStorageManager.set("prod_doc", i);
-        this.setCurrentDocument(i)
-        if (i.scanings == null) {
-          this.setCurrnetScanings([])
-          //LocalStorageManager.set("prod_list", []);
-          //this.currentScanings.value = [];
-        } else {
-          this.setCurrnetScanings(i.scanings)
-          //LocalStorageManager.set("prod_list", i.scanings);
-          //this.prodList = i.scanings;
-        }
-        return i
-      }
-    }
-    return null
-  }
+ 
 
   //Удаляем документ из списка документов пользователя
   async deleteDocumentById(id: string): Promise<boolean> {

@@ -32,6 +32,23 @@ export class ScanerManager extends BaseManager {
     new ScanerManager()
   }
 
+  static async showAddManualScaningForm():Promise<string>{
+    return new Promise((resolve,reject)=>{
+      try{
+        const callback = (result:string)=>{
+          if(result){
+            //NotificationManager.instance.disconnect('showAddManualScaningForm', [callback])
+            resolve(result)
+
+          }
+        }
+        NotificationManager.instance.emit('showAddManualScaningForm', [callback])
+      }catch(e){
+          reject(e)
+      } 
+    })
+  }
+
   load(){
     this.scanKey.value = LocalStorageManager.get('scanKey')??"F13"
     this.useClipBoard.value = stringToBool(LocalStorageManager.get('useClipBoard'))??true
