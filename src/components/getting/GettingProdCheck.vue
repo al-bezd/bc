@@ -11,45 +11,44 @@
         :key="item.рсУИД"
         :data="item"
         @tap="openArticulScreen"
-      /></div>
-    
-      <div class="col-12">
-        <h5>
-          <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
-        </h5>
-        <h5>
-          <b>Итог {{ weightCount }} Кг. </b>
-        </h5>
-      </div>
-
-    <div class="btn-group w-100" role="group" >
-      <button
-          type="button"
-          class="btn btn-warning btn-lg text-uppercase"
-          @click="closeWithQuest"
-          tabindex="-1"
-        >
-          <b>НАЗАД</b>
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary btn-lg text-uppercase"
-          @click="save"
-          tabindex="-1"
-        >
-          <b>СОХРАНИТЬ</b>
-        </button>
-        <button
-          type="button"
-          class="btn btn-success btn-lg text-uppercase"
-          @click="send"
-          tabindex="-1"
-        >
-          <b>ПРИНЯТЬ</b>
-        </button>
+      />
     </div>
 
-    
+    <div class="col-12">
+      <h5>
+        <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
+      </h5>
+      <h5>
+        <b>Итог {{ weightCount }} Кг. </b>
+      </h5>
+    </div>
+
+    <div class="btn-group w-100" role="group">
+      <button
+        type="button"
+        class="btn btn-warning btn-lg text-uppercase"
+        @click="closeWithQuest"
+        tabindex="-1"
+      >
+        <b>НАЗАД</b>
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-lg text-uppercase"
+        @click="save"
+        tabindex="-1"
+      >
+        <b>СОХРАНИТЬ</b>
+      </button>
+      <button
+        type="button"
+        class="btn btn-success btn-lg text-uppercase"
+        @click="send"
+        tabindex="-1"
+      >
+        <b>ПРИНЯТЬ</b>
+      </button>
+    </div>
 
     <ArticulScreen />
   </div>
@@ -123,149 +122,187 @@ function openArticulScreen(productName: string) {
   }
 }
 
-function createUniqProductionList(products:IGettingProductionProductItem[]){
-  const list:any = {}
-  for (const item of products){
-    const НоменклатураСсылка = item.Номенклатура.Ссылка.Ссылка
-    const ХарактеристикаСсылка = item.Характеристика.Ссылка.Ссылка
-    const СерияСсылка = item.Серия.Ссылка
-    const key = НоменклатураСсылка + ХарактеристикаСсылка + СерияСсылка
-    if(!list.hasOwnProperty(key)){
-      list[key]=Object.assign({}, item)
-      continue
+allItem.value = createUniqProductionList(
+  GettingManager.instance.currentDocument.value?.Товары??[]
+);
+
+function createUniqProductionList(
+  products: IGettingProductionProductItem[]
+): IGettingProductionProductItem[] {
+  const list: any = {};
+  for (const item of products) {
+    const НоменклатураСсылка = item.Номенклатура.Ссылка.Ссылка;
+    const ХарактеристикаСсылка = item.Характеристика.Ссылка.Ссылка;
+    const СерияСсылка = item.Серия.Ссылка;
+    const key = НоменклатураСсылка + ХарактеристикаСсылка + СерияСсылка;
+    // eslint-disable-next-line no-prototype-builtins
+    if (!list.hasOwnProperty(key)) {
+      list[key] = Object.assign({}, item);
+      continue;
     }
-    list[key].Количество += item.Количество
-    list[key].КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения
-  	list[key].Грузоместа += item.Грузоместа
-            
-
+    list[key].Количество += item.Количество;
+    list[key].КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
+    list[key].Грузоместа += item.Грузоместа;
   }
-  const result = []
-  for (const key of Object.keys(list)){
-    result.unshift(list[key])
+  const result = [];
+  for (const key of Object.keys(list)) {
+    result.unshift(list[key]);
   }
-  return result
+  return result;
 }
+/*
+function prepareData() {
+  const allItems = GettingManager.instance.currentDocument.value?.Товары;
 
-function prepareData(){
-  const allItems = GettingManager.instance.currentDocument.value?.Товары
-  const 
+  // if (getting_prod_form.prod_list_set===null) {
+  //   swal("Не найдено ни одного сканирования")
+  //   getting_prod_form.show()
+  // }
+  prod_list_set = Array.from(getting_prod_form.prod_list_set);
 
-      // if (getting_prod_form.prod_list_set===null) {
-      //   swal("Не найдено ни одного сканирования")
-      //   getting_prod_form.show()
-      // }
-      prod_list_set  = Array.from(getting_prod_form.prod_list_set)
-
-      scaning=[] // Все сканирования
-      err=[]
-      // init array prod_list
-      for (i of prod_list_set) {
-        for (y of prod_list) {
-          if (y.Номенклатура.Ссылка.Ссылка===undefined) {
-            nom=y.Номенклатура.Ссылка
-            har=y.Характеристика.Ссылка
-            ser=y.Серия.Наименование
-          }
-
-          if (i===y.Номенклатура.Ссылка.Ссылка+y.Характеристика.Ссылка.Ссылка+y.Серия.Наименование) {
-            if (err.indexOf( y.Номенклатура.Ссылка.Ссылка+y.Характеристика.Ссылка.Ссылка+y.Серия.Наименование) == -1 ) {
-              scaning.push(Object.assign({}, y))
-              err.push(y.Номенклатура.Ссылка.Ссылка+y.Характеристика.Ссылка.Ссылка+y.Серия.Наименование)
-            }
-          }
-        }
-      }
-      // собираем массив для отображения сборки массива номенкл хар-ка
-      for (i of this.all_item) {
-		      i.КоличествоКоробок=0
-          i.ТекущееКоличество=0
-		      i.ТекущееКоличествоВЕдиницахИзмерения=0
-          i.Артикул=""
-          i.Номенклатура.ЕдиницаИзмерения = {"Наименование":""}
-        for (y of prod_list) {
-          if ((i.Номенклатура.Наименование   === y.Номенклатура.Наименование )&&
-          (i.Характеристика.Наименование === y.Характеристика.Наименование )){
-            i.Номенклатура.ЕдиницаИзмерения = y.Номенклатура.ЕдиницаИзмерения
-            i.ТекущееКоличество +=y.Количество
-            i.ТекущееКоличество =  rounded(i.ТекущееКоличество)
-            i.Артикул           =  y.Артикул
-            i.ПЛУ               =  y.ПЛУ
-  		      i.ТекущееКоличествоВЕдиницахИзмерения += y.КоличествоВЕдиницахИзмерения
-            i.ТекущееКоличествоВЕдиницахИзмерения =  rounded(i.ТекущееКоличествоВЕдиницахИзмерения)
-            if (i.Номенклатура.ЕдиницаИзмерения.Наименование==="шт") {
-              i.ТекущееКоличествоВЕдиницахИзмерения =  rounded(i.ТекущееКоличествоВЕдиницахИзмерения,0)
-            }
-            i.КоличествоВЕдиницахИзмерения		   = i.Количество/rounded(y.Номенклатура.ВесЧислитель)
-  		      i.КоличествоВЕдиницахИзмерения       =  rounded(i.КоличествоВЕдиницахИзмерения)
-  		      i.КоличествоКоробок+=y.Грузоместа
-            //this.box_count+=y.Грузоместа
-            y.ВЗаказе = true
-        }
-      }
+  scaning = []; // Все сканирования
+  err = [];
+  // init array prod_list
+  for (i of prod_list_set) {
+    for (y of prod_list) {
+      if (y.Номенклатура.Ссылка.Ссылка === undefined) {
+        nom = y.Номенклатура.Ссылка;
+        har = y.Характеристика.Ссылка;
+        ser = y.Серия.Наименование;
       }
 
-      // Сортировка
-      this.all_item.sort((a, b) =>{
-        a.Артикул - b.Артикул
-      })
+      if (
+        i ===
+        y.Номенклатура.Ссылка.Ссылка +
+          y.Характеристика.Ссылка.Ссылка +
+          y.Серия.Наименование
+      ) {
+        if (
+          err.indexOf(
+            y.Номенклатура.Ссылка.Ссылка +
+              y.Характеристика.Ссылка.Ссылка +
+              y.Серия.Наименование
+          ) == -1
+        ) {
+          scaning.push(Object.assign({}, y));
+          err.push(
+            y.Номенклатура.Ссылка.Ссылка +
+              y.Характеристика.Ссылка.Ссылка +
+              y.Серия.Наименование
+          );
+        }
+      }
+    }
+  }
+  // собираем массив для отображения сборки массива номенкл хар-ка
+  for (i of this.all_item) {
+    i.КоличествоКоробок = 0;
+    i.ТекущееКоличество = 0;
+    i.ТекущееКоличествоВЕдиницахИзмерения = 0;
+    i.Артикул = "";
+    i.Номенклатура.ЕдиницаИзмерения = { Наименование: "" };
+    for (y of prod_list) {
+      if (
+        i.Номенклатура.Наименование === y.Номенклатура.Наименование &&
+        i.Характеристика.Наименование === y.Характеристика.Наименование
+      ) {
+        i.Номенклатура.ЕдиницаИзмерения = y.Номенклатура.ЕдиницаИзмерения;
+        i.ТекущееКоличество += y.Количество;
+        i.ТекущееКоличество = rounded(i.ТекущееКоличество);
+        i.Артикул = y.Артикул;
+        i.ПЛУ = y.ПЛУ;
+        i.ТекущееКоличествоВЕдиницахИзмерения += y.КоличествоВЕдиницахИзмерения;
+        i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+          i.ТекущееКоличествоВЕдиницахИзмерения
+        );
+        if (i.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+          i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+            i.ТекущееКоличествоВЕдиницахИзмерения,
+            0
+          );
+        }
+        i.КоличествоВЕдиницахИзмерения =
+          i.Количество / rounded(y.Номенклатура.ВесЧислитель);
+        i.КоличествоВЕдиницахИзмерения = rounded(i.КоличествоВЕдиницахИзмерения);
+        i.КоличествоКоробок += y.Грузоместа;
+        //this.box_count+=y.Грузоместа
+        y.ВЗаказе = true;
+      }
+    }
+  }
 
-      for (i of this.all_item) {
-        ВПроцСоотношении=Math.round((100/i.КоличествоУпаковок)*i.ТекущееКоличествоВЕдиницахИзмерения)
-        if (String(ВПроцСоотношении)==="NaN") {
-          ВПроцСоотношении=0
-        }
-        if (ВПроцСоотношении===100) {
-          i.cls=" alert alert-success "
-        }
-        if (ВПроцСоотношении>100) {
-          i.cls=" alert alert-warning "
-          this.КвантыНеСоблюдены=true
-        }
-        if (ВПроцСоотношении<100) {
-          i.cls=" alert alert-info "
-        }
-        if (ВПроцСоотношении===0) {
-          i.cls=" alert alert-danger "
-        }
-      if (ВПроцСоотношении>110) {
-          i.cls=" alert alert-orange "
-        }
-        i.ВПроцСоотношении=ВПроцСоотношении
-        //this.weight_count+=i.ТекущееКоличество
-      }
-      //this.weight_count=rounded(this.weight_count)
-      if (this.all_item.filter(i=>i.cls===' alert alert-success ').length===this.all_item.length){
-        doc=GetData("prod_doc",'j')
-        doc.completed=true
-        SetData("prod_doc",doc)
-      }else{
-        doc=GetData("prod_doc",'j')
-        doc.completed=false
-        SetData("prod_doc",doc)
-      }
+  // Сортировка
+  this.all_item.sort((a, b) => {
+    a.Артикул - b.Артикул;
+  });
 
-      //this.item_from_send=arr_item;
-      // заполняем массив для отправки номенкл хар серия
-      for (i of scaning) {
-        i.ТекущееКоличество=0
-        i.ТекущееКоличествоВЕдиницахИзмерения=0
-        Грузоместа=0
-        for (y of prod_list) {
-          if ((i.Номенклатура.Наименование   === y.Номенклатура.Наименование )&&
-          (i.Характеристика.Наименование === y.Характеристика.Наименование )&&
-          (i.Серия.Наименование          === y.Серия.Наименование ))
-          {
-            Грузоместа+=y.Грузоместа
-            i.ТекущееКоличество+=rounded(y.Количество) //Number(prod_list[y].Количество.toFixed(3))
-            i.ТекущееКоличествоВЕдиницахИзмерения+=rounded(y.КоличествоВЕдиницахИзмерения)
-            if (i.Номенклатура.ЕдиницаИзмерения.Наименование==="шт") {
-              i.ТекущееКоличествоВЕдиницахИзмерения = rounded(i.ТекущееКоличествоВЕдиницахИзмерения,0)
-            }
-          }
+  for (i of this.all_item) {
+    ВПроцСоотношении = Math.round(
+      (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
+    );
+    if (String(ВПроцСоотношении) === "NaN") {
+      ВПроцСоотношении = 0;
+    }
+    if (ВПроцСоотношении === 100) {
+      i.cls = " alert alert-success ";
+    }
+    if (ВПроцСоотношении > 100) {
+      i.cls = " alert alert-warning ";
+      this.КвантыНеСоблюдены = true;
+    }
+    if (ВПроцСоотношении < 100) {
+      i.cls = " alert alert-info ";
+    }
+    if (ВПроцСоотношении === 0) {
+      i.cls = " alert alert-danger ";
+    }
+    if (ВПроцСоотношении > 110) {
+      i.cls = " alert alert-orange ";
+    }
+    i.ВПроцСоотношении = ВПроцСоотношении;
+    //this.weight_count+=i.ТекущееКоличество
+  }
+  //this.weight_count=rounded(this.weight_count)
+  if (
+    this.all_item.filter((i) => i.cls === " alert alert-success ").length ===
+    this.all_item.length
+  ) {
+    doc = GetData("prod_doc", "j");
+    doc.completed = true;
+    SetData("prod_doc", doc);
+  } else {
+    doc = GetData("prod_doc", "j");
+    doc.completed = false;
+    SetData("prod_doc", doc);
+  }
+
+  //this.item_from_send=arr_item;
+  // заполняем массив для отправки номенкл хар серия
+  for (i of scaning) {
+    i.ТекущееКоличество = 0;
+    i.ТекущееКоличествоВЕдиницахИзмерения = 0;
+    Грузоместа = 0;
+    for (y of prod_list) {
+      if (
+        i.Номенклатура.Наименование === y.Номенклатура.Наименование &&
+        i.Характеристика.Наименование === y.Характеристика.Наименование &&
+        i.Серия.Наименование === y.Серия.Наименование
+      ) {
+        Грузоместа += y.Грузоместа;
+        i.ТекущееКоличество += rounded(y.Количество); //Number(prod_list[y].Количество.toFixed(3))
+        i.ТекущееКоличествоВЕдиницахИзмерения += rounded(y.КоличествоВЕдиницахИзмерения);
+        if (i.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+          i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+            i.ТекущееКоличествоВЕдиницахИзмерения,
+            0
+          );
         }
-        i.Грузоместа = Грузоместа
       }
-      this.item_from_send=scaning
+    }
+    i.Грузоместа = Грузоместа;
+  }
+  this.item_from_send = scaning;
 }
+*/
+
 </script>

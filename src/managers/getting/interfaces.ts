@@ -1,5 +1,5 @@
 import { IWithCheckup } from "@/classes/HttpManager";
-import { I1CObject, IDocument } from "@/interfaces/IDocument";
+import {  IDocument } from "@/interfaces/IDocument";
 
 export interface IGettingProductionProductItem {
     Номенклатура:IНоменклатура
@@ -18,14 +18,8 @@ export interface IGettingProductionDocument extends IWithCheckup, IDocument{
     оитНомерПалета:string
 }
 
-export interface IНоменклатура extends IDocument{
+export type IНоменклатура = IDocument
 
-}
+export type IХарактеристика = IDocument
 
-export interface IХарактеристика extends IDocument{
-
-}
-
-export interface IСерия extends IDocument{
-
-}
+export type IСерия = IDocument
