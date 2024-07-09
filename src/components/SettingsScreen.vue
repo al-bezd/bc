@@ -39,7 +39,7 @@
           @click="
             () => {
               setTab('nav-log');
-              showLog();
+              //showLog();
             }
           "
           >Логи</a
@@ -54,7 +54,7 @@
             <input type="file" id="file" /><br />
             <button
               class="btn btn-primary text-uppercase w-100 mt-3"
-              onclick="readFile(document.getElementById('file'))"
+              @click="loadBarcodesFromFile()"
             >
               Загрузить ШК из файла
             </button>
@@ -62,20 +62,23 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12" hidden>
+        <!--<div class="col-md-12 col-sm-12 col-xs-12" hidden>
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
-              @click="EXECUTE(`DB_GetData(1)`)"
+              @click="loadBarcodesFromDB()"
             >
               Загрузить ШК из базы
             </div>
           </div>
-        </div>
+        </div>-->
 
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="alert alert-info" role="alert">
-            <button class="btn btn-primary text-uppercase w-100" onclick="SetBarcods()">
+            <button
+              class="btn btn-primary text-uppercase w-100"
+              @click="loadBarcodesFromServer"
+            >
               Загрузить ШК(с сервера)
             </button>
           </div>
@@ -85,9 +88,7 @@
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
-              @click="
-                EXECUTE(`getStorage(function(res){alert(res.length)},'1c','barcodes')`)
-              "
+              @click="showCountLoadedBarcodes()"
             >
               Количество загруженных ШК
             </div>
@@ -117,7 +118,7 @@
             <div>
               <button
                 class="btn btn-primary text-uppercase w-100"
-                onclick="swal(GetData('date_update')==null?'Неизвестно':GetData('date_update'))"
+                @click="showDataUpdateApp"
               >
                 Дата обновления
               </button>
@@ -175,9 +176,7 @@
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
-              @click="
-                EXECUTE(`getStorage(function(res){alert(res.length)},'orders','orders')`)
-              "
+              @click="showCountLoadedShipmentOrders()"
             >
               Количество загруженных заказов
             </div>
@@ -186,10 +185,7 @@
 
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="alert alert-info" role="alert">
-            <div
-              class="btn btn-primary text-uppercase w-100"
-              @click="EXECUTE(`load_doc.ShowLoadOrders()`)"
-            >
+            <div class="btn btn-primary text-uppercase w-100" @click="loadShipmentOrders">
               Загрузить Заказы
             </div>
           </div>
@@ -197,7 +193,10 @@
 
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="alert alert-info" role="alert">
-            <div class="btn btn-primary text-uppercase w-100" onclick="SetTorgovieSeti()">
+            <div
+              class="btn btn-primary text-uppercase w-100"
+              @click="MainManager.instance.uploadTorgovieSeti()"
+            >
               Загрузить Торговые Сети
             </div>
           </div>
@@ -311,7 +310,10 @@
       </div>
       <div :class="getTabClass('nav-log')">
         <div id="log-application" style="max-height: 400px; overflow: scroll">
-          <div v-for="i in log" v-bind:key="i">{{ i }}</div>
+          <div v-for="i in log" v-bind:key="i" class="fs-8">
+            <span>{{ i }}</span>
+            <hr />
+          </div>
         </div>
       </div>
     </div>
@@ -322,11 +324,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { UserManager } from "../managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
+import { LogManager } from "@/classes/LogManager";
+import { LocalStorageManager } from "@/classes/LocalStorageManager";
+import { NotificationManager } from "@/classes/NotificationManager";
+import { MainManager } from "@/classes/MainManager";
+import { DBManager } from "@/classes/DBManager";
+import { RoutingManager } from "@/classes/RoutingManager";
+import { FileManager } from "@/classes/FileManager";
 
 const seen = ref(false);
 const host = HttpManager.host;
@@ -338,7 +347,7 @@ const connectionStatus = ref("");
 const executeCommand = ref("");
 const isWindows = ref(navigator.platform.indexOf("Win") !== -1);
 
-const log = ref([]);
+const log = LogManager.instance.customLog;
 const currentTab = ref("nav-barcode");
 
 UserManager.instance.connect("showAdminPage", (data) => {
@@ -352,44 +361,61 @@ function close() {
   seen.value = false;
 }
 
-function showLog() {
-  //
-}
-
 function EXECUTE(command: string) {
-  //
+  try {
+    eval(command);
+  } catch (e) {
+    alert(e);
+  }
 }
 
 function updateApp() {
-  //
+  try {
+    //UploadApp()
+    LocalStorageManager.set("date_update", "" + new Date());
+  } catch (e) {
+    NotificationManager.swal(JSON.stringify(e), "error");
+  }
 }
 
 function openInWeb() {
-  //
+  try {
+    MainManager.instance.cordova.InAppBrowser.open(
+      HttpManager.getMainPath() + "/index.html",
+      "_blank",
+      "location=yes"
+    );
+  } catch (e) {
+    NotificationManager.swal(JSON.stringify(e), "error");
+  }
 }
 
-function clearStorage() {
-  //
+async function clearStorage() {
+  try {
+    LocalStorageManager.clear();
+    await DBManager.clear();
+    NotificationManager.swal("Локальное хранилище очищено", "success");
+    RoutingManager.instance.pushName(RoutingManager.route.selectUser);
+  } catch (e) {
+    NotificationManager.swal(JSON.stringify(e), "error");
+  }
 }
 
-function testDB() {
-  //
+async function testDB() {
+  const key = "dbTest";
+  const writeResult = await DBManager.setData(key, "Тест базы прошел успешно!");
+  if (writeResult) {
+    const readResult = await DBManager.getData(key);
+    if (readResult) {
+      NotificationManager.swal(readResult, "success");
+      return;
+    }
+  }
+  NotificationManager.swal("Тест прошел не удачно", "error");
 }
 
-// function setScanKey(){
-//     ScanerManager.instance.setScanKey(scanKey.value)
-// }
-
-// function setServer(host:string){
-//     //
-//     HttpManager.setHost(host)
-// }
-
-// function setRoutePath(path:string){
-//     //
-//     HttpManager.setPath(path)
-// }
 const isStartTest = ref(false);
+
 async function testConnectionToServer() {
   if (isStartTest.value) return;
   isStartTest.value = true;
@@ -417,5 +443,63 @@ function getTabClass(value: string) {
 
 function setTab(value: string) {
   currentTab.value = value;
+}
+
+/// показываем пользователю сколько заказов на отгрузку сейчас загружено в БД
+async function showCountLoadedShipmentOrders() {
+  //EXECUTE(`getStorage(function(res){alert(res.length)},'orders','orders')`)
+  const res = await DBManager.getFilesAsync("orders");
+  if (res) {
+    const records = res ?? [];
+    NotificationManager.swal(records.length.toString(), "success");
+    return;
+  }
+  NotificationManager.swal("Данные по запросу не были найдены", "error");
+}
+
+async function loadShipmentOrders() {
+  //
+}
+
+async function showCountLoadedBarcodes() {
+  //EXECUTE(`getStorage(function(res){alert(res.length)},'1c','barcodes')`)
+  const res = await DBManager.getFilesAsync("barcodes");
+  if (res) {
+    const records = res ?? [];
+    NotificationManager.swal(records.length.toString(), "success");
+    return;
+  }
+  NotificationManager.swal("Данные по запросу не были найдены", "error");
+}
+
+async function loadBarcodesFromFile() {
+  //readFile()
+  NotificationManager.swal("Загрузка ШК в локальную базу начата", "info");
+  try {
+    const fileReadRes = await FileManager.readFile(document.getElementById("file"));
+    if (fileReadRes) {
+      const data = JSON.parse(fileReadRes as string);
+
+      await DBManager.WriteDataInDB("barcodes", data);
+    }
+    NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");
+  } catch (e) {
+    NotificationManager.swal(
+      "Загрузка ШК в локальную базу завершена с ошибкой\n" + `${e}`,
+      "error"
+    );
+  }
+}
+
+async function loadBarcodesFromServer() {
+  NotificationManager.swal("Загрузка ШК в локальную базу начата", "info");
+  await MainManager.instance.uploadBarcodes();
+  NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");
+}
+
+function showDataUpdateApp() {
+  //swal(GetData('date_update')==null?'Неизвестно':GetData('date_update'))
+  const data = LocalStorageManager.get("date_update");
+  NotificationManager.swal(data ?? "Неизвестно");
 }
 </script>

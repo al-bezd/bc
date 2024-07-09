@@ -1,4 +1,4 @@
-import { BaseManager } from "./BaseManager";
+import { BaseManager, ILoadableManager } from "./BaseManager";
 import { LocalStorageManager } from "./LocalStorageManager";
 
 interface IRoutingMap {
@@ -9,7 +9,7 @@ interface IRoutingMap {
     gettingProductionCheck: string
 }
 
-export class RoutingManager extends BaseManager {
+export class RoutingManager extends BaseManager implements ILoadableManager {
     static instance: RoutingManager
 
     static route: IRoutingMap = {

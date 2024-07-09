@@ -26,6 +26,16 @@
   flex: 1;
   overflow-y: auto;
 }
+
+.fs-7 {
+  font-size: 0.75rem !important;
+}
+.fs-8 {
+  font-size: 0.5rem !important;
+}
+.fs-9 {
+  font-size: 0.25rem !important;
+}
 </style>
 <template>
   <div>
@@ -39,6 +49,7 @@
     <SettingsScreen />
     <AddManualFormScreen />
     <ConfirmScreen />
+    <NotificationListener />
   </div>
 </template>
 
@@ -54,6 +65,7 @@ import ConfirmScreen from "./widgets/ConfirmScreen.vue";
 import AddManualFormScreen from "./widgets/AddManualFormScreen.vue";
 import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
+import NotificationListener from "@/components/widgets/NotificationListener.vue";
 
 onMounted(() => {
   RoutingManager.instance.afterReload();

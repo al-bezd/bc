@@ -1,12 +1,12 @@
 import { LocalStorageManager } from "./LocalStorageManager";
-import { BaseManager } from "./BaseManager";
+import { BaseManager, ILoadableManager } from "./BaseManager";
 import { DBManager } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
 import { ShipmentManager } from "../managers/shippment/ShipmentManager";
 import { HttpManager } from "./HttpManager";
 import { Ref, ref } from "vue";
 
-export class MainManager extends BaseManager {
+export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
@@ -53,7 +53,7 @@ export class MainManager extends BaseManager {
         console.log(`база загружена за ${t2.toFixed(2)} мин.`);
         //status_bar.msgs = [];
         NotificationManager.swal(`База обновлена за ${t2.toFixed(2)} мин.`);
-        DBManager.WriteDataInDB(response.data);
+        DBManager.WriteDataInDB('barcodes',response.data);
     }
     this.emit('uploadBarcodes:end')
   }

@@ -16,10 +16,20 @@ import { HttpManager } from './classes/HttpManager';
 import { ScanerManager } from './classes/ScanerManager';
 import { NotificationManager } from './classes/NotificationManager';
 import { RoutingManager } from './classes/RoutingManager';
+import Vue3Toasity, { type ToastContainerOptions } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
+import { LogManager } from './classes/LogManager';
+import { FileManager } from './classes/FileManager';
+
+
 
 const app = createApp(App);
+app.use(Vue3Toasity)
 const pinia = createPinia();
 
+
+FileManager.init()
+LogManager.init()
 ShipmentManager.init()
 GettingManager.init()
 UserManager.init()
@@ -39,7 +49,8 @@ if(window.hasOwnProperty('cordova')){
 }
 
 
-
+FileManager.instance.load()
+LogManager.instance.load()
 MainManager.instance.load()
 GettingManager.instance.load()
 ShipmentManager.instance.load();

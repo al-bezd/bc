@@ -1,11 +1,12 @@
-export class BaseManager{
+export interface ILoadableManager{
+    load:()=>void /// Метод загрузки объекта, вызывается когда страница была перезагружена
+}
+export class BaseManager {
 
     
 
-    /// Метод загрузки объекта, вызывается когда страница была перезагружена
-    load(){
-        //
-    }
+    
+    
 
     emit(state:string,data:any[]=[]){
         document.dispatchEvent(new CustomEvent(state,{detail:data}))

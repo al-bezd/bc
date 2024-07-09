@@ -75,7 +75,12 @@ async function getDocumentOrder() {
   }
 }
 
+function clear() {
+  barcode.value = "";
+}
+
 function close() {
+  clear();
   seen.value = false;
 }
 

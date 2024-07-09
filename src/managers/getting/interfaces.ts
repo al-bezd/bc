@@ -24,6 +24,7 @@ export interface IGettingProductionProductTotalItem extends IGettingProductionPr
     cls:string /// Класс для отображения цвета плашки
     key:string /// Ключ Ном+Хар+Серия
     ВПроцСоотношении:number
+    рсУИД:string
 }
 
 

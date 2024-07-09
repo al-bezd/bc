@@ -68,8 +68,8 @@ RoutingManager.instance.registry(
 );
 const seen = ref(false);
 
-const allItem: Ref<any> = ref([]);
-const itemForSend: Ref<any> = ref([]);
+const allItem: Ref<IGettingProductionProductTotalItem[]> = ref([]);
+const tableTotal: Ref<IGettingProductionProductTotalItem[]> = ref([]);
 const оитНомерПалета = computed(() => {
   return GettingManager.instance.currentDocument.value?.оитНомерПалета;
 });
@@ -112,12 +112,12 @@ function close() {
 
 function show() {
   seen.value = true;
-  const totalTable = createUniqProductionList(
+  tableTotal.value = createUniqProductionList(
     GettingManager.instance.currentDocument.value?.Товары ?? []
   );
 
   allItem.value = fillCurrentResult(
-    totalTable,
+    tableTotal.value,
     GettingManager.instance.currentScanings.value
   );
 
@@ -133,6 +133,7 @@ async function save() {
   if (saveIsStart.value) {
     return;
   }
+
   saveIsStart.value = true;
   const currentDocLink = GettingManager.instance.currentDocument.value?.Ссылка.Ссылка;
   const userDocs = await UserManager.instance.getUserDocuments();
@@ -172,6 +173,7 @@ async function save() {
   saveIsStart.value = false;
 }
 
+/// отправляет данные на сервер
 async function send() {
   if (sendIsStart.value) {
     return;
@@ -189,7 +191,7 @@ async function send() {
     Тип: doc.Ссылка.Тип,
     Вид: doc.Ссылка.Вид,
     Ссылка: doc.Ссылка.Ссылка,
-    Товары: Object.assign([], toRaw(itemForSend.value)),
+    Товары: Object.assign([], toRaw(allItem.value.map((x) => toRaw(x)))),
     Пользователь: toRaw(UserManager.instance.user.value),
     check_prod_doc: true,
   };
@@ -197,13 +199,18 @@ async function send() {
   // qw.show("",console.log,getting_prod_check.show);
   // $('#ok_button_id').hide();
   // qw.question_window_text = 'Ожидайте записи документа!!!';
+  NotificationManager.swal(
+    `Запись документа <b>${GettingManager.instance.currentDocument.value?.Ссылка.Наименование} Начата</b>`,
+    "info"
+  );
   sendIsStart.value = true;
   const response = await HttpManager.post("/execute", params);
   sendIsStart.value = false;
   if (response.success) {
     if (response.data.РезультатПроверки) {
-      NotificationManager.swal(response.data.Текст);
+      NotificationManager.swal(response.data.Текст, "success");
       GettingManager.instance.clear();
+
       RoutingManager.instance.pushName(RoutingManager.route.gettingProductionLoad);
     }
   } else {
@@ -253,6 +260,7 @@ function createUniqProductionList(
   return result;
 }
 
+/// Возвращает key строки таблицы
 function getRowKey(row: IGettingProductionProductItem) {
   const НоменклатураСсылка = row.Номенклатура.Ссылка.Ссылка;
   const ХарактеристикаСсылка = row.Характеристика.Ссылка.Ссылка;
@@ -332,158 +340,4 @@ function fillCurrentResult(
   }
   return tableTotal;
 }
-/*
-function prepareData() {
-  const allItems = GettingManager.instance.currentDocument.value?.Товары;
-
-  // if (getting_prod_form.prod_list_set===null) {
-  //   swal("Не найдено ни одного сканирования")
-  //   getting_prod_form.show()
-  // }
-  prod_list_set = Array.from(getting_prod_form.prod_list_set);
-
-  scaning = []; // Все сканирования
-  err = [];
-  // init array prod_list
-  for (i of prod_list_set) {
-    for (y of prod_list) {
-      if (y.Номенклатура.Ссылка.Ссылка === undefined) {
-        nom = y.Номенклатура.Ссылка;
-        har = y.Характеристика.Ссылка;
-        ser = y.Серия.Наименование;
-      }
-
-      if (
-        i ===
-        y.Номенклатура.Ссылка.Ссылка +
-          y.Характеристика.Ссылка.Ссылка +
-          y.Серия.Наименование
-      ) {
-        if (
-          err.indexOf(
-            y.Номенклатура.Ссылка.Ссылка +
-              y.Характеристика.Ссылка.Ссылка +
-              y.Серия.Наименование
-          ) == -1
-        ) {
-          scaning.push(Object.assign({}, y));
-          err.push(
-            y.Номенклатура.Ссылка.Ссылка +
-              y.Характеристика.Ссылка.Ссылка +
-              y.Серия.Наименование
-          );
-        }
-      }
-    }
-  }
-  // собираем массив для отображения сборки массива номенкл хар-ка
-  for (i of this.all_item) {
-    i.КоличествоКоробок = 0;
-    i.ТекущееКоличество = 0;
-    i.ТекущееКоличествоВЕдиницахИзмерения = 0;
-    i.Артикул = "";
-    i.Номенклатура.ЕдиницаИзмерения = { Наименование: "" };
-    for (y of prod_list) {
-      if (
-        i.Номенклатура.Наименование === y.Номенклатура.Наименование &&
-        i.Характеристика.Наименование === y.Характеристика.Наименование
-      ) {
-        i.Номенклатура.ЕдиницаИзмерения = y.Номенклатура.ЕдиницаИзмерения;
-        i.ТекущееКоличество += y.Количество;
-        i.ТекущееКоличество = rounded(i.ТекущееКоличество);
-        i.Артикул = y.Артикул;
-        i.ПЛУ = y.ПЛУ;
-        i.ТекущееКоличествоВЕдиницахИзмерения += y.КоличествоВЕдиницахИзмерения;
-        i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-          i.ТекущееКоличествоВЕдиницахИзмерения
-        );
-        if (i.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            i.ТекущееКоличествоВЕдиницахИзмерения,
-            0
-          );
-        }
-        i.КоличествоВЕдиницахИзмерения =
-          i.Количество / rounded(y.Номенклатура.ВесЧислитель);
-        i.КоличествоВЕдиницахИзмерения = rounded(i.КоличествоВЕдиницахИзмерения);
-        i.КоличествоКоробок += y.Грузоместа;
-        //this.box_count+=y.Грузоместа
-        y.ВЗаказе = true;
-      }
-    }
-  }
-
-  // Сортировка
-  this.all_item.sort((a, b) => {
-    a.Артикул - b.Артикул;
-  });
-
-  for (i of this.all_item) {
-    ВПроцСоотношении = Math.round(
-      (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
-    );
-    if (String(ВПроцСоотношении) === "NaN") {
-      ВПроцСоотношении = 0;
-    }
-    if (ВПроцСоотношении === 100) {
-      i.cls = " alert alert-success ";
-    }
-    if (ВПроцСоотношении > 100) {
-      i.cls = " alert alert-warning ";
-      this.КвантыНеСоблюдены = true;
-    }
-    if (ВПроцСоотношении < 100) {
-      i.cls = " alert alert-info ";
-    }
-    if (ВПроцСоотношении === 0) {
-      i.cls = " alert alert-danger ";
-    }
-    if (ВПроцСоотношении > 110) {
-      i.cls = " alert alert-orange ";
-    }
-    i.ВПроцСоотношении = ВПроцСоотношении;
-    //this.weight_count+=i.ТекущееКоличество
-  }
-  //this.weight_count=rounded(this.weight_count)
-  if (
-    this.all_item.filter((i) => i.cls === " alert alert-success ").length ===
-    this.all_item.length
-  ) {
-    doc = GetData("prod_doc", "j");
-    doc.completed = true;
-    SetData("prod_doc", doc);
-  } else {
-    doc = GetData("prod_doc", "j");
-    doc.completed = false;
-    SetData("prod_doc", doc);
-  }
-
-  //this.item_from_send=arr_item;
-  // заполняем массив для отправки номенкл хар серия
-  for (i of scaning) {
-    i.ТекущееКоличество = 0;
-    i.ТекущееКоличествоВЕдиницахИзмерения = 0;
-    Грузоместа = 0;
-    for (y of prod_list) {
-      if (
-        i.Номенклатура.Наименование === y.Номенклатура.Наименование &&
-        i.Характеристика.Наименование === y.Характеристика.Наименование &&
-        i.Серия.Наименование === y.Серия.Наименование
-      ) {
-        Грузоместа += y.Грузоместа;
-        i.ТекущееКоличество += rounded(y.Количество); //Number(prod_list[y].Количество.toFixed(3))
-        i.ТекущееКоличествоВЕдиницахИзмерения += rounded(y.КоличествоВЕдиницахИзмерения);
-        if (i.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          i.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            i.ТекущееКоличествоВЕдиницахИзмерения,
-            0
-          );
-        }
-      }
-    }
-    i.Грузоместа = Грузоместа;
-  }
-  this.item_from_send = scaning;
-}
-*/
 </script>

@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { LocalStorageManager } from "./LocalStorageManager";
 import { MainManager } from "./MainManager";
 import { NotificationManager } from "./NotificationManager";
-import { BaseManager } from "./BaseManager";
+import { BaseManager, ILoadableManager } from "./BaseManager";
 
 function stringToBool(val:string|null){
   if(val==='true'){
@@ -14,7 +14,7 @@ function stringToBool(val:string|null){
   }
 }
 
-export class ScanerManager extends BaseManager {
+export class ScanerManager extends BaseManager implements ILoadableManager {
   static instance: ScanerManager;
 
   /// использовать буфер обмена при работе со сканером

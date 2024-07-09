@@ -42,7 +42,7 @@ export class DBManager {
 
   /// процедура вызывается когда в операции с локальной бд происходит ошибка
   static logerr(err: any) {
-    NotificationManager.swal(JSON.stringify(err.error));
+    NotificationManager.swal(JSON.stringify(err.error),"error");
   }
   /// Удаляет базу
   static deleteDatabase(name: string) {
@@ -86,6 +86,35 @@ export class DBManager {
           },
           base,
           store
+        );
+      } catch (err) {
+        reject(err)
+      }
+
+    })
+
+  }
+
+  static async getFilesAsync(base: string): Promise<IDBDataRecord[]|null> {
+
+    return new Promise((resolve, reject) => {
+      try {
+        DBManager.connectDB(
+          (db: any, base: string, store: string) => {
+            const request = db
+              .transaction([store], "readonly")
+              .objectStore(store)
+              .getAll();
+            request.onerror = (err: any) => {
+              DBManager.logerr(err)
+              reject(err)
+            };
+            request.onsuccess = () => {
+              resolve(request.result ? request.result : null)
+            };
+          },
+          base,
+          base
         );
       } catch (err) {
         reject(err)
@@ -141,6 +170,7 @@ export class DBManager {
       store
     );
   }
+
   static async setFileAsync(file: IDBDataRecord, base: string, store: string):Promise<IDBValidKey> {
 
     return new Promise((resolve, reject) => {
@@ -208,11 +238,32 @@ export class DBManager {
     );
   }
 
-  static WriteDataInDB(data: any[]) {
+  /// Запись в локальную бд итерируемого объекта
+  static async WriteDataInDB(key:string, data: any[],) {
     try {
-      data.map(i => DBManager.setFile({ data: i, id: i.Наименование }, 'barcodes', 'barcodes'))
+      const writeOperations = data.map(i => DBManager.setFileAsync({ data: i, id: i.Наименование }, key, key))
+      // Дожидаемся записи всех
+      await Promise.all(writeOperations)
     } catch (e) {
-      NotificationManager.swal(String(e))
+      NotificationManager.swal(String(e),'error')
     }
+  }
+
+  static async clear(){
+    
+      // Получить доступ к API IndexedDB
+      const indexedDB = window.indexedDB;
+    
+      // Получить список всех баз данных
+      const databases = await indexedDB.databases();
+    
+      // Удалить каждую базу данных по имени
+      for (const dbInfo of databases) {
+        if (dbInfo.name) {
+          await DBManager.deleteDatabase(dbInfo.name);
+        }
+      }
+      
+    
   }
 }

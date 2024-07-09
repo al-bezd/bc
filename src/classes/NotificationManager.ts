@@ -1,6 +1,8 @@
-import { BaseManager } from "./BaseManager";
+import { BaseManager, ILoadableManager } from "./BaseManager";
 
-export class NotificationManager extends BaseManager {
+export declare type AlertMode = 'warning' | 'error' | 'success' | 'info';
+
+export class NotificationManager extends BaseManager implements ILoadableManager {
   static  instance:NotificationManager
   constructor(){
     super()
@@ -33,8 +35,11 @@ export class NotificationManager extends BaseManager {
     this.path.repeat_arial = (await import('@/assets/sounds/REPEAT_ARIAL.mp3')).default
   }
 
-  public static swal(message: string) {
-    alert(message);
+  public static swal(message: string, mode:AlertMode='warning') {
+    //alert(message);
+    if(this.instance){
+      this.instance.emit('showAlert',[message, mode])
+    }
   }
 
   // public static soundGood = new Audio('../../../assets/sounds/GOOD.mp3')

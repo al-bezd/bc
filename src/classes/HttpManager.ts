@@ -25,11 +25,15 @@ export class HttpManager {
     };
   }
 
+  static getMainPath(){
+    return `${this.host.value}${this.pathToServer.value}`
+  }
+
   static async get(action: string, params = {}): Promise<IResponse> {
     const queryString = new URLSearchParams(Object.assign({},params)).toString();
 
     // Формирование полного URL с параметрами запроса
-    const url = `${this.host.value}${this.pathToServer.value}${action}?${queryString}`;
+    const url = `${HttpManager.getMainPath()}${action}?${queryString}`;
     console.log('get url ', url)
     const opt = {
       method: "get",
@@ -53,7 +57,7 @@ export class HttpManager {
 
   static async post(action: string, data: any, params={}): Promise<IResponse> {
     const queryString = new URLSearchParams(params).toString();
-    const url = `${this.host.value}${this.pathToServer.value}${action}?${queryString}`;
+    const url = `${HttpManager.getMainPath()}${action}?${queryString}`;
     const opt = {
       method: "post",
       body: JSON.stringify(data),

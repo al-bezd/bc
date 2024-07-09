@@ -26,4 +26,8 @@ export class LocalStorageManager{
     static remove(key:string){
         localStorage.removeItem(key)
     }
+
+    static clear(){
+        localStorage.clear()
+    }
 }
