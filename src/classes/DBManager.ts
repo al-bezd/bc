@@ -45,8 +45,17 @@ export class DBManager {
     NotificationManager.swal(JSON.stringify(err.error),"error");
   }
   /// Удаляет базу
-  static deleteDatabase(name: string) {
-    indexedDB.deleteDatabase(name);
+  static async deleteDatabase(name: string):Promise<boolean> {
+    return new Promise((resolve,reject)=>{
+      const request = indexedDB.deleteDatabase(name);
+      request.onsuccess = (event)=>{
+        resolve(true)
+      }
+      request.onerror = (event)=>{
+        reject(false)
+      }
+    })
+    
   }
   /// Конектится с базой если базы нет то создает базу и конекстится с ней
   static connectDB(callback: any, base: string, store: string) {
@@ -95,6 +104,7 @@ export class DBManager {
 
   }
 
+  /// Получаем все записи из БД
   static async getFilesAsync(base: string): Promise<IDBDataRecord[]|null> {
 
     return new Promise((resolve, reject) => {
@@ -244,8 +254,10 @@ export class DBManager {
       const writeOperations = data.map(i => DBManager.setFileAsync({ data: i, id: i.Наименование }, key, key))
       // Дожидаемся записи всех
       await Promise.all(writeOperations)
+      return true
     } catch (e) {
       NotificationManager.swal(String(e),'error')
+      return false
     }
   }
 

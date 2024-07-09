@@ -97,7 +97,7 @@ async function show() {
 
 async function openDocument(document: IDocument) {
   GettingManager.instance.setCurrentDocument(document as IGettingProductionDocument);
-  GettingManager.instance.setCurrnetScanings(document.scanings ?? []);
+  GettingManager.instance.setCurrentScanings(document.scanings ?? []);
   RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm);
 }
 /// удаляет ранее добавленый документ из списка документов

@@ -6,6 +6,7 @@ import { NotificationManager } from "../../classes/NotificationManager"
 import { HttpManager } from "../../classes/HttpManager"
 import { Ref, ref, toRaw } from "vue"
 import { IDocument, IUser } from "@/interfaces/IDocument"
+import { IShipmentDocument } from "../shipment/interfaces"
 
 
 
@@ -208,7 +209,7 @@ export class UserManager extends BaseManager {
     return false
     
   }
-
+  /// Получаем сохраненные документы ДвижениеПродукцииИМатериалов
   async getGettingProdDocuments():Promise<IDocument[]>{
     const res = await this.getUserDocuments()
     const documents = []
@@ -222,5 +223,22 @@ export class UserManager extends BaseManager {
     }
     return documents
   }
+  
+  /// Получаем сохраненные документы ЗаказКлиента
+  async getShipmentDocuments():Promise<IShipmentDocument[]>{
+    const res = await this.getUserDocuments()
+    const documents:IShipmentDocument[] = []
+    if(res){
+      const dosc:IDocument[]=res.data.docs
+      for(const doc of dosc){
+        if(doc.Ссылка.Вид==="ЗаказКлиента"){
+          documents.unshift(doc as IShipmentDocument)
+        }
+      }
+    }
+    return documents
+  }
+
+
 
 }

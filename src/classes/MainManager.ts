@@ -2,9 +2,10 @@ import { LocalStorageManager } from "./LocalStorageManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
 import { DBManager } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
-import { ShipmentManager } from "../managers/shippment/ShipmentManager";
+import { ShipmentManager } from "../managers/shipment/ShipmentManager";
 import { HttpManager } from "./HttpManager";
 import { Ref, ref } from "vue";
+import { IShipmentDocument } from "@/managers/shipment/interfaces";
 
 export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
@@ -12,7 +13,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   
   //public currentUser: any = null; /// Текущий пользователь 
-  public scanings: any[] = []; /// Сканирования 
+  //public scanings: any[] = []; /// Сканирования 
 
   public mainStore: Ref<string | null> = ref(null); /// Основной склад
 
@@ -74,7 +75,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
     
     //this.currentUser = LocalStorageManager.get("current_user", true);
     this.initContainers();
-    this.scanings = LocalStorageManager.get("scaning_response", true) ?? [];
+    //this.scanings = LocalStorageManager.get("scaning_response", true) ?? [];
     //ShipmentManager.instance.load();
 
     
@@ -159,6 +160,26 @@ export class MainManager extends BaseManager implements ILoadableManager {
         //   console.log(error)
         //   swal("Произошла ошибка в методе SetMainOrder")
         // })
+      
+  }
+
+
+  
+  /// Получаем инфо листы с сервера за период и склад
+  async getInfoList(ДатаНачала:number, ДатаОкончания:number, Склад:string) {
+  
+    //indexedDB.deleteDatabase('info_lists')
+    const params = {
+      get_info_list: true,
+      ДатаНачала: ДатаНачала,
+      ДатаОкончания: ДатаОкончания,
+      Склад: Склад
+    }
+    const response = await HttpManager.get('/execute', params)
+    if(response.success){
+      return response.data
+    }
+    return null;
       
   }
 }

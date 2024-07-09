@@ -42,6 +42,27 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     }
   }
 
+  public static error(message: string) {
+    //alert(message);
+    if(this.instance){
+      this.instance.emit('showAlert',[message, 'error'])
+    }
+  }
+
+  public static success(message: string) {
+    //alert(message);
+    if(this.instance){
+      this.instance.emit('showAlert',[message, 'success'])
+    }
+  }
+
+  public static info(message: string) {
+    //alert(message);
+    if(this.instance){
+      this.instance.emit('showAlert',[message, 'info'])
+    }
+  }
+
   // public static soundGood = new Audio('../../../assets/sounds/GOOD.mp3')
   // public static soundError = new Audio('../../../assets/sounds/ERROR.mp3')
   // public static soundScan = new Audio('../../../assets/sounds/SCAN.mp3')

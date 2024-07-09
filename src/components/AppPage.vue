@@ -41,6 +41,9 @@
   <div>
     <FormSelectUser />
     <MainMenu />
+
+    <ShipmentLoad />
+
     <GettingProdLoad />
     <GettingProdForm />
     <GettingProdCheck />
@@ -66,6 +69,7 @@ import AddManualFormScreen from "./widgets/AddManualFormScreen.vue";
 import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
+import ShipmentLoad from "./shipment/ShipmentLoad.vue";
 
 onMounted(() => {
   RoutingManager.instance.afterReload();

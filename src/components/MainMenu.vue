@@ -50,7 +50,7 @@ function show() {
 }
 
 function showBildOrder() {
-  console.log("show_bild_orders");
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentLoad);
 }
 
 function showGettingProd() {

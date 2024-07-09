@@ -37,7 +37,7 @@ export class GettingManager extends BaseManager {
   }
 
   clearCurrentScanings(){
-    this.setCurrnetScanings(null)
+    this.setCurrentScanings(null)
   }
 
   async asyncLoad() {
@@ -60,7 +60,7 @@ export class GettingManager extends BaseManager {
     this.emit('setCurrentDocument', [val])
   }
 
-  setCurrnetScanings(val: IScaning[]|null): void {
+  setCurrentScanings(val: IScaning[]|null): void {
     const key = this.currentScaningsKey
     if(val==null){
       this.currentScanings.value = []
@@ -69,7 +69,7 @@ export class GettingManager extends BaseManager {
     }
     this.currentScanings.value = val
     DBManager.setData(key, val.map(x=>toRaw(x)))
-    this.emit('setCurrnetScanings', [val])
+    this.emit('setCurrentScanings', [val])
   }
 
   addScaning(data:IScaning){

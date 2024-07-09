@@ -7,6 +7,9 @@ interface IRoutingMap {
     gettingProductionLoad: string
     gettingProductionForm: string
     gettingProductionCheck: string
+
+    shipmentLoad:string
+    shipmentForm:string
 }
 
 export class RoutingManager extends BaseManager implements ILoadableManager {
@@ -17,7 +20,10 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
         mainMenu: "mainMenu",
         gettingProductionLoad: "gettingProductionLoad",
         gettingProductionForm: "gettingProductionForm",
-        gettingProductionCheck: "gettingProductionCheck"
+        gettingProductionCheck: "gettingProductionCheck",
+
+        shipmentLoad: "shipmentLoad",
+        shipmentForm: "shipmentForm"
 
     }
 
@@ -40,7 +46,6 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
 
     load() {
         this.currentScreen = LocalStorageManager.get("currentScreen");
-
     }
 
     pushName(key: string) {
