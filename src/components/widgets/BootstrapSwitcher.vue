@@ -1,19 +1,24 @@
 <template>
-    <div class="form-check form-switch">
-        <label class="form-check-label" :for="id">{{label}}</label>
-        <!--<input class="form-check-input" type="checkbox" :id="id" :value="value" @input="onInput">-->
-        <input class="form-check-input" type="checkbox" :id="id" :checked="value" @change="onChanged">
-    </div>
+  <div class="form-check form-switch">
+    <label class="form-check-label" :for="id">{{ label }}</label>
+    <!--<input class="form-check-input" type="checkbox" :id="id" :value="value" @input="onInput">-->
+    <input
+      class="form-check-input"
+      type="checkbox"
+      :id="id"
+      :checked="value"
+      @change="onChanged"
+    />
+  </div>
 </template>
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue'
-import { v4 as uuidv4 } from 'uuid';
+import { ref, defineEmits } from "vue";
+import { v4 as uuidv4 } from "uuid";
 
-const id = ref(uuidv4())
+const id = ref(uuidv4());
 //const label = ref('label')
 
-
-const emit = defineEmits(['update:value']);
+const emit = defineEmits(["update:value", "tap"]);
 
 // function sendMessage() {
 //   // emit('message-sent', 'Привет из дочернего компонента');
@@ -24,25 +29,23 @@ const emit = defineEmits(['update:value']);
 //   error: ''
 // })
 interface Props {
-    label:string
-    value:boolean
-    onUpdate:(value:boolean)=>void | null
+  label: string;
+  value: boolean;
+  //onUpdate:(value:boolean)=>void | null
 }
 
 // const props = withDefaults(defineProps<Props>(), {
 //     onUpdate:(value:boolean)=>{}
 // });
-const props = defineProps<Props>()
-
-
+const props = defineProps<Props>();
 
 // function onInput(event: any) {
 //   emit('update:value', event.target.value);
 // }
 
-function onChanged(event: any){
-    emit('update:value', event.target.checked)
-    props.onUpdate(event.target.checked);
+function onChanged(event: any) {
+  emit("update:value", event.target.checked);
+  emit("tap", event.target.checked);
+  //props.onUpdate(event.target.checked);
 }
-
 </script>

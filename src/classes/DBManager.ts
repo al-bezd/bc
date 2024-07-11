@@ -1,5 +1,5 @@
 import { NotificationManager } from "./NotificationManager";
-interface IDBDataRecord {
+export interface IDBDataRecord {
   id: string
   data: any
 }
@@ -58,7 +58,7 @@ export class DBManager {
     
   }
   /// Конектится с базой если базы нет то создает базу и конекстится с ней
-  static connectDB(callback: any, base: string, store: string) {
+  static connectDB(callback: (data:IDBDatabase,base:string,store:string)=>void, base: string, store: string) {
 
     const request = indexedDB.open(base, 1);
     request.onerror = DBManager.logerr;
@@ -249,16 +249,42 @@ export class DBManager {
   }
 
   /// Запись в локальную бд итерируемого объекта
-  static async WriteDataInDB(key:string, data: any[],) {
-    try {
-      const writeOperations = data.map(i => DBManager.setFileAsync({ data: i, id: i.Наименование }, key, key))
-      // Дожидаемся записи всех
-      await Promise.all(writeOperations)
-      return true
-    } catch (e) {
-      NotificationManager.swal(String(e),'error')
-      return false
-    }
+  static async WriteDataInDB(key:string, data: IDBDataRecord[],):Promise<boolean> {
+    const db = await this.openDatabase(key, key);
+    const transaction = db.transaction(key, 'readwrite');
+    const objectStore = transaction.objectStore(key);
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        console.log('Все записи успешно добавлены.');
+        resolve(true);
+      };
+  
+      transaction.onerror = (event) => {
+        console.error('Ошибка при добавлении записей:', event);
+        reject(event);
+      };
+  
+      for (const item of data) {
+        const request = objectStore.add(item);
+      }
+    });
+
+
+    // return new Promise((resolve,reject)=>{
+    //   DBManager.connectDB(()=>{
+
+    //   },key,key)
+    // })
+    // try {
+    //   const writeOperations = data.map(i => DBManager.setFileAsync({ data: i, id: i.Наименование }, key, key))
+    //   // Дожидаемся записи всех
+    //   await Promise.all(writeOperations)
+    //   return true
+    // } catch (e) {
+    //   NotificationManager.swal(String(e),'error')
+    //   return false
+    // }
   }
 
   static async clear(){
@@ -278,4 +304,28 @@ export class DBManager {
       
     
   }
+
+  // Функция для открытия соединения с IndexedDB
+private static openDatabase(dbName: string, storeName: string): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(dbName, 1);
+
+    request.onerror = (event) => {
+      console.error('Ошибка при открытии базы данных:', event);
+      reject(event);
+    };
+
+    request.onsuccess = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      resolve(db);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
 }

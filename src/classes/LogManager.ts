@@ -65,7 +65,7 @@ export class LogManager extends BaseManager implements ILoadableManager {
     }
 
     private saveLog() {
-        DBManager.setData('log',JSON.stringify(toRaw(this.customLog.value)))
+        DBManager.setData('log',toRaw(this.customLog.value))
     }
 
 }

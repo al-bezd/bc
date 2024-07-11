@@ -35,10 +35,11 @@
           <div class="form-group">
             <label for="Склад" class="control-label">Склад</label>
             <input
+              disabled
               type="text"
               class="form-control"
               id="Склад"
-              v-model="addOrders.Склад"
+              :value="addOrders.СкладНаименование"
             />
           </div>
         </div>
@@ -74,7 +75,7 @@
   <div v-if="seen" class="modal-backdrop fade show"></div>
 </template>
 <script setup lang="ts">
-import { DBManager } from "@/classes/DBManager";
+import { DBManager, IDBDataRecord } from "@/classes/DBManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
@@ -83,7 +84,7 @@ import { Ref, ref } from "vue";
 interface IAddOrdersModel {
   ДатаНачала: string;
   ДатаОкончания: string;
-  Склад: string;
+  СкладНаименование: string;
   Заголовок: string;
 }
 
@@ -95,15 +96,18 @@ function getEmptyAddOrdersModel(): IAddOrdersModel {
   return {
     ДатаНачала: "",
     ДатаОкончания: "",
-    Склад: "" + MainManager.instance.mainStore.value,
+    СкладНаименование: "" + MainManager.instance.mainStore.value?.Наименование,
     Заголовок: "Загрузка заказов",
   };
 }
+
 function close() {
   seen.value = false;
 }
 
 function show() {
+  addOrders.value.СкладНаименование =
+    "" + MainManager.instance.mainStore.value?.Наименование;
   seen.value = true;
 }
 
@@ -112,16 +116,21 @@ async function LoadOrdersExecute(type: string) {
     addOrders.value.ДатаОкончания = addOrders.value.ДатаНачала;
   }
 
+  if (!addOrders.value.ДатаНачала || !addOrders.value.ДатаОкончания) {
+    NotificationManager.error("Даты отбора не заполнены!");
+    return;
+  }
+
   if (type == "orders") {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ!");
 
     const documents = await ShipmentManager.instance.getOrdersFromServer(
       new Date(addOrders.value.ДатаНачала).getTime(),
       new Date(addOrders.value.ДатаОкончания).getTime(),
-      addOrders.value.Склад
+      addOrders.value.СкладНаименование
     );
     if (documents) {
-      const data = documents.map((i) => {
+      const data: IDBDataRecord[] = documents.map((i) => {
         return { data: i, id: i.ШК };
       });
       NotificationManager.info("Загрузка заказов начата");
@@ -131,14 +140,14 @@ async function LoadOrdersExecute(type: string) {
       return;
     }
   } else if (type == "info_sheets") {
-    NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ!");
+    NotificationManager.info("ИДЕТ ЗАГРУЗКА ИНФО ЛИСТОВ!");
     const sheets = await MainManager.instance.getInfoList(
       new Date(addOrders.value.ДатаНачала).getTime(),
       new Date(addOrders.value.ДатаОкончания).getTime(),
-      addOrders.value.Склад
+      addOrders.value.СкладНаименование
     );
     if (sheets) {
-      const data = sheets.map((i: any) => {
+      const data: IDBDataRecord[] = sheets.map((i: any) => {
         return { data: i.list, id: i.ID.replace(/ /g, "") };
       });
       NotificationManager.info("Загрузка информационных листов начата");

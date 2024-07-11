@@ -43,6 +43,8 @@
     <MainMenu />
 
     <ShipmentLoad />
+    <ShipmentCreateInfoListForm />
+    <ShipmentCreateInfoListCheck />
 
     <GettingProdLoad />
     <GettingProdForm />
@@ -70,6 +72,8 @@ import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
 import ShipmentLoad from "./shipment/ShipmentLoad.vue";
+import ShipmentCreateInfoListForm from "./shipment/ShipmentCreateInfoListForm.vue";
+import ShipmentCreateInfoListCheck from "./shipment/ShipmentCreateInfoListCheck.vue";
 
 onMounted(() => {
   RoutingManager.instance.afterReload();

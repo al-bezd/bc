@@ -10,6 +10,8 @@ interface IRoutingMap {
 
     shipmentLoad:string
     shipmentForm:string
+    shipmentCreateInfoListForm:string
+    shipmentCreateInfoListCheck:string
 }
 
 export class RoutingManager extends BaseManager implements ILoadableManager {
@@ -23,7 +25,9 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
         gettingProductionCheck: "gettingProductionCheck",
 
         shipmentLoad: "shipmentLoad",
-        shipmentForm: "shipmentForm"
+        shipmentForm: "shipmentForm",
+        shipmentCreateInfoListForm:"shipmentCreateInfoListForm",
+        shipmentCreateInfoListCheck:"shipmentCreateInfoListCheck"
 
     }
 

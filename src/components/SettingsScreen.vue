@@ -140,7 +140,7 @@
             <BootstrapSwitcher
               label="Использовать локальное хранилище"
               v-model:value="UserManager.instance.useLocalDb.value"
-              @update="(x) => UserManager.instance.setUseLocalDb(x)"
+              @tap="(x) => UserManager.instance.setUseLocalDb(x)"
             />
           </div>
         </div>
@@ -167,7 +167,7 @@
             <BootstrapSwitcher
               label="Использовать локальное хранилище для поиска заказов"
               v-model:value="UserManager.instance.useLocalOrders.value"
-              @update="(x) => UserManager.instance.setUseLocalOrders(x)"
+              @tap="(x) => UserManager.instance.setUseLocalOrders(x)"
             />
           </div>
         </div>
@@ -208,7 +208,7 @@
             <BootstrapSwitcher
               label="Использовать буфер обмена для сканирования"
               v-model:value="ScanerManager.instance.useClipBoard.value"
-              @update="(x) => ScanerManager.instance.setUseClipBoard(x)"
+              @tap="(x) => ScanerManager.instance.setUseClipBoard(x)"
             />
           </div>
         </div>
@@ -237,7 +237,7 @@
               label="Контроль будущей даты
                     производства"
               v-model:value="UserManager.instance.controlFutureDate.value"
-              @update="(x) => UserManager.instance.setControlFutureDate(x)"
+              @tap="(x) => UserManager.instance.setControlFutureDate(x)"
             />
           </div>
         </div>
@@ -333,7 +333,7 @@ import { LogManager } from "@/classes/LogManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { MainManager } from "@/classes/MainManager";
-import { DBManager } from "@/classes/DBManager";
+import { DBManager, IDBDataRecord } from "@/classes/DBManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { FileManager } from "@/classes/FileManager";
 
@@ -479,8 +479,11 @@ async function loadBarcodesFromFile() {
     const fileReadRes = await FileManager.readFile(document.getElementById("file"));
     if (fileReadRes) {
       const data = JSON.parse(fileReadRes as string);
-
-      await DBManager.WriteDataInDB("barcodes", data);
+      const tmp: IDBDataRecord[] = data.map((x: any) => {
+        return { id: x.ШК, data: x };
+      });
+      
+      await DBManager.WriteDataInDB("barcodes", tmp);
     }
     NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");
   } catch (e) {
@@ -492,9 +495,9 @@ async function loadBarcodesFromFile() {
 }
 
 async function loadBarcodesFromServer() {
-  NotificationManager.swal("Загрузка ШК в локальную базу начата", "info");
+  NotificationManager.info("Загрузка ШК в локальную базу начата");
   await MainManager.instance.uploadBarcodes();
-  NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");
+  NotificationManager.info("Загрузка ШК в локальную базу завершена");
 }
 
 function showDataUpdateApp() {

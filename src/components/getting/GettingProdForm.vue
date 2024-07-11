@@ -10,7 +10,7 @@
         <h5>г/м. {{ boxInOrder }}</h5>
       </div>
     </div>
-    <BootstrapSwitcher label="Палетная" v-model:value="itPalet" @update="(x) => {}" />
+    <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
       type="text"
       class="form-control bc_input mb-3"
@@ -251,9 +251,9 @@ function checkScaningGetting(
     Наименование: Date1C(ДатаПроизводства, ГоденДо),
     Ссылка: `${ДатаПроизводства}${ГоденДо}`,
   };
-  const ЕдИзмСтр = СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
+  // const ЕдИзмСтр = СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
 
-  const curNomStr = `${СтруктураШК.Ссылка.Номенклатура.Наименование}\n${СтруктураШК.Ссылка.Характеристика.Наименование}\n${Серия.Наименование}`;
+  // const curNomStr = `${СтруктураШК.Ссылка.Номенклатура.Наименование}\n${СтруктураШК.Ссылка.Характеристика.Наименование}\n${Серия.Наименование}`;
 
   if (itPalet.value == true) {
     Грузоместа = FindGM(bc);
@@ -358,6 +358,7 @@ function checkScaningGetting(
     Грузоместа: Грузоместа,
     Палетная: Палетная,
     bc: bc,
+    free: false,
   };
   //response.IDSec = response.ID + Date.now();
   GettingManager.instance.addScaning(response);

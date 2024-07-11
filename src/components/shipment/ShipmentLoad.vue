@@ -104,6 +104,7 @@ function goToReflectionOfBalances() {
 }
 
 function goToCreateInfoSheet() {
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentCreateInfoListForm);
   //Перейти к созданию инфо листа
   //eval(`form_doc_free.show('ИнфоЛист');form_doc_free.ClearScaning()`)
 }

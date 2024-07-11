@@ -26,19 +26,26 @@ export class ShipmentManager extends BaseManager {
   }
 
 
-  public mainOrder: any;
-  public mainOrderName = "Основной склад не назначен";
+  //public mainOrder: any;
+  //public mainOrderName = "Основной склад не назначен";
 
   public currentDocument:Ref<IShipmentDocument|null> = ref(null)
   public currentScanings:Ref<IScaning[]> = ref([])
 
   load() {
-    this.mainOrder = LocalStorageManager.get("main_order", true);
-    if (this.mainOrder === null) {
-      this.mainOrderName = "Основной склад не назначен";
-    } else {
-      this.mainOrderName = this.mainOrder.Наименование;
-    }
+    this.asyncLoad()
+    // this.mainOrder = LocalStorageManager.get("main_order", true);
+    // if (this.mainOrder === null) {
+    //   this.mainOrderName = "Основной склад не назначен";
+    // } else {
+    //   this.mainOrderName = this.mainOrder.Наименование;
+    // }
+  }
+
+  async asyncLoad() {
+    this.currentDocument.value = await DBManager.getData(this.currentDocumentKey) ?? null
+    this.currentScanings.value = await DBManager.getData(this.currentScaningsKey) ?? []
+    //console.log('this.currentDocument.value ', this.currentDocument.value)
   }
 
   async getDocumentFromLocalDBByBarcode(barcode:string):Promise<IShipmentDocument|null>{
@@ -153,6 +160,27 @@ export class ShipmentManager extends BaseManager {
 
   clearCurrentScanings(){
     this.setCurrentScanings(null)
+  }
+
+  addScaning(scaning:IScaning){
+    const key = this.currentScaningsKey
+    this.currentScanings.value.unshift(scaning)
+    DBManager.setData(key, toRaw(this.currentScanings.value) )
+    this.emit('addScaning', [this.currentScanings.value, scaning])
+  }
+
+  deleteScaning(data:IScaning) {
+    const key = this.currentScaningsKey
+
+    for (const i of this.currentScanings.value) {
+      if(i.IDSec === data.IDSec) {
+        this.currentScanings.value.splice(this.currentScanings.value.indexOf(i), 1)
+        break
+      }
+    }
+    
+    DBManager.setData(key, toRaw(this.currentScanings.value) )
+    this.emit('deleteScaning', [this.currentScanings.value, data])
   }
 
   //Удаляем документ из списка документов пользователя

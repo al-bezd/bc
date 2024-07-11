@@ -60,6 +60,7 @@ import {
 import { rounded } from "@/functions/rounded";
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
+import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -112,9 +113,9 @@ function close() {
 
 function show() {
   seen.value = true;
-  tableTotal.value = createUniqProductionList(
+  tableTotal.value = GetGroupScans(
     GettingManager.instance.currentDocument.value?.Товары ?? []
-  );
+  ) as IGettingProductionProductTotalItem[];
 
   allItem.value = fillCurrentResult(
     tableTotal.value,
@@ -225,49 +226,41 @@ function openArticulScreen(productName: string) {
   }
 }
 
-function createUniqProductionList(
-  products: IGettingProductionProductItem[]
-): IGettingProductionProductTotalItem[] {
-  const list: any = {};
-  for (const item of products) {
-    const key = getRowKey(item);
+// function createUniqProductionList(
+//   products: IGettingProductionProductItem[]
+// ): IGettingProductionProductTotalItem[] {
+//   const list: any = {};
+//   for (const item of products) {
+//     const key = getRowKey(item);
 
-    // eslint-disable-next-line no-prototype-builtins
-    if (!list.hasOwnProperty(key)) {
-      list[key] = Object.assign({}, item);
-      list[key].key = key;
-      list[key].cls = " alert alert-primary ";
-      list[key].ВПроцСоотношении = 0;
-      list[key].ТекущееКоличество = 0;
-      list[key].ТекущееКоличествоВЕдиницахИзмерения = 0;
-      list[key].КоличествоКоробок = 0;
+//     // eslint-disable-next-line no-prototype-builtins
+//     if (!list.hasOwnProperty(key)) {
+//       list[key] = Object.assign({}, item);
+//       list[key].key = key;
+//       list[key].cls = " alert alert-primary ";
+//       list[key].ВПроцСоотношении = 0;
+//       list[key].ТекущееКоличество = 0;
+//       list[key].ТекущееКоличествоВЕдиницахИзмерения = 0;
+//       list[key].КоличествоКоробок = 0;
 
-      continue;
-    }
-    const dataItem: IGettingProductionProductTotalItem = list[key];
-    dataItem.Количество += item.Количество;
-    dataItem.КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
-    dataItem.КоличествоКоробок += item.Грузоместа;
-    // ВПроцСоотношении = Math.round(
-    //   (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
-    // );
-  }
+//       continue;
+//     }
+//     const dataItem: IGettingProductionProductTotalItem = list[key];
+//     dataItem.Количество += item.Количество;
+//     dataItem.КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
+//     dataItem.КоличествоКоробок += item.Грузоместа;
+//     // ВПроцСоотношении = Math.round(
+//     //   (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
+//     // );
+//   }
 
-  const result = [];
-  for (const key of Object.keys(list)) {
-    result.unshift(list[key]);
-  }
-  return result;
-}
+//   const result = [];
+//   for (const key of Object.keys(list)) {
+//     result.unshift(list[key]);
+//   }
+//   return result;
+// }
 
-/// Возвращает key строки таблицы
-function getRowKey(row: IGettingProductionProductItem) {
-  const НоменклатураСсылка = row.Номенклатура.Ссылка.Ссылка;
-  const ХарактеристикаСсылка = row.Характеристика.Ссылка.Ссылка;
-  const СерияСсылка = row.Серия.Наименование; //Используем наименование как ссылку потому что мы идентифицируем в приложении серию по наименованию
-  const key = НоменклатураСсылка + ХарактеристикаСсылка + СерияСсылка;
-  return key;
-}
 function fillCurrentResult(
   tableTotal: IGettingProductionProductTotalItem[],
   scanings: IScaning[]

@@ -1,19 +1,27 @@
 import { Ref, ref } from "vue";
 import { LocalStorageManager } from "./LocalStorageManager";
+import { BaseManager, ILoadableManager } from "./BaseManager";
 
 export interface IWithCheckup{
   РезультатПроверки:boolean
 }
 
-export class HttpManager {
+export class HttpManager extends BaseManager implements ILoadableManager {
+  constructor(){
+    super()
+    if(!HttpManager.instance){
+      HttpManager.instance = this
+    }
+  }
+  static instance:HttpManager
   static host= ref("http://lyra.reftp.ru");
   static pathToServer = ref("/barcode2020/hs/barcode/");
 
   static init() {
-    //
+    new HttpManager()
   }
 
-  static load() {
+  load() {
    
     HttpManager.host.value = LocalStorageManager.get('host')??HttpManager.host.value
     HttpManager.pathToServer.value = LocalStorageManager.get('pathToServer')??HttpManager.pathToServer.value

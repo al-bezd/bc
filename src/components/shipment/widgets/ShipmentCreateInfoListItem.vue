@@ -37,13 +37,11 @@ import { IScaning } from "@/interfaces/IScaning";
 
 interface Props {
   data: IScaning;
-  onDelete: (item: IScaning) => void;
 }
 const props = defineProps<Props>();
-const emit = defineEmits(["deleteItem"]);
+const emit = defineEmits(["delete"]);
 //delete_scaning_quest_jquery({"id":String(${response.IDSec}),"free":${response.free}})
 function deleteItem() {
-  //emit('deleteItem', props.onDelete)
-  props.onDelete(props.data);
+  emit("delete", props.data);
 }
 </script>

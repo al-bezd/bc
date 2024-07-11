@@ -54,7 +54,7 @@ LogManager.instance.load()
 MainManager.instance.load()
 GettingManager.instance.load()
 ShipmentManager.instance.load();
-HttpManager.load()
+HttpManager.instance.load()
 ScanerManager.instance.load()
 UserManager.instance.load()
 

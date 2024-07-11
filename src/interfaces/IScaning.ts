@@ -12,4 +12,13 @@ export interface IScaning{
     Грузоместа: number,
     Палетная: string,
     bc: string
+    free:boolean
+}
+
+export interface IScaningGroup extends IScaning{
+    ВПроцСоотношении:number
+    ТекущееКоличество:number
+    ТекущееКоличествоВЕдиницахИзмерения:number
+    КоличествоКоробок:number
+    
 }

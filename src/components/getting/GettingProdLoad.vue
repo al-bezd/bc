@@ -84,6 +84,7 @@ function close() {
   seen.value = false;
 }
 
+/// Подгружаем сохраненые документы пользователя
 async function initSavedDocuments() {
   documents.value = await UserManager.instance.getGettingProdDocuments();
 }
@@ -113,11 +114,5 @@ async function deleteDocument(document: IDocument) {
       initSavedDocuments();
     }
   }
-
-  // if(response){
-  //     //getting_prod_load.show()
-  //     //GettingManager.instance.emit('go',['getting_prod_form'])
-  //     RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm)
-  // }
 }
 </script>

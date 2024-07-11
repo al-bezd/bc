@@ -43,7 +43,7 @@ export class GettingManager extends BaseManager {
   async asyncLoad() {
     this.currentDocument.value = await DBManager.getData(this.currentDocumentKey) ?? null
     this.currentScanings.value = await DBManager.getData(this.currentScaningsKey) ?? []
-    console.log('this.currentDocument.value ', this.currentDocument.value)
+    //console.log('this.currentDocument.value ', this.currentDocument.value)
   }
 
 

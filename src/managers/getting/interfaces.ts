@@ -1,9 +1,9 @@
 import { IWithCheckup } from "@/classes/HttpManager";
 import {  IDocument } from "@/interfaces/IDocument";
-import { IScaning } from "@/interfaces/IScaning";
+import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 
 /// Структура объекта строка таблицы Товары
-export interface IGettingProductionProductItem {
+export interface IGettingProductionProductItem extends IScaning {
     Номенклатура:IНоменклатура
     Характеристика:IХарактеристика
     Серия:IСерия
@@ -13,7 +13,7 @@ export interface IGettingProductionProductItem {
     Грузоместа:number
 }
 /// Структура объекта для экрана с итогами
-export interface IGettingProductionProductTotalItem extends IGettingProductionProductItem {
+export interface IGettingProductionProductTotalItem extends IScaningGroup {
     
 
     ТекущееКоличество:number

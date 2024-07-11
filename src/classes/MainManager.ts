@@ -1,11 +1,12 @@
 import { LocalStorageManager } from "./LocalStorageManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
-import { DBManager } from "./DBManager";
+import { DBManager, IDBDataRecord } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
 import { ShipmentManager } from "../managers/shipment/ShipmentManager";
 import { HttpManager } from "./HttpManager";
 import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
+import { IStore } from "@/interfaces/IStore";
 
 export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
@@ -15,7 +16,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
   //public currentUser: any = null; /// Текущий пользователь 
   //public scanings: any[] = []; /// Сканирования 
 
-  public mainStore: Ref<string | null> = ref(null); /// Основной склад
+  public mainStore: Ref<IStore | null> = ref(null); /// Основной склад
 
   constructor() {
     super();
@@ -44,7 +45,6 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   /// Загружаем штрихкоды с сервера
   async uploadBarcodes():Promise<void>{
-    //status_bar.msgs.push("ИДЕТ ЗАГРУЗКА ДАННЫХ!");
     this.emit('uploadBarcodes:start')
     const t1 = Date.now();
     const params = { "get_barcods": "true" }
@@ -52,9 +52,12 @@ export class MainManager extends BaseManager implements ILoadableManager {
     if(response.success){
         const t2 = ((Date.now() - t1) / 1000) / 60;
         console.log(`база загружена за ${t2.toFixed(2)} мин.`);
-        //status_bar.msgs = [];
-        NotificationManager.swal(`База обновлена за ${t2.toFixed(2)} мин.`);
-        DBManager.WriteDataInDB('barcodes',response.data);
+        NotificationManager.info(`База обновлена за ${t2.toFixed(2)} мин.`);
+        const data:IDBDataRecord[] = response.data.map((x:any)=>{
+          return {id:x.Наименование.delSpaces(),data:x}
+        })
+        await DBManager.deleteDatabase('barcodes')
+        await DBManager.WriteDataInDB('barcodes', data);
     }
     this.emit('uploadBarcodes:end')
   }
@@ -68,6 +71,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   async loadAsync(){
     const mainStoreTmp = await DBManager.getData('mainStore')
+    
     if(mainStoreTmp){
       this.mainStore.value = mainStoreTmp
     }
@@ -86,23 +90,24 @@ export class MainManager extends BaseManager implements ILoadableManager {
     const params = {
       "get_torgovie_seti": "true",
     };
-    const resposne = await HttpManager.get("/execute", params);
-    if (resposne.success) {
-      DBManager.deleteDatabase("torgovie_seti");
-      DBManager.setFile(
-        { id: Date.now().toString(), data: resposne.data },
-        "torgovie_seti",
-        "torgovie_seti"
-      );
+    const response = await HttpManager.get("/execute", params);
+    if (response.success) {
+      await DBManager.deleteDatabase("torgovie_seti");
+      await DBManager.setData('torgovie_seti', response.data)
+      // DBManager.setFile(
+      //   { id: Date.now().toString(), data: resposne.data },
+      //   "torgovie_seti",
+      //   "torgovie_seti"
+      // );
 
       //setFile({ id: Date.now(), data: response.data }, 'torgovie_seti', 'torgovie_seti')
       NotificationManager.swal(`Информация по торговым сетям загружена`);
-      this.emit("SetTorgovieSeti", [resposne.data]);
+      this.emit("SetTorgovieSeti", [response.data]);
       // check_doc_free.torgovie_seti = response.data
       // torgovie_seti = response.data
       // check_doc_free.torgovie_seti = torgovie_seti
     } else {
-      console.log("SetTorgovieSeti ", resposne.error);
+      console.log("SetTorgovieSeti ", response.error);
       NotificationManager.swal("Ошибка при загрузке торговых сетей");
     }
     // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })
@@ -122,7 +127,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
     //   })
   }
 
-  setMainStore(val:string){
+  setMainStore(val:IStore){
     this.mainStore.value = val
     DBManager.setData("mainStore", val) 
     this.emit('setmainStore',[this.mainStore])
@@ -145,7 +150,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
             // load_doc.add_orders.Склад     = ОсновнойСклад
         }else{
             console.log(response.error)
-            NotificationManager.swal("Произошла ошибка в методе uploadMainStore в классе MainManager")
+            NotificationManager.error("Произошла ошибка в методе uploadMainStore в классе MainManager")
         }
         // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })
         // .then((response) =>{
