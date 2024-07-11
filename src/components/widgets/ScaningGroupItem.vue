@@ -43,6 +43,7 @@ import { IScaning } from "@/interfaces/IScaning";
 
 interface Props {
   data: any;
+
   //onDelete:(data:IScaning)=>void
 }
 const props = defineProps<Props>();

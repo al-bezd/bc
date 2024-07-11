@@ -5,7 +5,7 @@
     >
     <div class="space">
       <div>
-        <GettingProdFormItem
+        <ScaningGroupItem
           v-for="item in prodList"
           :key="item.IDSec"
           :data="item"
@@ -27,7 +27,7 @@
 </template>
 <script setup lang="ts">
 import { Ref, computed, ref } from "vue";
-import GettingProdFormItem from "@/components/getting/widgets/GettingProdFormItem.vue";
+import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { NotificationManager } from "@/classes/NotificationManager";

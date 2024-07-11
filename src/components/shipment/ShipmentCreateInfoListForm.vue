@@ -23,7 +23,7 @@
       </button>
     </div>
     <div class="space">
-      <ShipmentCreateInfoListItem
+      <ScaningItem
         v-for="item in items"
         :key="item.ID"
         :data="item"
@@ -83,7 +83,7 @@ import { HttpManager } from "@/classes/HttpManager";
 import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
 import { Date1C } from "@/functions/Date1C";
-import ShipmentCreateInfoListItem from "@/components/shipment/widgets/ShipmentCreateInfoListItem.vue";
+import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { OrderBy as orderBy } from "@/functions/OrderBy";
 
 RoutingManager.instance.registry(

@@ -22,7 +22,7 @@
 
     <div class="space">
       <!--<div id="getting_prod_list"></div>-->
-      <GettingProdFormItem
+      <ScaningItem
         v-for="item in items"
         :key="item.ID"
         :data="item"
@@ -67,7 +67,7 @@
 </template>
 <script setup lang="ts">
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
-import GettingProdFormItem from "./widgets/GettingProdFormItem.vue";
+import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { DBManager } from "@/classes/DBManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
