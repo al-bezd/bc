@@ -5,11 +5,17 @@
   >
     <div class="row">
       <div class="col-10">
-        <div @click="OpenThisArticul(data.Номенклатура.Наименование)">
+        <div
+          @click="
+            () => {
+              emit('tap', data.Номенклатура.Наименование);
+            }
+          "
+        >
           <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
         </div>
         <div>{{ data.Характеристика.Наименование }}</div>
-        <div>{{ data.Серия.Наименование }}</div>
+        <div v-if="mode == 'НомХарСер'">{{ data.Серия.Наименование }}</div>
         <div>
           <b>ПЛУ : {{ data.ПЛУ }}</b>
         </div>
@@ -31,7 +37,7 @@
         </div>
       </div>
       <div class="col-2">
-        <div>
+        <div v-if="showProcent">
           <b>{{ data.ВПроцСоотношении }}%</b>
         </div>
       </div>
@@ -39,17 +45,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { IScaning } from "@/interfaces/IScaning";
+import { RowKeyMode } from "@/functions/GetGroupScans";
+import { IScaningGroup } from "@/interfaces/IScaning";
 
 interface Props {
-  data: any;
-
-  //onDelete:(data:IScaning)=>void
+  data: IScaningGroup;
+  mode: RowKeyMode;
+  showProcent: boolean;
 }
-const props = defineProps<Props>();
+
+const props = withDefaults(defineProps<Props>(), {
+  mode: "НомХарСер",
+  showProcent: true,
+});
 const emit = defineEmits(["tap"]);
-
-function OpenThisArticul(nomenklName: string) {
-  emit("tap", nomenklName);
-}
 </script>

@@ -99,6 +99,7 @@ function getDocumentByBarcode(barcode: string) {
 }
 
 function goToReflectionOfBalances() {
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentReflectionStoreForm);
   //Перейти к отражению остатков
   //eval(`form_doc_free.show('Остатки');form_doc_free.ClearScaning()`)
 }

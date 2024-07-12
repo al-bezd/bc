@@ -33,6 +33,7 @@ import { GettingManager } from "@/managers/getting/GettingManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 const seen = ref(false);
 const currentArticul: Ref<IScaning | null> = ref(null);
+
 const prodList = computed(() => {
   return GettingManager.instance.currentScanings.value.filter((x) => {
     return x.Номенклатура.Наименование == currentArticul.value;
@@ -41,9 +42,10 @@ const prodList = computed(() => {
 const countThisArticul = computed(() => {
   let Count = 0;
   if (currentArticul.value) {
-    for (const item of prodList.value) {
-      Count += item.Грузоместа;
-    }
+    return prodList.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
+    // for (const item of prodList.value) {
+    //   Count += item.Грузоместа;
+    // }
   }
   return Count;
 });

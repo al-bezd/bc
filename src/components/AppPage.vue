@@ -43,8 +43,12 @@
     <MainMenu />
 
     <ShipmentLoad />
-    <ShipmentCreateInfoListForm />
-    <ShipmentCreateInfoListCheck />
+
+    <InfoListForm />
+    <InfoListCheck />
+
+    <ReflectionStoreForm />
+    <ReflectionStoreCheck />
 
     <GettingProdLoad />
     <GettingProdForm />
@@ -72,8 +76,11 @@ import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
 import ShipmentLoad from "./shipment/ShipmentLoad.vue";
-import ShipmentCreateInfoListForm from "./shipment/ShipmentCreateInfoListForm.vue";
-import ShipmentCreateInfoListCheck from "./shipment/ShipmentCreateInfoListCheck.vue";
+import InfoListForm from "./shipment/info_list/InfoListForm.vue";
+import InfoListCheck from "./shipment/info_list/InfoListCheck.vue";
+
+import ReflectionStoreForm from "./shipment/reflection_store/ReflectionStoreForm.vue";
+import ReflectionStoreCheck from "./shipment/reflection_store/ReflectionStoreCheck.vue";
 
 onMounted(() => {
   RoutingManager.instance.afterReload();

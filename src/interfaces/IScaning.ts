@@ -20,5 +20,8 @@ export interface IScaningGroup extends IScaning{
     ТекущееКоличество:number
     ТекущееКоличествоВЕдиницахИзмерения:number
     КоличествоКоробок:number
+    имКоличествоВПересчетеНаКг:number
+    КоличествоУпаковок:number
+    cls:string
     
 }

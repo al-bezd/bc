@@ -3,16 +3,9 @@ import { LocalStorageManager } from "./LocalStorageManager";
 import { MainManager } from "./MainManager";
 import { NotificationManager } from "./NotificationManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
+import { StringToBool } from "@/functions/StringToBoolean";
 
-function stringToBool(val:string|null){
-  if(val==='true'){
-    return true
-  } else if(val==='false'){
-    return false
-  } else if (val===null){
-    return null
-  }
-}
+
 
 export class ScanerManager extends BaseManager implements ILoadableManager {
   static instance: ScanerManager;
@@ -51,7 +44,7 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
 
   load(){
     this.scanKey.value = LocalStorageManager.get('scanKey')??"F13"
-    this.useClipBoard.value = stringToBool(LocalStorageManager.get('useClipBoard'))??true
+    this.useClipBoard.value = StringToBool(LocalStorageManager.get('useClipBoard'))??true
   }
 
   

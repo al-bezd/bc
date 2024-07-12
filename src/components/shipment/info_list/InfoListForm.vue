@@ -1,14 +1,14 @@
 <template>
   <!-- Форма сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>Создание Инфо. листа</h4>
+    <h4>{{ pageTitle }}</h4>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
       type="text"
       class="form-control bc_input mb-3"
       placeholder="Введите штрихкод"
       v-model="barcode"
-      @keyup.enter="onScan(barcode)"
+      @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
     <div class="btn-group w-100 mb-3" role="group">
@@ -75,7 +75,7 @@ import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { computed, ref } from "vue";
-import BootstrapSwitcher from "../widgets/BootstrapSwitcher.vue";
+import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { UserManager } from "@/managers/user/UserManager";
 import { DBManager } from "@/classes/DBManager";
@@ -92,6 +92,7 @@ RoutingManager.instance.registry(
   close
 );
 
+const pageTitle = ref("Создание Инфо. листа");
 const seen = ref(false);
 const itPalet = ref(false);
 const barcode = ref("");
@@ -163,17 +164,27 @@ async function createScaning(barcode: string): Promise<IScaning | null> {
   return null;
 }
 
-async function onScan(barcode: string) {
-  if (barcode === "") {
-    return;
-  }
-  const scaning = await createScaning(barcode);
-  if (scaning) {
-    await ShipmentManager.instance.addScaning(scaning);
-    isValidScaning(scaning, ShipmentManager.instance.currentScanings.value);
+async function onEnter() {
+  const resScan = await onScan(barcode.value);
+  if (resScan) {
+    barcode.value = "";
   }
 }
 
+async function onScan(barcodeStr: string) {
+  if (barcodeStr === "") {
+    return false;
+  }
+  const scaning = await createScaning(barcodeStr);
+  if (scaning) {
+    await ShipmentManager.instance.addScaning(scaning);
+    isValidScaning(scaning, ShipmentManager.instance.currentScanings.value);
+    return true;
+  }
+  return false;
+}
+
+/// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
 function isValidScaning(scaning: IScaning, scanings: IScaning[]) {
   if (scanings.length > 1) {
     if (scanings[1].bc === scaning.bc) {
@@ -244,6 +255,7 @@ function goToCheck() {
 
 function clear() {
   ShipmentManager.instance.clear();
+  ShipmentManager.instance.emit("InfoListClear");
 }
 
 async function clearWithQuest() {

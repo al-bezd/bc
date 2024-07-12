@@ -24,6 +24,7 @@ export class DBManager {
   }
 
   static async setData(key:string, data:any) : Promise<IDBValidKey>{
+    await DBManager.deleteDatabase(key);
     const result = await this.setFileAsync({ id: "0", data: data }, key, key)
     return result
   }

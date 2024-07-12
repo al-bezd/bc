@@ -1,7 +1,7 @@
 <template>
   <div
     class="modal fade show"
-    v-if="seen"
+    v-if="localSeen"
     tabindex="-1"
     style="display: block"
     aria-modal="true"
@@ -9,9 +9,8 @@
   >
     <div class="modal-dialog" role="document">
       <div class="modal-content">
-        <div class="modal-header">
-          <slot name="header">Default Header</slot>
-        </div>
+        <!-- <slot name="header"> <div class="modal-header"></div></slot> -->
+
         <div class="modal-body">
           <slot></slot>
         </div>
@@ -20,14 +19,10 @@
     </div>
     <!-- /.modal-dialog -->
   </div>
-  <div v-if="seen" class="modal-backdrop fade show"></div>
+  <div v-if="localSeen" class="modal-backdrop fade show"></div>
 </template>
 <script setup lang="ts">
-import { DBManager, IDBDataRecord } from "@/classes/DBManager";
-import { MainManager } from "@/classes/MainManager";
-import { NotificationManager } from "@/classes/NotificationManager";
-import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { Ref, ref } from "vue";
+import { ref, watch } from "vue";
 
 /**<template v-slot:header>
         <h1>Custom Header</h1>
@@ -36,16 +31,18 @@ import { Ref, ref } from "vue";
 interface IModalWindow {
   seen: boolean;
 }
-
 const props = defineProps<IModalWindow>();
+watch(props, () => {
+  localSeen.value = props.seen;
+});
 
-const seen = ref(false);
+const localSeen = ref(false);
 
 function close() {
-  seen.value = false;
+  localSeen.value = false;
 }
 
 function show() {
-  seen.value = true;
+  localSeen.value = true;
 }
 </script>

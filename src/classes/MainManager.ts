@@ -12,6 +12,21 @@ export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
+  static keys = {
+    torgovieSeti:'torgovieSeti',
+    barcodes:'barcodes',
+    mainStore:'mainStore'
+  }
+
+  public local={
+    torgovieSeti:async ():Promise<any | null>=>{
+      return DBManager.getData(MainManager.keys.torgovieSeti)
+    },
+    mainStore:async ():Promise<any | null>=>{
+      return DBManager.getData(MainManager.keys.mainStore)
+    },
+  }
+
   
   //public currentUser: any = null; /// Текущий пользователь 
   //public scanings: any[] = []; /// Сканирования 
@@ -56,8 +71,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
         const data:IDBDataRecord[] = response.data.map((x:any)=>{
           return {id:x.Наименование.delSpaces(),data:x}
         })
-        await DBManager.deleteDatabase('barcodes')
-        await DBManager.WriteDataInDB('barcodes', data);
+        await DBManager.deleteDatabase(MainManager.keys.barcodes)
+        await DBManager.WriteDataInDB(MainManager.keys.barcodes, data);
     }
     this.emit('uploadBarcodes:end')
   }
@@ -70,7 +85,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
   }
 
   async loadAsync(){
-    const mainStoreTmp = await DBManager.getData('mainStore')
+    const mainStoreTmp = await DBManager.getData(MainManager.keys.mainStore)
     
     if(mainStoreTmp){
       this.mainStore.value = mainStoreTmp
@@ -92,8 +107,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
     };
     const response = await HttpManager.get("/execute", params);
     if (response.success) {
-      await DBManager.deleteDatabase("torgovie_seti");
-      await DBManager.setData('torgovie_seti', response.data)
+      
+      await DBManager.setData(MainManager.keys.torgovieSeti, response.data)
       // DBManager.setFile(
       //   { id: Date.now().toString(), data: resposne.data },
       //   "torgovie_seti",
@@ -129,7 +144,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   setMainStore(val:IStore){
     this.mainStore.value = val
-    DBManager.setData("mainStore", val) 
+    DBManager.setData(MainManager.keys.mainStore, val) 
     this.emit('setmainStore',[this.mainStore])
   }
 
