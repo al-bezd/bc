@@ -7,6 +7,9 @@ import { HttpManager } from "./HttpManager";
 import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { IStore } from "@/interfaces/IStore";
+import { UserManager } from "@/managers/user/UserManager";
+import { IGettingProductionDocument } from "@/managers/getting/interfaces";
+import { IDocument } from "@/interfaces/IDocument";
 
 export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
@@ -15,7 +18,11 @@ export class MainManager extends BaseManager implements ILoadableManager {
   static keys = {
     torgovieSeti:'torgovieSeti',
     barcodes:'barcodes',
-    mainStore:'mainStore'
+    mainStore:'mainStore',
+    user:'user',
+    userDocument:'userDocument',
+    infoSheets:'infoSheets',
+    orders:"orders"
   }
 
   public local={
@@ -25,6 +32,22 @@ export class MainManager extends BaseManager implements ILoadableManager {
     mainStore:async ():Promise<any | null>=>{
       return DBManager.getData(MainManager.keys.mainStore)
     },
+    shipmentDocs:async ():Promise<IShipmentDocument[]>=>{
+      return UserManager.instance.getShipmentDocuments()
+    },
+    gettingDocs:async ():Promise<IGettingProductionDocument[]>=>{
+      return UserManager.instance.getGettingProdDocuments()
+    },
+    allDocs:async():Promise<IDocument[] | null>=>{
+      return UserManager.instance.getUserDocuments()
+    },
+    infoSheets:async():Promise<any>=>{
+      return DBManager.getData(MainManager.keys.infoSheets)
+    },
+    orders:async():Promise<any>=>{
+      return DBManager.getData(MainManager.keys.orders)
+    }
+
   }
 
   

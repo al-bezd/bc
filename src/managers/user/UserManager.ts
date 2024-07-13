@@ -1,18 +1,19 @@
 import { LocalStorageManager } from "../../classes/LocalStorageManager"
 import { BaseManager } from "../../classes/BaseManager"
-import { DBManager } from "../../classes/DBManager"
+import { DBManager, IDBDataRecord } from "../../classes/DBManager"
 import { MainManager } from "../../classes/MainManager"
 import { NotificationManager } from "../../classes/NotificationManager"
 import { HttpManager } from "../../classes/HttpManager"
 import { Ref, ref, toRaw } from "vue"
 import { IDocument, IUser } from "@/interfaces/IDocument"
 import { IShipmentDocument } from "../shipment/interfaces"
+import { IGettingProductionDocument } from "../getting/interfaces"
 
 
 
 export class UserManager extends BaseManager {
   static instance: UserManager
-  private baseName = 'user_docs'
+  //private baseName = 'user_docs'
 
   //public barcode:string|null = null
   public controlFutureDate = ref(false)
@@ -34,7 +35,7 @@ export class UserManager extends BaseManager {
   }
 
   async loadAsync(){
-    const user = await DBManager.getData('user')
+    const user = await DBManager.getData(MainManager.keys.user)
     if(user){
       this.user.value = user
     }
@@ -61,14 +62,14 @@ export class UserManager extends BaseManager {
 
   setUser(val: any) {
     this.user.value = val
-    DBManager.setData("user", val) // current_user
+    DBManager.setData(MainManager.keys.user, val) // current_user
     this.emit('setUser', [this.user])
   }
 
   clearUser(){
     const oldValue = this.user.value
     this.user.value = null
-    DBManager.removeData("user") // current_user
+    DBManager.removeData(MainManager.keys.user) // current_user
     this.emit('clearUser', [oldValue])
   }
 
@@ -85,8 +86,8 @@ export class UserManager extends BaseManager {
 
     const response = await HttpManager.get('/get_user', params)
     if (response.success) {
-      LocalStorageManager.remove('scaningN') // Обнуляем счетчик сканирования у form_doc
-      LocalStorageManager.remove('scaningN_free')// Обнуляем счетчик сканирования у form_doc_free
+      //LocalStorageManager.remove('scaningN') // Обнуляем счетчик сканирования у form_doc
+      //LocalStorageManager.remove('scaningN_free')// Обнуляем счетчик сканирования у form_doc_free
       if (response.data.РезультатПроверки) {
         MainManager.instance.uploadBarcodes() //SetBarcods()// UPDATE BARCODE скачиваем все ШК с сервера 1С
         MainManager.instance.uploadTorgovieSeti() //SetTorgovieSeti() // Скачиваем все установленные к выбору Торговые сети (необходимо для создания информационного листа)
@@ -94,7 +95,8 @@ export class UserManager extends BaseManager {
         this.setUser(response.data)
         //const baseName = 'user_docs'
         /// поиск в базе user_docs документов по данному пользователю
-        const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, this.baseName, this.baseName)
+        const baseName = MainManager.keys.userDocument
+        const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
         if (record !== null) {
           await this.saveUserDocs([])
         }
@@ -191,10 +193,11 @@ export class UserManager extends BaseManager {
     //this.setBarcode("")
   }
 
-  async getUserDocuments(){
+  async getUserDocuments():Promise<IDocument[] | null>{
     if(this.user.value){
-      const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, this.baseName, this.baseName)
-    return docs
+      const baseName = MainManager.keys.userDocument
+      const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
+    return docs?.data.docs
     }
     return null
     
@@ -202,34 +205,35 @@ export class UserManager extends BaseManager {
 
   async saveUserDocs(docs:IDocument[]){
     if(this.user.value){
+      const baseName = MainManager.keys.userDocument
       const tmpData = toRaw({ data: { docs: docs.map((x:IDocument)=> toRaw(x)) }, id: this.user.value!.Ссылка.Ссылка })
-      const result = await DBManager.setFileAsync(tmpData, this.baseName, this.baseName)
+      const result = await DBManager.setFileAsync(tmpData, baseName, baseName)
       return result
     }
     return false
     
   }
   /// Получаем сохраненные документы ДвижениеПродукцииИМатериалов
-  async getGettingProdDocuments():Promise<IDocument[]>{
+  async getGettingProdDocuments():Promise<IGettingProductionDocument[]>{
     const res = await this.getUserDocuments()
     const documents = []
     if(res){
-      const dosc:IDocument[]=res.data.docs
+      const dosc:IDocument[]=res
       for(const doc of dosc){
         if(doc.Ссылка.Вид==="ДвижениеПродукцииИМатериалов"){
           documents.unshift(doc)
         }
       }
     }
-    return documents
+    return documents as IGettingProductionDocument[]
   }
   
-  /// Получаем сохраненные документы ЗаказКлиента
+  /// Получаем сохраненные(документы пользователя) документы ЗаказКлиента
   async getShipmentDocuments():Promise<IShipmentDocument[]>{
     const res = await this.getUserDocuments()
     const documents:IShipmentDocument[] = []
     if(res){
-      const dosc:IDocument[]=res.data.docs
+      const dosc:IDocument[]=res
       for(const doc of dosc){
         if(doc.Ссылка.Вид==="ЗаказКлиента"){
           documents.unshift(doc as IShipmentDocument)

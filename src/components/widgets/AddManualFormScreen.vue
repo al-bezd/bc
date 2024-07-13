@@ -1,5 +1,5 @@
 <template>
-  <div class="reft_modal" v-if="seen">
+  <!-- <div class="reft_modal" v-if="seen">
     <div class="vh-100" v-if="!much">
       <h4>Введите штрихкод продукции</h4>
       <input
@@ -103,14 +103,122 @@
         <b>Принять</b>
       </button>
     </div>
-  </div>
+  </div> -->
+  <BootstrapModalWindow :seen="seen">
+    <div v-if="!much">
+      <h4>Введите штрихкод продукции</h4>
+      <input
+        type="text"
+        class="form-control bc_input mb-3"
+        placeholder="Введите штрихкод"
+        v-model="ШК"
+        @keyup.enter="onEnter"
+        id="getting_prod_bc"
+      />
+      <div class="space"></div>
+    </div>
+    <div v-else>
+      <h4 v-if="much" style="font-weight: bold">
+        {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
+      </h4>
+      <div class="row space">
+        <div class="col-6">
+          <label for="datab" class="control-label">Дата производства</label>
+          <input type="date" class="form-control" id="datab" v-model="ДатаПроизводства" />
+        </div>
+        <div class="col-6">
+          <label for="datae" class="control-label">Годен до</label>
+          <input type="date" class="form-control" id="datae" v-model="ГоденДо" />
+        </div>
+        <div class="col-6">
+          <label for="Количество" class="control-label">Вес на коробке</label>
+          <input
+            type="number"
+            step="0.001"
+            class="form-control"
+            id="Количество"
+            v-model="Количество"
+          />
+        </div>
+        <div class="col-6">
+          <label for="ЕдиницаИзмерения" class="control-label">Единица измерения</label>
+          <input
+            type="text"
+            class="form-control"
+            id="ЕдиницаИзмерения"
+            v-model="ЕдиницаИзмерения"
+            readonly
+            disabled
+          />
+        </div>
+        <div class="col-12">
+          <label for="КоличествоВЕдиницахИзмерения" class="control-label"
+            >Количество в единицах измерения</label
+          >
+          <div class="input-group">
+            <input
+              type="number"
+              step="1"
+              v-if="ЕдиницаИзмерения === 'шт'"
+              class="form-control"
+              id="КоличествоВЕдиницахИзмерения"
+              v-model="КоличествоВЕдиницахИзмерения"
+            />
+            <input
+              type="number"
+              step="0.001"
+              v-if="ЕдиницаИзмерения !== 'шт'"
+              class="form-control"
+              id="КоличествоВЕдиницахИзмерения"
+              v-model="КоличествоВЕдиницахИзмерения"
+            />
+            <div
+              class="input-group-text"
+              @click="КоличествоВЕдиницахИзмерения = Количество.toString()"
+            >
+              КП
+            </div>
+          </div>
+        </div>
+        <div class="form-group" v-if="false">
+          <label for="Грузоместа" class="control-label">Количество коробок</label>
+          <input
+            type="number"
+            class="form-control"
+            id="Грузоместа"
+            v-model="Грузоместа"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="space"></div>
+    <div class="btn-group" role="group">
+      <button
+        type="button"
+        class="btn btn-primary btn-lg text-uppercase fs-6"
+        @click="cancel"
+      >
+        <b>Отмена</b>
+      </button>
+      <button
+        v-if="much"
+        type="button"
+        class="btn btn-success btn-lg text-uppercase fs-6"
+        @click="accept"
+      >
+        <b>Сохранить</b>
+      </button>
+    </div>
+  </BootstrapModalWindow>
 </template>
 <script setup lang="ts">
 import { DBManager } from "@/classes/DBManager";
+import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { IScaning } from "@/interfaces/IScaning";
 import { Ref, ref } from "vue";
+import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 
 const seen = ref(false);
 const much = ref(false);
@@ -136,6 +244,29 @@ ScanerManager.instance.connect("showAddManualScaningForm", (data) => {
   show();
 });
 
+ScanerManager.instance.connect("showAddManualScaningForm:object", (data) => {
+  const scaning: IScaning = data[1];
+  //console.log("scaning ", scaning);
+
+  Номенклатура.value = scaning.Номенклатура.Наименование;
+  Характеристика.value = scaning.Характеристика.Наименование;
+  ЕдиницаИзмерения.value = scaning.Номенклатура.ЕдиницаИзмерения.Наименование;
+  Артикул.value = scaning.Артикул;
+  Грузоместа.value = 1;
+  //Палетная.value = "row alert alert-info"
+
+  ШтрихкодПродукции.value = scaning.bc;
+
+  ПЛУ.value = scaning.ПЛУ;
+  if (ЕдиницаИзмерения.value === "шт") {
+    КоличествоВЕдиницахИзмерения.value = scaning.КоличествоВЕдиницахИзмерения.toFixed(2);
+  }
+  much.value = true;
+
+  callback = data[0];
+  show();
+});
+
 function show() {
   seen.value = true;
 }
@@ -150,8 +281,8 @@ async function onEnter() {
   ШтрихкодПродукции.value = ШК.value.slice(2, 16);
   const dbResponse = await DBManager.getFileAsync(
     ШтрихкодПродукции.value,
-    "barcodes",
-    "barcodes"
+    MainManager.keys.barcodes,
+    MainManager.keys.barcodes
   );
   if (!dbResponse) {
     NotificationManager.swal("Продукция с таким штрих кодом не найдена");

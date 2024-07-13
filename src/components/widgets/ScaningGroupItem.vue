@@ -6,6 +6,7 @@
     <div class="row">
       <div class="col-10">
         <div
+          role="button"
           @click="
             () => {
               emit('tap', data.Номенклатура.Наименование);
@@ -40,6 +41,7 @@
         <div v-if="showProcent">
           <b>{{ data.ВПроцСоотношении }}%</b>
         </div>
+        <slot name="addButton"></slot>
       </div>
     </div>
   </div>
@@ -54,7 +56,7 @@ interface Props {
   showProcent: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   mode: "НомХарСер",
   showProcent: true,
 });

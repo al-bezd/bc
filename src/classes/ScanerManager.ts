@@ -4,6 +4,7 @@ import { MainManager } from "./MainManager";
 import { NotificationManager } from "./NotificationManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
 import { StringToBool } from "@/functions/StringToBoolean";
+import { IScaning } from "@/interfaces/IScaning";
 
 
 
@@ -25,17 +26,39 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
     new ScanerManager()
   }
 
-  static async showAddManualScaningForm():Promise<string>{
+  // static async showAddManualScaningForm():Promise<string>{
+  //   return new Promise((resolve,reject)=>{
+  //     try{
+  //       const callback = (result:string)=>{
+  //         if(result){
+  //           //NotificationManager.instance.disconnect('showAddManualScaningForm', [callback])
+  //           resolve(result)
+
+  //         }
+  //       }
+  //       NotificationManager.instance.emit('showAddManualScaningForm', [callback])
+  //     }catch(e){
+  //         reject(e)
+  //     } 
+  //   })
+  // }
+
+  /// Показываем форму добавления сканирования в ручном режиме, возвращает штрихкод
+  static async showAddManualScaning(scaning:IScaning|null=null):Promise<string>{
     return new Promise((resolve,reject)=>{
       try{
         const callback = (result:string)=>{
           if(result){
-            //NotificationManager.instance.disconnect('showAddManualScaningForm', [callback])
             resolve(result)
 
           }
         }
-        NotificationManager.instance.emit('showAddManualScaningForm', [callback])
+        if(scaning){
+          NotificationManager.instance.emit('showAddManualScaningForm:object', [callback, scaning])
+        }else{
+          NotificationManager.instance.emit('showAddManualScaningForm', [callback])
+        }
+        
       }catch(e){
           reject(e)
       } 

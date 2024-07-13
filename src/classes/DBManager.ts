@@ -251,6 +251,7 @@ export class DBManager {
 
   /// Запись в локальную бд итерируемого объекта
   static async WriteDataInDB(key:string, data: IDBDataRecord[],):Promise<boolean> {
+    await DBManager.deleteDatabase(key);
     const db = await this.openDatabase(key, key);
     const transaction = db.transaction(key, 'readwrite');
     const objectStore = transaction.objectStore(key);

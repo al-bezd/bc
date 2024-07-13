@@ -7,10 +7,10 @@
       class="form-control bc_input mb-3"
       placeholder="Введите штрихкод"
       v-model="barcode"
-      @keyup.enter="getDocumentByBarcode(barcode)"
+      @keyup.enter="onEnter()"
       id="load_doc_bc"
     />
-    <div class="d-grid gap-2">
+    <div class="d-grid gap-2 mb-3">
       <button
         type="button"
         class="btn btn-primary btn-lg btn-block text-uppercase"
@@ -35,7 +35,7 @@
     </div>
     <div class="space">
       <ShipmentDocumentItem
-        v-for="document in documents"
+        v-for="document in savedShipmentDocs"
         :document="document"
         :key="document.Ссылка.Ссылка"
         @tap="onTapDocument"
@@ -68,9 +68,12 @@ import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { DBManager } from "@/classes/DBManager";
 import { UserManager } from "@/managers/user/UserManager";
+import { MainManager } from "@/classes/MainManager";
+import { IScaning } from "@/interfaces/IScaning";
+import { IDocument } from "@/interfaces/IDocument";
 
 const barcode = ref("");
-const documents: Ref<IShipmentDocument[]> = ref([]);
+const savedShipmentDocs: Ref<IShipmentDocument[]> = ref([]);
 
 const seen = ref(false);
 RoutingManager.instance.registry(RoutingManager.route.shipmentLoad, show, close);
@@ -80,22 +83,53 @@ ScanerManager.instance.onScan((value) => {
     return;
   }
   barcode.value = value;
-  getDocumentByBarcode(barcode.value);
+  onEnter();
 });
+
+async function onEnter() {
+  await getDocumentByBarcode(barcode.value);
+  barcode.value = "";
+  initSavedDocuments();
+}
 
 async function show() {
   seen.value = true;
-  setTimeout(async function () {
-    initSavedDocuments();
-  }, 500);
+  setTimeout(initSavedDocuments, 500);
 }
 
 async function close() {
   seen.value = false;
 }
 
-function getDocumentByBarcode(barcode: string) {
+async function getDocumentByBarcode(barcode: string) {
   //get_document_order
+  ///ищем по ШК сначала в документах пользователя
+  const userDocs = await MainManager.instance.local.allDocs();
+  if (userDocs) {
+    for (const doc of userDocs) {
+      if (doc.Ссылка.Ссылка === barcode) {
+        setCurrentDocument(doc, doc.scanings ?? []);
+        return;
+      }
+    }
+  }
+  /// если не нашли документ в документах пользователя то получаем его с сервера или из списка ранее загруженных заказов
+  let document: IShipmentDocument | null = null;
+  if (UserManager.instance.useLocalOrders.value) {
+    document = await ShipmentManager.instance.getDocumentFromLocalDBByBarcode(barcode);
+  } else {
+    document = await ShipmentManager.instance.getDocumentFromServerByBarcode(barcode);
+  }
+
+  if (document) {
+    setCurrentDocument(document);
+  }
+}
+
+function setCurrentDocument(document: IDocument, scans: IScaning[] = []) {
+  ShipmentManager.instance.setCurrentDocument(document as IShipmentDocument);
+  ShipmentManager.instance.setCurrentScanings(scans);
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentForm);
 }
 
 function goToReflectionOfBalances() {
@@ -116,13 +150,11 @@ function showLoadOrders() {
 
 /// Подгружаем сохраненые документы пользователя
 async function initSavedDocuments() {
-  documents.value = await UserManager.instance.getShipmentDocuments();
+  savedShipmentDocs.value = await MainManager.instance.local.shipmentDocs();
 }
 
 function onTapDocument(document: IShipmentDocument) {
-  ShipmentManager.instance.setCurrentDocument(document);
-  ShipmentManager.instance.setCurrentScanings(document.scanings);
-  RoutingManager.instance.pushName(RoutingManager.route.shipmentForm);
+  setCurrentDocument(document, document.scanings ?? []);
 }
 
 /// удаляет ранее добавленый документ из списка документов
@@ -134,9 +166,12 @@ async function onDeleteDocument(document: IShipmentDocument) {
     const response = await ShipmentManager.instance.deleteDocumentById(
       document.Ссылка.Ссылка
     );
+    console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();
+      return;
     }
+    NotificationManager.swal(`Документ ${document.Ссылка.Наименование} не был удален`);
   }
 }
 

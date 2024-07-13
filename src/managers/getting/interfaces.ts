@@ -1,5 +1,5 @@
 import { IWithCheckup } from "@/classes/HttpManager";
-import {  IDocument } from "@/interfaces/IDocument";
+import {  IDocument, IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 
 /// Структура объекта строка таблицы Товары
@@ -16,13 +16,9 @@ export interface IGettingProductionProductItem extends IScaning {
 export interface IGettingProductionProductTotalItem extends IScaningGroup {
     
 
-    ТекущееКоличество:number
-    ТекущееКоличествоВЕдиницахИзмерения:number
-    КоличествоКоробок:number
-    КоличествоУпаковок:number
-    имКоличествоВПересчетеНаКг:number
-    cls:string /// Класс для отображения цвета плашки
-    key:string /// Ключ Ном+Хар+Серия
+    
+    
+    
     ВПроцСоотношении:number
     рсУИД:string
 }
@@ -35,11 +31,3 @@ export interface IGettingProductionDocument extends IWithCheckup, IDocument{
     
 }
 
-export interface IНоменклатура extends IDocument {
-    ЕдиницаИзмерения:IDocument
-    Артикул:string
-}
-
-export type IХарактеристика = IDocument
-
-export type IСерия = IDocument

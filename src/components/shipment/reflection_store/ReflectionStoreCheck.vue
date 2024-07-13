@@ -2,25 +2,8 @@
   <!-- Форма проверки сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
     <h4>Проверка</h4>
-    <div class="btn-group w-100 mb-3" role="group">
-      <button
-        :class="`btn btn-primary text-uppercase ${
-          currentMode == 'НомХар' ? 'disabled' : ''
-        }`"
-        @click="showWithMode('НомХар')"
-      >
-        НОМ+ХАР
-      </button>
+    <ModeWidget :mode="currentMode" @tap="showWithMode" />
 
-      <button
-        :class="`btn btn-primary text-uppercase ${
-          currentMode == 'НомХарСер' ? 'disabled' : ''
-        }`"
-        @click="showWithMode('НомХарСер')"
-      >
-        НОМ+ХАР+СЕР
-      </button>
-    </div>
     <div :class="`alert alert-${ifSettingsFilled ? 'success' : 'danger'}`">
       <div class="w-100" style="display: flex; flex-direction: row-reverse">
         <div
@@ -69,7 +52,7 @@
       <ScaningGroupItem
         v-for="item in groupedScans"
         :data="item"
-        :key="item.Номенклатура.Ссылка"
+        :key="item.Номенклатура.Ссылка.Ссылка"
         :mode="currentMode"
         :show-procent="false"
         @tap="openThisArticul(item)"
@@ -116,7 +99,7 @@
         <ScaningGroupItem
           v-for="item in groupedScansFilteredByName"
           :data="item"
-          :key="item.Номенклатура.Ссылка"
+          :key="item.Номенклатура.Ссылка.Ссылка"
           :mode="currentMode"
           :show-procent="false"
         />
@@ -250,7 +233,7 @@ function showWithMode(mode: RowKeyMode) {
 
 function openThisArticul(scan: IScaningGroup) {
   groupedScansFilteredByName.value = groupedScans.value.filter((x: IScaningGroup) => {
-    return x.Номенклатура.Ссылка.Ссылка === scan.Номенклатура.Ссылка.Ссылка;
+    return x.Номенклатура.Ссылка === scan.Номенклатура.Ссылка;
   });
   modalIsSeen.value = true;
 }

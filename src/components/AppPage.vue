@@ -43,6 +43,8 @@
     <MainMenu />
 
     <ShipmentLoad />
+    <ShipmentForm />
+    <ShipmentCheck />
 
     <InfoListForm />
     <InfoListCheck />
@@ -56,6 +58,7 @@
 
     <SettingsButton />
     <SettingsScreen />
+
     <AddManualFormScreen />
     <ConfirmScreen />
     <NotificationListener />
@@ -76,6 +79,8 @@ import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
 import ShipmentLoad from "./shipment/ShipmentLoad.vue";
+import ShipmentForm from "./shipment/ShipmentForm.vue";
+import ShipmentCheck from "./shipment/ShipmentCheck.vue";
 import InfoListForm from "./shipment/info_list/InfoListForm.vue";
 import InfoListCheck from "./shipment/info_list/InfoListCheck.vue";
 

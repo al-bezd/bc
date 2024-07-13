@@ -1,12 +1,13 @@
-import { LocalStorageManager } from "@/classes/LocalStorageManager";
+
 import { BaseManager } from "../../classes/BaseManager";
 import { DBManager } from "../../classes/DBManager";
 import { UserManager } from "../user/UserManager";
-import { HttpManager, IWithCheckup } from "@/classes/HttpManager";
+import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { Ref, ref, toRaw } from "vue";
 import { IGettingProductionDocument } from "./interfaces";
 import { IScaning } from "@/interfaces/IScaning";
+import { MainManager } from "@/classes/MainManager";
 
 export class GettingManager extends BaseManager {
   constructor() {
@@ -126,13 +127,14 @@ export class GettingManager extends BaseManager {
 
   //Удаляем документ из списка документов пользователя
   async deleteDocumentById(id: string): Promise<boolean> {
+    const baseName = MainManager.keys.userDocument
     const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
-    const files = await DBManager.getFileAsync(currentUser, 'user_docs', 'user_docs')
+    const files = await DBManager.getFileAsync(currentUser, baseName, baseName)
     if (files) {
       for (const i of files.data.docs) {
         if (i.Ссылка.Ссылка === id) {
           files.data.docs.splice(files.data.docs.indexOf(i), 1)
-          DBManager.setFileAsync(files, 'user_docs', 'user_docs')
+          DBManager.setFileAsync(files, baseName, baseName)
           return true;
         }
       }

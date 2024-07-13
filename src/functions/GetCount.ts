@@ -4,5 +4,5 @@ export function GetCount(Таблица: any[], Параметр: string): numbe
   for (const i of Таблица) {
     Количество = Количество + Number(i[Параметр])
   }
-  return Количество
+  return Number(Количество.toFixed(2)) 
 }

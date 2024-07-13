@@ -7,11 +7,14 @@
     aria-modal="true"
     role="dialog"
   >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
+    <div
+      class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
+      role="document"
+    >
+      <div class="modal-content h-100">
         <!-- <slot name="header"> <div class="modal-header"></div></slot> -->
 
-        <div class="modal-body">
+        <div class="modal-body" style="display: flex; flex-direction: column">
           <slot></slot>
         </div>
       </div>
@@ -38,11 +41,11 @@ watch(props, () => {
 
 const localSeen = ref(false);
 
-function close() {
-  localSeen.value = false;
-}
+// function close() {
+//   localSeen.value = false;
+// }
 
-function show() {
-  localSeen.value = true;
-}
+// function show() {
+//   localSeen.value = true;
+// }
 </script>

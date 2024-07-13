@@ -11,7 +11,8 @@
       @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
-    <div class="btn-group w-100 mb-3" role="group">
+    <SortWidget :box-count="boxCount" :on-tap="onSort" />
+    <!-- <div class="btn-group w-100 mb-3" role="group">
       <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
         по Артикулу
       </button>
@@ -21,7 +22,7 @@
       <button disabled class="btn btn-primary text-uppercase">
         Кол.кор {{ boxCount }}
       </button>
-    </div>
+    </div> -->
     <div class="space">
       <ScaningItem
         v-for="item in items"
@@ -84,7 +85,8 @@ import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
 import { Date1C } from "@/functions/Date1C";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
-import { OrderBy as orderBy } from "@/functions/OrderBy";
+import { OrderBy } from "@/functions/OrderBy";
+import SortWidget from "@/components/widgets/SortWidget.vue";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentReflectionStoreForm,
@@ -266,8 +268,8 @@ async function clearWithQuest() {
   }
 }
 
-function OrderBy(mode: string) {
-  ShipmentManager.instance.currentScanings.value = orderBy(
+function onSort(mode: string) {
+  ShipmentManager.instance.currentScanings.value = OrderBy(
     ShipmentManager.instance.currentScanings.value,
     mode
   );
@@ -286,7 +288,7 @@ async function closeWithQuest() {
 }
 ///Добавлляем сканирование в ручную
 async function addManualScaning() {
-  const result = await ScanerManager.showAddManualScaningForm();
+  const result = await ScanerManager.showAddManualScaning();
 
   if (result) {
     onScan(result);

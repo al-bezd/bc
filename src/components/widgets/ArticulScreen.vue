@@ -16,13 +16,15 @@
             </div>-->
       </div>
     </div>
-    <button
-      type="button"
-      class="btn btn-primary btn-lg text-uppercase w-100"
-      @click="close"
-    >
-      <b>НАЗАД</b>
-    </button>
+    <div class="row">
+      <button
+        type="button"
+        class="btn btn-primary btn-lg text-uppercase w-100"
+        @click="close"
+      >
+        <b>НАЗАД</b>
+      </button>
+    </div>
   </div>
 </template>
 <script setup lang="ts">

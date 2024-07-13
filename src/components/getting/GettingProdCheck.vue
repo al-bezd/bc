@@ -47,7 +47,7 @@
 import { RoutingManager } from "@/classes/RoutingManager";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { Ref, computed, ref, toRaw } from "vue";
-import ArticulScreen from "./widgets/ArticulScreen.vue";
+import ArticulScreen from "@/components/widgets/ArticulScreen.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { GetCount } from "@/functions/GetCount";
@@ -59,6 +59,7 @@ import { rounded } from "@/functions/rounded";
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
+import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -138,13 +139,13 @@ async function save() {
   const userDocs = await UserManager.instance.getUserDocuments();
   let isFind = false;
   if (userDocs) {
-    for (const userDoc of userDocs.data.docs) {
+    for (const userDoc of userDocs) {
       if (userDoc.Ссылка.Ссылка == currentDocLink) {
         isFind = true;
         userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
           toRaw(x)
         );
-        const saveRes = await UserManager.instance.saveUserDocs(userDocs.data.docs);
+        const saveRes = await UserManager.instance.saveUserDocs(userDocs);
         if (saveRes) {
           NotificationManager.swal("Сохранено");
         }
@@ -157,8 +158,8 @@ async function save() {
       userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
         toRaw(x)
       );
-      userDocs.data.docs.unshift(userDoc);
-      const saveRes = await UserManager.instance.saveUserDocs(userDocs.data.docs);
+      userDocs.unshift(userDoc);
+      const saveRes = await UserManager.instance.saveUserDocs(userDocs);
       if (saveRes) {
         NotificationManager.swal("Сохранено");
       }
@@ -214,7 +215,7 @@ async function send() {
     }
   } else {
     NotificationManager.swal(response.data.Текст);
-    RoutingManager.instance.pushName(RoutingManager.route.gettingProductionCheck);
+    //RoutingManager.instance.pushName(RoutingManager.route.gettingProductionCheck);
   }
 }
 

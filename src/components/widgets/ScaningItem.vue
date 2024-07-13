@@ -2,7 +2,15 @@
   <div :class="data.Палетная" role="alert" :name="data.ID" :id="data.IDSec.toString()">
     <div class="row">
       <div class="col-10">
-        <div :class="'articul' + data.Артикул">
+        <div
+          role="button"
+          :class="'articul' + data.Артикул"
+          @click="
+            () => {
+              emit('tap', data);
+            }
+          "
+        >
           <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
         </div>
         <div>
@@ -26,7 +34,17 @@
         </div>
       </div>
       <div class="col-2">
-        <button type="button" class="btn btn-danger" @click="deleteItem">Х</button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          @click="
+            () => {
+              emit('delete', data);
+            }
+          "
+        >
+          Х
+        </button>
       </div>
     </div>
   </div>
@@ -35,13 +53,10 @@
 <script setup lang="ts">
 import { IScaning } from "@/interfaces/IScaning";
 
-interface Props {
+interface IProps {
   data: IScaning;
 }
-const props = defineProps<Props>();
-const emit = defineEmits(["delete"]);
+defineProps<IProps>();
+const emit = defineEmits(["delete", "tap"]);
 //delete_scaning_quest_jquery({"id":String(${response.IDSec}),"free":${response.free}})
-function deleteItem() {
-  emit("delete", props.data);
-}
 </script>

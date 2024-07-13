@@ -1,8 +1,11 @@
+
+import {  IНоменклатура, IХарактеристика } from "./IDocument"
+
 export interface IScaning{
     IDSec:number
     ID: string
-    Номенклатура: any,
-    Характеристика: any,
+    Номенклатура: IНоменклатура,
+    Характеристика: IХарактеристика,
     ПЛУ: string,
     Серия: any,
     Количество: number,
@@ -23,5 +26,6 @@ export interface IScaningGroup extends IScaning{
     имКоличествоВПересчетеНаКг:number
     КоличествоУпаковок:number
     cls:string
+    key:string /// Ключ Ном+Хар+Серия
     
 }

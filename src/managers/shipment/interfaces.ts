@@ -1,6 +1,7 @@
 import { IDocument } from "@/interfaces/IDocument";
+import { IScaning } from "@/interfaces/IScaning";
 
-export interface IShipmentDocumentProductsItem {
+export interface IShipmentDocumentProductsItem extends IScaning {
 
 }
 
@@ -9,4 +10,5 @@ export interface IShipmentDocument extends IDocument{
     РезультатПроверки:boolean
     completed:boolean
     ШК:string
+    Товары:IShipmentDocumentProductsItem[]
 }

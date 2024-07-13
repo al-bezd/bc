@@ -47,14 +47,14 @@
           <button
             type="button"
             class="btn btn-primary btn-lg btn-block text-uppercase"
-            @click="LoadOrdersExecute('orders')"
+            @click="LoadOrdersExecute(MainManager.keys.orders)"
           >
             Загрузить заказы
           </button>
           <button
             type="button"
             class="btn btn-primary btn-lg btn-block text-uppercase"
-            @click="LoadOrdersExecute('info_sheets')"
+            @click="LoadOrdersExecute(MainManager.keys.infoSheets)"
           >
             Загрузить инфо. листы
           </button>
@@ -121,7 +121,7 @@ async function LoadOrdersExecute(type: string) {
     return;
   }
 
-  if (type == "orders") {
+  if (type == MainManager.keys.orders) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ!");
 
     const documents = await ShipmentManager.instance.getOrdersFromServer(
@@ -134,12 +134,12 @@ async function LoadOrdersExecute(type: string) {
         return { data: i, id: i.ШК };
       });
       NotificationManager.info("Загрузка заказов начата");
-      await DBManager.deleteDatabase("orders");
-      await DBManager.WriteDataInDB("orders", data);
+
+      await DBManager.WriteDataInDB(MainManager.keys.orders, data);
       NotificationManager.success(`В систему загруженно ${data.length} заказа(ов)`);
       return;
     }
-  } else if (type == "info_sheets") {
+  } else if (type == MainManager.keys.infoSheets) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ИНФО ЛИСТОВ!");
     const sheets = await MainManager.instance.getInfoList(
       new Date(addOrders.value.ДатаНачала).getTime(),
@@ -151,8 +151,9 @@ async function LoadOrdersExecute(type: string) {
         return { data: i.list, id: i.ID.replace(/ /g, "") };
       });
       NotificationManager.info("Загрузка информационных листов начата");
-      await DBManager.deleteDatabase("info_lists");
-      await DBManager.WriteDataInDB("info_lists", data);
+
+      await DBManager.WriteDataInDB(MainManager.keys.infoSheets, data);
+
       NotificationManager.success(
         `В систему загруженно ${data.length} информационных листа`
       );

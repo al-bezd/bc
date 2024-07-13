@@ -3,11 +3,15 @@ import { BaseManager } from "../../classes/BaseManager";
 import { UserManager } from "../user/UserManager";
 import { DBManager } from "@/classes/DBManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { IDocument } from "@/interfaces/IDocument";
+import { IProperty } from "@/interfaces/IDocument";
 import { IShipmentDocument } from "./interfaces";
 import { Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { HttpManager } from "@/classes/HttpManager";
+import { MainManager } from "@/classes/MainManager";
+import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
+import { Date1C } from "@/functions/Date1C";
+import { FindGM } from "@/functions/FindGruzoMesta";
 
 export class ShipmentManager extends BaseManager {
   static instance: ShipmentManager;
@@ -24,6 +28,8 @@ export class ShipmentManager extends BaseManager {
   static init() {
     new ShipmentManager();
   }
+
+
 
 
   //public mainOrder: any;
@@ -49,7 +55,7 @@ export class ShipmentManager extends BaseManager {
   }
 
   async getDocumentFromLocalDBByBarcode(barcode:string):Promise<IShipmentDocument|null>{
-    const res = await DBManager.getFileAsync(barcode,'orders','orders')
+    const res = await DBManager.getFileAsync(barcode,MainManager.keys.orders,MainManager.keys.orders)
     if(!res){
       NotificationManager.swal(`Данный заказ не найден в хранилище,
         попробуйте загрузить заказы и снова отсканируйте лист сборки, или отключите поиск заказов в хранилище и отсканируйте заказ снова,
@@ -99,7 +105,7 @@ export class ShipmentManager extends BaseManager {
 
       }
     }
-    NotificationManager.swal(JSON.stringify(result.error),'error')
+    NotificationManager.error(JSON.stringify(result.error))
     return null
         
 
@@ -185,13 +191,14 @@ export class ShipmentManager extends BaseManager {
 
   //Удаляем документ из списка документов пользователя
   async deleteDocumentById(id: string): Promise<boolean> {
+    const baseName = MainManager.keys.userDocument
     const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
-    const files = await DBManager.getFileAsync(currentUser, 'user_docs', 'user_docs')
+    const files = await DBManager.getFileAsync(currentUser, baseName, baseName)
     if (files) {
       for (const i of files.data.docs) {
         if (i.Ссылка.Ссылка === id) {
           files.data.docs.splice(files.data.docs.indexOf(i), 1)
-          DBManager.setFileAsync(files, 'user_docs', 'user_docs')
+          DBManager.setFileAsync(files, baseName, baseName)
           return true;
         }
       }
@@ -201,7 +208,7 @@ export class ShipmentManager extends BaseManager {
 
   /// Получаем ЗаказыКлиентов за указанный период и с определенного склада
   async getOrdersFromServer(ДатаНачала:number, ДатаОкончания:number, Склад:string):Promise<IShipmentDocument[]|null> {
-    indexedDB.deleteDatabase('orders')
+    //indexedDB.deleteDatabase('orders')
     //SetContainers()
     const params = {
       get_orders: true,
@@ -216,6 +223,171 @@ export class ShipmentManager extends BaseManager {
    return null;
       
   }
+
+  /// получаем новое сканирование по переданному штрихкоду
+  async getScaning(barcode: string,itPalet=false): Promise<IScaning | null> {
+    const barcodeValue = barcode;
+  
+    const Штрихкод = barcodeValue.slice(2, 16);
+    const Количество = Number(barcodeValue.slice(20, 26)) / 1000;
+    const ДатаПроизводства = barcodeValue.slice(28, 34);
+    const ГоденДо = barcodeValue.slice(36, 42);
+  
+    const Структура = {
+      Штрихкод: Штрихкод,
+      Количество: Количество,
+      ДатаПроизводства: ДатаПроизводства,
+      ГоденДо: ГоденДо,
+      bc: barcode,
+    };
+  
+    if (UserManager.instance.useLocalDb) {
+      const barcodeFromDB = await DBManager.getFileAsync(
+        Структура.Штрихкод,
+        MainManager.keys.barcodes,
+        MainManager.keys.barcodes
+      );
+      if (barcodeFromDB) {
+        barcodeFromDB.data.Штрихкод = Структура.Штрихкод;
+        barcodeFromDB.data.bc = barcodeValue;
+        return this.createScaning(
+          barcodeFromDB.data,
+          Структура.Количество,
+          Структура.ДатаПроизводства,
+          Структура.ГоденДо,itPalet
+        );
+      } else {
+        NotificationManager.swal("Продукция с таким штрих кодом не найдена");
+        return null;
+      }
+    } else {
+      const loadDoc = this.currentDocument.value!;
+      const params = {
+        barcode: barcodeValue,
+        Наименование: loadDoc.Наименование,
+        Тип: loadDoc.Ссылка.Тип,
+        Вид: loadDoc.Ссылка.Вид,
+        Ссылка: loadDoc.Ссылка.Ссылка,
+      };
+      const httpResult = await HttpManager.get("/scaning_barcode", params);
+      if (httpResult.success) {
+        if (httpResult.data.РезультатПроверки) {
+          const СтруктураШК = { Ссылка: httpResult.data };
+          return this.createScaning(СтруктураШК, Количество, ДатаПроизводства, ГоденДо,itPalet);
+        } else {
+          NotificationManager.swal(httpResult.data.Текст);
+          //this.show()
+          //soundClick("resurse/ERROR.mp3")
+          NotificationManager.instance.playError();
+        }
+      } else {
+        NotificationManager.swal(JSON.stringify(httpResult.error));
+        //this.show()
+      }
+    }
+    return null;
+  }
+
+   createScaning(
+    СтруктураШК: any,
+    Количество: number,
+    ДатаПроизводства: string,
+    ГоденДо: string,
+    itPalet=false
+  ): IScaning | null {
+    const bc = СтруктураШК.bc;
+    let Грузоместа = 1;
+    let Палетная = "alert alert-info";
+    const prodDoc: IShipmentDocument = this.currentDocument.value!;
+  
+    //text = ''
+  
+    const Серия: IProperty = {
+      Наименование: Date1C(ДатаПроизводства, ГоденДо),
+      Ссылка: `${ДатаПроизводства}${ГоденДо}`,
+    };
+    // const ЕдИзмСтр = СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
+  
+    // const curNomStr = `${СтруктураШК.Ссылка.Номенклатура.Наименование}\n${СтруктураШК.Ссылка.Характеристика.Наименование}\n${Серия.Наименование}`;
+  
+    if (itPalet == true) {
+      Грузоместа = FindGM(bc);
+      Палетная = "alert alert-warning";
+      
+    }
+    //debugger
+    //this.prod_doc = GetData('prod_doc', 'j')
+  
+    const inOrder =
+      prodDoc.Товары.filter(
+        (item) =>
+          СтруктураШК.Ссылка.Номенклатура.Наименование == item.Номенклатура.Наименование &&
+          СтруктураШК.Ссылка.Характеристика.Наименование == item.Характеристика.Наименование
+      ).length > 0
+        ? true
+        : false;
+  
+    const ЧтоЕсть = prodDoc.Товары.filter(
+      (item) =>
+        СтруктураШК.Ссылка.Номенклатура.Наименование == item.Номенклатура.Наименование
+    );
+  
+    // in_order = in_order.length > 0 ? true : false
+  
+    if (!inOrder) {
+      //
+      let text = `Продукции \n\n ${СтруктураШК.Ссылка.Номенклатура.Наименование} ${СтруктураШК.Ссылка.Характеристика.Наименование} ПЛУ: ${СтруктураШК.Ссылка.ПЛУ} \n\n нет в заказе`;
+      if (ЧтоЕсть.length > 0) {
+        text += `, нужна\n\n`;
+        for (const i of ЧтоЕсть) {
+          text += `${i.Номенклатура.Наименование} ${i.Характеристика.Наименование} ПЛУ: ${i.ПЛУ} \n\nили `;
+        }
+        text = text.substring(0, text.length - 3);
+      } else {
+        text;
+      }
+      NotificationManager.swal(text);
+      NotificationManager.instance.playError();
+      return null;
+    }
+  
+    const КоличествоВЕдиницахИзмерения = GetCountFromBarcode(
+      СтруктураШК,
+      Грузоместа,
+      Количество
+    );
+  
+    console.log("КоличествоВЕдиницахИзмерения ", КоличествоВЕдиницахИзмерения);
+  
+    const response = {
+      IDSec: Date.now(),
+      ID: "",
+      Номенклатура: СтруктураШК.Ссылка.Номенклатура,
+      Характеристика: СтруктураШК.Ссылка.Характеристика,
+      ПЛУ: СтруктураШК.Ссылка.ПЛУ === undefined ? "" : СтруктураШК.Ссылка.ПЛУ,
+      Серия: Серия,
+      Количество: Количество,
+      КоличествоВЕдиницахИзмерения: КоличествоВЕдиницахИзмерения,
+      ЕдиницаИзмерения: СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование,
+      Артикул: СтруктураШК.Ссылка.Номенклатура.Артикул,
+      Грузоместа: Грузоместа,
+      Палетная: Палетная,
+      bc: bc,
+      free: false,
+    };
+    return response;
+  }
+
+  /// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
+ isValidScaning(scaning: IScaning, scanings: IScaning[]):void {
+  if (scanings.length > 1) {
+    if (scanings[1].bc === scaning.bc) {
+      NotificationManager.instance.playRepeatArial();
+      return;
+    }
+  }
+  NotificationManager.instance.playGood();
+}
 
 
 }
