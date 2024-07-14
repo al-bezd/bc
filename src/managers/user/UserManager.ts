@@ -62,7 +62,7 @@ export class UserManager extends BaseManager {
 
   setUser(val: any) {
     this.user.value = val
-    DBManager.setData(MainManager.keys.user, val) // current_user
+    DBManager.setData(MainManager.keys.user, toRaw(val)) // current_user
     this.emit('setUser', [this.user])
   }
 

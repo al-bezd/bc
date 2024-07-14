@@ -152,7 +152,7 @@ async function save() {
     Тип: doc.Ссылка.Тип,
     Вид: doc.Ссылка.Вид,
     Ссылка: doc.Ссылка.Ссылка,
-    Тара: containers.value.map((x: any) => toRaw(x)),
+    Тара: containers.value.map((x: IТара) => toRaw(x)),
     СтатусЗапроса: "Записать",
   };
   const httpRes = await HttpManager.post("/document_container", data);

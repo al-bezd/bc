@@ -206,11 +206,30 @@ export class ShipmentManager extends BaseManager {
     }
     return false
   }
+  /// Получаем инфу по таре с сервера и записываем ее в БД и в текущего юзера
+  async initContainers(){
+    const httpRes = await HttpManager.get("/execute",{ 'get_containers': true })
+    if(!httpRes.success){
+      NotificationManager.error(httpRes.error)
+    }
+      DBManager.setData(MainManager.keys.containers, httpRes.data)
+      const curUser =  UserManager.instance.user.value
+      if(curUser){
+        curUser.containers = httpRes.data
+        UserManager.instance.setUser(curUser)
+      }
+        
+    
+      
+    
+  }
 
   /// Получаем ЗаказыКлиентов за указанный период и с определенного склада
   async getOrdersFromServer(ДатаНачала: number, ДатаОкончания: number, Склад: string): Promise<IShipmentDocument[] | null> {
     //indexedDB.deleteDatabase('orders')
     //SetContainers()
+    
+    this.initContainers()
     const params = {
       get_orders: true,
       ДатаНачала: ДатаНачала,
