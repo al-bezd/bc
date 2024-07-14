@@ -11,7 +11,7 @@
       @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
-    <SortWidget :box-count="boxCount" :on-tap="onSort" />
+    <SortWidget :box-count="boxCount" :scan-count="items.length" :on-tap="onSort" />
     <!-- <div class="btn-group w-100 mb-3" role="group">
       <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
         по Артикулу
@@ -78,21 +78,17 @@ import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { computed, ref } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
-import { UserManager } from "@/managers/user/UserManager";
-import { DBManager } from "@/classes/DBManager";
-import { HttpManager } from "@/classes/HttpManager";
-import { FindGM } from "@/functions/FindGruzoMesta";
-import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { Date1C } from "@/functions/Date1C";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { OrderBy } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
+import { ScaningController } from "@/controllers/ScaningController";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentReflectionStoreForm,
   show,
   close
 );
+const scaningController:ScaningController = new ScaningController(ShipmentManager.instance, true)
 const pageTitle = ref("Отражение остатков");
 const seen = ref(false);
 const itPalet = ref(false);
@@ -113,58 +109,6 @@ function close() {
   seen.value = false;
 }
 
-async function createScaning(barcode: string): Promise<IScaning | null> {
-  const Штрихкод = barcode.slice(2, 16);
-  const Количество = Number(barcode.slice(20, 26)) / 1000;
-  const ДатаПроизводства = barcode.slice(28, 34);
-  const ГоденДо = barcode.slice(36, 42);
-
-  const Структура = {
-    Штрихкод: Штрихкод,
-    Количество: Количество,
-    ДатаПроизводства: ДатаПроизводства,
-    ГоденДо: ГоденДо,
-  };
-  if (UserManager.instance.useLocalDb) {
-    const barcodeFromDB = await DBManager.getFileAsync(
-      Структура.Штрихкод,
-      "barcodes",
-      "barcodes"
-    );
-    if (barcodeFromDB) {
-      barcodeFromDB.data.Штрихкод = Структура.Штрихкод;
-      barcodeFromDB.data.bc = barcode;
-      return CheckScaningFREE(
-        barcodeFromDB.data,
-        Структура.Количество,
-        Структура.ДатаПроизводства,
-        Структура.ГоденДо
-      );
-    } else {
-      NotificationManager.swal("Продукция с таким штрих кодом не найдена");
-      return null;
-    }
-  } else {
-    const params = {
-      barcode: barcode,
-      free: true,
-    };
-    const response = await HttpManager.get("/scaning_barcode", params);
-    if (response.success) {
-      if (response.data.РезультатПроверки) {
-        let СтруктураШК = { Ссылка: response.data, bc: Штрихкод };
-        return CheckScaningFREE(СтруктураШК, Количество, ДатаПроизводства, ГоденДо);
-      } else {
-        NotificationManager.error(response.data.Текст);
-        NotificationManager.instance.playError();
-      }
-      return null;
-    }
-    NotificationManager.error(String(response.error));
-  }
-  return null;
-}
-
 async function onEnter() {
   const resScan = await onScan(barcode.value);
   if (resScan) {
@@ -176,78 +120,18 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await createScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr);
   if (scaning) {
+    scaning.free = true;
     await ShipmentManager.instance.addScaning(scaning);
-    isValidScaning(scaning, ShipmentManager.instance.currentScanings.value);
+    scaningController.isValidScaning(scaning, ShipmentManager.instance.currentScanings.value);
     return true;
   }
   return false;
 }
 
-/// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
-function isValidScaning(scaning: IScaning, scanings: IScaning[]) {
-  if (scanings.length > 1) {
-    if (scanings[1].bc === scaning.bc) {
-      NotificationManager.instance.playRepeatArial();
-      return;
-    }
-  }
-  NotificationManager.instance.playGood();
-}
 
-function CheckScaningFREE(
-  СтруктураШК: any,
-  Количество: number,
-  ДатаПроизводства: string,
-  ГоденДо: string
-): IScaning {
-  const bc = СтруктураШК.bc;
-  let Грузоместа = 1;
-  let Палетная = "alert alert-info";
 
-  if (itPalet.value == true) {
-    Грузоместа = FindGM(СтруктураШК.bc);
-    Палетная = "alert alert-warning";
-  }
-  let КоличествоВЕдиницахИзмерения = GetCountFromBarcode(
-    СтруктураШК,
-    Грузоместа,
-    Количество
-  );
-
-  let response: IScaning = {
-    ID: "",
-    Номенклатура: СтруктураШК.Ссылка.Номенклатура,
-    Характеристика: СтруктураШК.Ссылка.Характеристика,
-    ПЛУ: СтруктураШК.Ссылка.ПЛУ === undefined ? "" : СтруктураШК.Ссылка.ПЛУ,
-    Серия: {
-      Наименование: Date1C(ДатаПроизводства, ГоденДо),
-      Ссылка: `${ДатаПроизводства}${ГоденДо}`,
-    },
-    Количество: Количество,
-    КоличествоВЕдиницахИзмерения: КоличествоВЕдиницахИзмерения,
-    ЕдиницаИзмерения: СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование,
-    Артикул: СтруктураШК.Ссылка.Номенклатура.Артикул,
-    Грузоместа: Грузоместа,
-    Палетная: Палетная,
-    bc: bc,
-    IDSec: Date.now(),
-    free: true,
-  };
-
-  //self.scaningN += 1;
-
-  return response;
-  //response.scaningN = self.scaningN_free;
-  //scaning_response_free.unshift(response);
-
-  // SetData("scaningN_free", self.scaningN);
-  // SetData("scaning_response_free", scaning_response_free);
-
-  // $("#scaning_response_list_free").prepend(FillTemplate(response));
-  // form_doc_free.count_scaning = scaning_response_free.length;
-}
 
 function goToCheck() {
   //check_doc_free.show(GetData('no_order_mode'))

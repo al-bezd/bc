@@ -104,7 +104,7 @@ async function close() {
 async function getDocumentByBarcode(barcode: string) {
   //get_document_order
   ///ищем по ШК сначала в документах пользователя
-  const userDocs = await MainManager.instance.local.allDocs();
+  const userDocs = await MainManager.instance.local.allUserDocs();
   if (userDocs) {
     for (const doc of userDocs) {
       if (doc.Ссылка.Ссылка === barcode) {

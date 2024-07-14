@@ -91,9 +91,7 @@ async function initSavedDocuments() {
 
 async function show() {
   seen.value = true;
-  setTimeout(async function () {
-    initSavedDocuments();
-  }, 500);
+  setTimeout(initSavedDocuments, 500);
 }
 
 async function openDocument(document: IDocument) {

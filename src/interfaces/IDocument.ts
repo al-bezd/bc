@@ -37,6 +37,14 @@ export interface IUser extends IDocument{
     ВесЧислитель:number
 }
 
-export type IХарактеристика = ILinkedObject
+export interface IХарактеристика extends ILinkedObject {
+    ДополнительныеРеквизиты:IРеквизит[]
+    рсТипКоробки:ILinkedObject
+}
+
+export interface IРеквизит extends ILinkedObject{
+    Свойство:ILinkedObject
+    Значение:any
+}
 
 export type IСерия = IProperty

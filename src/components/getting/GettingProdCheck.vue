@@ -60,6 +60,7 @@ import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
+import { MainManager } from "@/classes/MainManager";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -70,8 +71,10 @@ const seen = ref(false);
 
 const allItem: Ref<IGettingProductionProductTotalItem[]> = ref([]);
 const tableTotal: Ref<IGettingProductionProductTotalItem[]> = ref([]);
+const currentDoc: Ref<IGettingProductionDocument | null> =
+  GettingManager.instance.currentDocument;
 const оитНомерПалета = computed(() => {
-  return GettingManager.instance.currentDocument.value?.оитНомерПалета;
+  return currentDoc.value?.оитНомерПалета;
 });
 //const countScaning = computed(()=>GettingManager.instance.currentScanings.value.length)
 const boxCount = computed(() => {
@@ -82,22 +85,19 @@ const weightCount = computed(() => {
 });
 
 const weightFromDocument = computed(() => {
-  return GetCount(
-    GettingManager.instance.currentDocument.value?.Товары ?? [],
-    "Количество"
-  );
+  return GetCount(currentDoc.value?.Товары ?? [], "Количество");
 });
 
 const docName = computed(() => {
-  if (GettingManager.instance.currentDocument.value) {
-    return GettingManager.instance.currentDocument.value!.Наименование;
+  if (currentDoc.value) {
+    return currentDoc.value!.Наименование;
   }
   return "Документ не найден";
 });
 
 const оитКоличествоКоробок = computed(() => {
-  if (GettingManager.instance.currentDocument.value) {
-    return GettingManager.instance.currentDocument.value!.оитКоличествоКоробок;
+  if (currentDoc.value) {
+    return currentDoc.value!.оитКоличествоКоробок;
   }
   return "";
 });
@@ -112,16 +112,20 @@ function close() {
 
 function show() {
   seen.value = true;
+  setTimeout(initGroupScaning, 500);
+
+  //console.log("allItem ", toRaw(allItem.value));
+}
+
+function initGroupScaning() {
   tableTotal.value = GetGroupScans(
-    GettingManager.instance.currentDocument.value?.Товары ?? []
+    currentDoc.value?.Товары ?? []
   ) as IGettingProductionProductTotalItem[];
 
   allItem.value = fillCurrentResult(
     tableTotal.value,
     GettingManager.instance.currentScanings.value
   );
-
-  //console.log("allItem ", toRaw(allItem.value));
 }
 
 async function closeWithQuest() {
@@ -135,40 +139,41 @@ async function save() {
   }
 
   saveIsStart.value = true;
-  const currentDocLink = GettingManager.instance.currentDocument.value?.Ссылка.Ссылка;
-  const userDocs = await UserManager.instance.getUserDocuments();
+  const currentDocLink = currentDoc.value?.Ссылка.Ссылка;
+
+  let userDocs = await MainManager.instance.local.allUserDocs();
+  let doc: IGettingProductionDocument = currentDoc.value!;
   let isFind = false;
-  if (userDocs) {
-    for (const userDoc of userDocs) {
-      if (userDoc.Ссылка.Ссылка == currentDocLink) {
-        isFind = true;
-        userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
-          toRaw(x)
-        );
-        const saveRes = await UserManager.instance.saveUserDocs(userDocs);
-        if (saveRes) {
-          NotificationManager.swal("Сохранено");
-        }
-        break;
-      }
+  if (!userDocs) {
+    userDocs = [];
+  }
+  for (const userDoc of userDocs) {
+    if (userDoc.Ссылка.Ссылка == currentDocLink) {
+      isFind = true;
+      doc = userDoc as IGettingProductionDocument;
+      // userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
+      //   toRaw(x)
+      // );
+      // const saveRes = await UserManager.instance.saveUserDocs(userDocs);
+
+      // if (saveRes) {
+      //   NotificationManager.swal("Сохранено");
+      // }
+      // saveIsStart.value = false;
+      break;
     }
-    if (!isFind) {
-      const userDoc: IGettingProductionDocument = GettingManager.instance.currentDocument
-        .value!;
-      userDoc.scanings = GettingManager.instance.currentScanings.value.map((x) =>
-        toRaw(x)
-      );
-      userDocs.unshift(userDoc);
-      const saveRes = await UserManager.instance.saveUserDocs(userDocs);
-      if (saveRes) {
-        NotificationManager.swal("Сохранено");
-      }
-    }
-  } else {
-    const errorText =
-      "У пользователя не проинициализированы документы в локальном хранилище, нету записей по пользователю в локальном хранилище";
-    console.log(errorText);
-    NotificationManager.swal(errorText);
+  }
+
+  //const userDoc: IGettingProductionDocument = GettingManager.instance.currentDocument
+  // .value!;
+  doc.scanings = GettingManager.instance.currentScanings.value.map((x) => toRaw(x));
+  if (!isFind) {
+    userDocs.unshift(doc);
+  }
+
+  const saveRes = await UserManager.instance.saveUserDocs(userDocs);
+  if (saveRes) {
+    NotificationManager.swal("Сохранено");
   }
   saveIsStart.value = false;
 }
@@ -178,7 +183,7 @@ async function send() {
   if (sendIsStart.value) {
     return;
   }
-  const doc: IGettingProductionDocument = GettingManager.instance.currentDocument.value!;
+  const doc: IGettingProductionDocument = currentDoc.value!;
   if (boxCount.value !== doc.оитКоличествоКоробок) {
     NotificationManager.swal(
       "Количество коробок по факту не совпадает с количеством по документу"
@@ -200,7 +205,7 @@ async function send() {
   // $('#ok_button_id').hide();
   // qw.question_window_text = 'Ожидайте записи документа!!!';
   NotificationManager.swal(
-    `Запись документа <b>${GettingManager.instance.currentDocument.value?.Ссылка.Наименование} Начата</b>`,
+    `Запись документа <b>${doc.Ссылка.Наименование} Начата</b>`,
     "info"
   );
   sendIsStart.value = true;

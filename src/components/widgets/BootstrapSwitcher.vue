@@ -37,15 +37,17 @@ interface Props {
 // const props = withDefaults(defineProps<Props>(), {
 //     onUpdate:(value:boolean)=>{}
 // });
-const props = defineProps<Props>();
+defineProps<Props>();
 
 // function onInput(event: any) {
 //   emit('update:value', event.target.value);
 // }
 
 function onChanged(event: any) {
-  emit("update:value", event.target.checked);
-  emit("tap", event.target.checked);
+  const value = event.target.checked;
+  emit("update:value", value);
+  emit("tap", value);
+  console.log("onChanged ", value);
   //props.onUpdate(event.target.checked);
 }
 </script>

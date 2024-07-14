@@ -22,7 +22,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
     user:'user',
     userDocument:'userDocument',
     infoSheets:'infoSheets',
-    orders:"orders"
+    orders:"orders",
+    containers:"containers"
   }
 
   public local={
@@ -38,15 +39,23 @@ export class MainManager extends BaseManager implements ILoadableManager {
     gettingDocs:async ():Promise<IGettingProductionDocument[]>=>{
       return UserManager.instance.getGettingProdDocuments()
     },
-    allDocs:async():Promise<IDocument[] | null>=>{
+    allUserDocs:async():Promise<IDocument[] | null>=>{
       return UserManager.instance.getUserDocuments()
     },
-    infoSheets:async():Promise<any>=>{
-      return DBManager.getData(MainManager.keys.infoSheets)
+    infoSheets:async():Promise<IDBDataRecord[]|null>=>{
+      return DBManager.getFilesAsync(MainManager.keys.infoSheets)
+    },
+    infoSheet:async(id:string):Promise<IDBDataRecord|null>=>{
+      
+      return DBManager.getFileAsync(id,MainManager.keys.infoSheets)
     },
     orders:async():Promise<any>=>{
       return DBManager.getData(MainManager.keys.orders)
+    },
+    containers:async():Promise<any>=>{
+      return DBManager.getData(MainManager.keys.containers)
     }
+
 
   }
 

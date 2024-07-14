@@ -133,7 +133,6 @@ async function LoadOrdersExecute(type: string) {
       const data: IDBDataRecord[] = documents.map((i) => {
         return { data: i, id: i.ШК };
       });
-      NotificationManager.info("Загрузка заказов начата");
 
       await DBManager.WriteDataInDB(MainManager.keys.orders, data);
       NotificationManager.success(`В систему загруженно ${data.length} заказа(ов)`);

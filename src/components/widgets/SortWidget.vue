@@ -23,11 +23,16 @@
     <button disabled class="btn btn-primary btn-sm text-uppercase">
       Кол.кор {{ boxCount }}
     </button>
+
+    <button disabled class="btn btn-primary btn-sm text-uppercase">
+      Кол.скан {{ scanCount }}
+    </button>
   </div>
 </template>
 <script setup lang="ts">
 interface IProps {
   boxCount: number;
+  scanCount: number;
 }
 
 defineProps<IProps>();

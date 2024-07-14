@@ -68,21 +68,20 @@
 <script setup lang="ts">
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
-import { DBManager } from "@/classes/DBManager";
-import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
-import { Date1C } from "@/functions/Date1C";
-import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCount } from "@/functions/GetCount";
-import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { I1CObject } from "@/interfaces/IDocument";
 import { GettingManager } from "@/managers/getting/GettingManager";
-import { UserManager } from "@/managers/user/UserManager";
 import { computed, ref } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
+import { ScaningController } from "@/controllers/ScaningController";
+
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
+const scaningController: ScaningController = new ScaningController(
+  GettingManager.instance
+);
+
 const seen = ref(false);
 const barcode = ref("");
 
@@ -114,7 +113,7 @@ async function closeWithConfirm() {
 
 async function addManualScaning() {
   // HandAddItem.Show('prod_list')
-  const result = await ScanerManager.showAddManualScaningForm();
+  const result = await ScanerManager.showAddManualScaning();
   if (result) {
     onScan(result);
   }
@@ -137,151 +136,45 @@ function onEnter() {
   barcode.value = "";
 }
 
-async function onScan(barcode: string) {
-  // const result = PodgotovitBarcode(barcode)
-  // if(!result.success){
-  //     console.error(result.data)
-  //     NotificationManager.swal(result.data)
-  //     throw result.data
-  // }
-  const barcodeValue = barcode;
-
-  if (barcodeValue === "") {
-    return;
+async function onScan(barcodeStr: string) {
+  if (barcodeStr === "") {
+    return false;
   }
-
-  const Штрихкод = barcodeValue.slice(2, 16);
-  const Количество = Number(barcodeValue.slice(20, 26)) / 1000;
-  const ДатаПроизводства = barcodeValue.slice(28, 34);
-  const ГоденДо = barcodeValue.slice(36, 42);
-
-  const Структура = {
-    Штрихкод: Штрихкод,
-    Количество: Количество,
-    ДатаПроизводства: ДатаПроизводства,
-    ГоденДо: ГоденДо,
-  };
-
-  if (UserManager.instance.useLocalDb) {
-    const barcodeFromDB = await DBManager.getFileAsync(
-      Структура.Штрихкод,
-      "barcodes",
-      "barcodes"
+  const scaning = await scaningController.getScaning(barcodeStr);
+  if (!scaning) {
+    return false;
+  }
+  if (checkScaningBeforeAdd(scaning)) {
+    await GettingManager.instance.addScaning(scaning);
+    scaningController.isValidScaning(
+      scaning,
+      GettingManager.instance.currentScanings.value
     );
-    if (barcodeFromDB) {
-      barcodeFromDB.data.Штрихкод = Структура.Штрихкод;
-      barcodeFromDB.data.bc = barcodeValue;
-      checkScaningGetting(
-        barcodeFromDB.data,
-        Структура.Количество,
-        Структура.ДатаПроизводства,
-        Структура.ГоденДо
-      );
-    } else {
-      NotificationManager.swal("Продукция с таким штрих кодом не найдена");
-      return;
-    }
-    //   getFile(Структура.Штрихкод, (res) => {
-    //     if (res === -1) {
-    //       swal('Продукция с таким штрих кодом не найдена')
-    //       return
-    //     }
-    //     res.data.Штрихкод = Структура.Штрихкод;
-    //     res.data.bc = bc;
-    //     CheckScaningGetting(getting_prod_form, res.data, Структура.Количество, Структура.ДатаПроизводства, Структура.ГоденДо)
-    //   }, '1c', 'barcodes')
-  } else {
-    const loadDoc = GettingManager.instance.currentDocument.value!;
-    const params = {
-      barcode: barcodeValue,
-      Наименование: loadDoc.Наименование,
-      Тип: loadDoc.Ссылка.Тип,
-      Вид: loadDoc.Ссылка.Вид,
-      Ссылка: loadDoc.Ссылка.Ссылка,
-    };
-    const httpResult = await HttpManager.get("/scaning_barcode", params);
-    if (httpResult.success) {
-      if (httpResult.data.РезультатПроверки) {
-        const СтруктураШК = { Ссылка: httpResult.data };
-        checkScaningGetting(СтруктураШК, Количество, ДатаПроизводства, ГоденДо);
-      } else {
-        NotificationManager.swal(httpResult.data.Текст);
-        //this.show()
-        //soundClick("resurse/ERROR.mp3")
-        NotificationManager.instance.playError();
-      }
-    } else {
-      NotificationManager.swal(JSON.stringify(httpResult.error));
-      //this.show()
-    }
-    //   axios.get(getUrl('/scaning_barcode'), {
-    //     params: params
-    //   })
-    //     .then((response) => {
-    //       if (response.data.РезультатПроверки) {
-    //         СтруктураШК = { Ссылка: response.data }
-    //         CheckScaning(this, СтруктураШК, Количество, ДатаПроизводства, ГоденДо)
-    //       } else {
-    //         swal(response.data.Текст)
-    //         this.show()
-    //         soundClick("resurse/ERROR.mp3")
-    //       }
-    //     }).catch((error) => {
-    //       swal(JSON.stringify(error))
-    //       this.show()
-    //     })
+    return true;
   }
-  //boxInOrder.value = GetCount(prod_list, 'Грузоместа')
+  return false;
 }
 
-function checkScaningGetting(
-  СтруктураШК: any,
-  Количество: number,
-  ДатаПроизводства: string,
-  ГоденДо: string
-) {
-  const bc = СтруктураШК.bc;
-  let Грузоместа = 1;
-  let Палетная = "alert alert-info";
+function checkScaningBeforeAdd(scan: IScaning): boolean {
   const prodDoc = GettingManager.instance.currentDocument.value!;
-
-  //text = ''
-
-  const Серия: I1CObject = {
-    Наименование: Date1C(ДатаПроизводства, ГоденДо),
-    Ссылка: `${ДатаПроизводства}${ГоденДо}`,
-  };
-  // const ЕдИзмСтр = СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
-
-  // const curNomStr = `${СтруктураШК.Ссылка.Номенклатура.Наименование}\n${СтруктураШК.Ссылка.Характеристика.Наименование}\n${Серия.Наименование}`;
-
-  if (itPalet.value == true) {
-    Грузоместа = FindGM(bc);
-    Палетная = "alert alert-warning";
-    itPalet.value = false;
-  }
-  //debugger
-  //this.prod_doc = GetData('prod_doc', 'j')
-
   const inOrder =
     prodDoc.Товары.filter(
       (item) =>
-        СтруктураШК.Ссылка.Номенклатура.Наименование == item.Номенклатура.Наименование &&
-        СтруктураШК.Ссылка.Характеристика.Наименование == item.Характеристика.Наименование
+        scan.Номенклатура.Наименование == item.Номенклатура.Наименование &&
+        scan.Характеристика.Наименование == item.Характеристика.Наименование
     ).length > 0
       ? true
       : false;
 
   const ЧтоЕсть = prodDoc.Товары.filter(
-    (item) =>
-      СтруктураШК.Ссылка.Номенклатура.Наименование == item.Номенклатура.Наименование
+    (item) => scan.Номенклатура.Наименование == item.Номенклатура.Наименование
   );
 
   // in_order = in_order.length > 0 ? true : false
 
   if (!inOrder) {
     //
-    let text = `Продукции \n\n ${СтруктураШК.Ссылка.Номенклатура.Наименование} ${СтруктураШК.Ссылка.Характеристика.Наименование} ПЛУ: ${СтруктураШК.Ссылка.ПЛУ} \n\n нет в заказе`;
+    let text = `Продукции \n\n ${scan.Номенклатура.Наименование} ${scan.Характеристика.Наименование} ПЛУ: ${scan.ПЛУ} \n\n нет в заказе`;
     if (ЧтоЕсть.length > 0) {
       text += `, нужна\n\n`;
       for (const i of ЧтоЕсть) {
@@ -293,99 +186,9 @@ function checkScaningGetting(
     }
     NotificationManager.swal(text);
     NotificationManager.instance.playError();
-    return;
+    return false;
   }
-
-  // const validationPropertyData = WeightManager.instance.validationProperty(СтруктураШК.Ссылка.Характеристика, Количество)
-  // if(!validationPropertyData.isValid){
-  //   const text = `Прием\n\n${curNomStr}\n\nнарушает условия по весу характеристики
-  //   \nТекущий вес: ${validationPropertyData.currentCount} ${ЕдИзмСтр}
-  //   \nРазрешенный вес Характеристики: ${validationPropertyData.validCount} ${ЕдИзмСтр}`
-  //   NotificationManager.swal(text);
-  //   NotificationManager.instance.playError()
-  //   return
-  // }
-
-  // const isValidWeight = WeightManager.instance.isValid(
-  //     prodDoc.Ссылка.Ссылка,
-  //   СтруктураШК.Ссылка.Номенклатура.Ссылка.Ссылка,
-  //   СтруктураШК.Ссылка.Характеристика.Ссылка.Ссылка,
-  //   Серия.Наименование,
-  //   Количество)
-  // if (!isValidWeight) {
-  //   const curMaxWeight = WeightManager.instance.getMaxWeight(
-  //     prodDoc.Ссылка.Ссылка,
-  //     СтруктураШК.Ссылка.Номенклатура.Ссылка.Ссылка,
-  //     СтруктураШК.Ссылка.Характеристика.Ссылка.Ссылка,
-  //     Серия.Наименование,
-  //   )
-  //   const curWeight = WeightManager.instance.getCurrentWeight(
-  //     prodDoc.Ссылка.Ссылка,
-  //     СтруктураШК.Ссылка.Номенклатура.Ссылка.Ссылка,
-  //     СтруктураШК.Ссылка.Характеристика.Ссылка.Ссылка,
-  //     Серия.Наименование,
-  //   )
-  //   const text = `Прием\n\n${curNomStr}\n\nдалее не возможен, так как присутствует превышение по весу\n\nТекущий вес ${curWeight} кг.\nДопустимый вес заказа ${curMaxWeight} кг.`
-  //   NotificationManager.swal(text);
-  //   NotificationManager.instance.playError()
-  //   return
-  // }
-
-  const КоличествоВЕдиницахИзмерения = GetCountFromBarcode(
-    СтруктураШК,
-    Грузоместа,
-    Количество
-  );
-  /*if (СтруктураШК.Ссылка.Характеристика.ДополнительныеРеквизиты[1]!==undefined && СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование==="шт") {
-      if (СтруктураШК.Ссылка.Характеристика.ДополнительныеРеквизиты[1].Свойство.Наименование==="Количество(хар)") {
-  
-        //КоличествоВЕдиницахИзмерения = СтруктураШК.Ссылка.Характеристика.ДополнительныеРеквизиты[1].Значение * Количество*(СтруктураШК.Ссылка.Номенклатура.ВесЧислитель/СтруктураШК.Ссылка.Номенклатура.ВесЗнаменатель);
-        КоличествоВЕдиницахИзмерения = СтруктураШК.Ссылка.Характеристика.ДополнительныеРеквизиты[1].Значение * Грузоместа;
-      }
-    }*/
-
-  const response = {
-    IDSec: Date.now(),
-    ID: "",
-    Номенклатура: СтруктураШК.Ссылка.Номенклатура,
-    Характеристика: СтруктураШК.Ссылка.Характеристика,
-    ПЛУ: СтруктураШК.Ссылка.ПЛУ === undefined ? "" : СтруктураШК.Ссылка.ПЛУ,
-    Серия: Серия,
-    Количество: Количество,
-    КоличествоВЕдиницахИзмерения: КоличествоВЕдиницахИзмерения,
-    ЕдиницаИзмерения: СтруктураШК.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование,
-    Артикул: СтруктураШК.Ссылка.Номенклатура.Артикул,
-    Грузоместа: Грузоместа,
-    Палетная: Палетная,
-    bc: bc,
-    free: false,
-  };
-  //response.IDSec = response.ID + Date.now();
-  GettingManager.instance.addScaning(response);
-  // prodList.unshift(response);
-  // SetData("prod_list", prod_list);
-
-  // WeightManager.instance.add(
-  //     prodDoc.Ссылка.Ссылка,
-  //   СтруктураШК.Ссылка.Номенклатура.Ссылка.Ссылка,
-  //   СтруктураШК.Ссылка.Характеристика.Ссылка.Ссылка,
-  //   Серия.Наименование,
-  //   Количество
-  // )
-  const prodList = GettingManager.instance.currentScanings.value;
-  if (prodList.length > 1) {
-    if (prodList[1].bc === bc) {
-      //soundClick("resurse/REPEAT_ARIAL.mp3")
-      NotificationManager.instance.playRepeatArial();
-    } else {
-      //soundClick("resurse/GOOD.mp3")
-      NotificationManager.instance.playGood();
-    }
-  } else {
-    //soundClick("resurse/GOOD.mp3")
-    NotificationManager.instance.playGood();
-  }
-  //getting_prod_form.render()
+  return true;
 }
 
 async function clearCurrentScanings() {

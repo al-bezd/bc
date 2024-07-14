@@ -386,7 +386,7 @@ function openInWeb() {
       "location=yes"
     );
   } catch (e) {
-    NotificationManager.swal(JSON.stringify(e), "error");
+    NotificationManager.error(JSON.stringify(e));
   }
 }
 
@@ -394,10 +394,10 @@ async function clearStorage() {
   try {
     LocalStorageManager.clear();
     await DBManager.clear();
-    NotificationManager.swal("Локальное хранилище очищено", "success");
+    NotificationManager.success("Локальное хранилище очищено");
     RoutingManager.instance.pushName(RoutingManager.route.selectUser);
   } catch (e) {
-    NotificationManager.swal(JSON.stringify(e), "error");
+    NotificationManager.error(JSON.stringify(e));
   }
 }
 
@@ -482,7 +482,7 @@ async function loadBarcodesFromFile() {
       const tmp: IDBDataRecord[] = data.map((x: any) => {
         return { id: x.ШК, data: x };
       });
-      
+
       await DBManager.WriteDataInDB("barcodes", tmp);
     }
     NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");

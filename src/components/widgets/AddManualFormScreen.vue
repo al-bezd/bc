@@ -255,7 +255,7 @@ ScanerManager.instance.connect("showAddManualScaningForm:object", (data) => {
   Грузоместа.value = 1;
   //Палетная.value = "row alert alert-info"
 
-  ШтрихкодПродукции.value = scaning.bc;
+  ШтрихкодПродукции.value = scaning.ШтрихкодПродукции;
 
   ПЛУ.value = scaning.ПЛУ;
   if (ЕдиницаИзмерения.value === "шт") {

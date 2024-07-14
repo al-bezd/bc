@@ -76,8 +76,10 @@ export class DBManager {
     };
   }
 
-  static async getFileAsync(id: string, base: string, store: string): Promise<IDBDataRecord|null> {
-
+  static async getFileAsync(id: string, base: string, store=''): Promise<IDBDataRecord|null> {
+    if(store==''){
+      store=base
+    }
     return new Promise((resolve, reject) => {
       try {
         DBManager.connectDB(

@@ -14,7 +14,8 @@ export interface IScaning{
     Артикул: string,
     Грузоместа: number,
     Палетная: string,
-    bc: string
+    ШтрихкодПродукции:string,
+    bc: string,
     free:boolean
 }
 

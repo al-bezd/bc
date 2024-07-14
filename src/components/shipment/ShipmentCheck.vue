@@ -63,7 +63,7 @@
       </div>
     </div>
     <!-- Отфильтрованные по Номенклатура.Наименование НАЧАЛО -->
-    <BootstrapModalWindow :seen="articulSeen">
+    <BootstrapModalWindow v-model:seen="articulSeen">
       <span class="mb-3"
         >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
       >
@@ -88,32 +88,7 @@
     </BootstrapModalWindow>
     <!-- Отфильтрованные по Номенклатура.Наименование КОНЕЦ -->
     <!-- Окно с тарой НАЧАЛО -->
-    <BootstrapModalWindow :seen="taraSeen">
-      <h3>Список тары</h3>
-      <div class="space"></div>
-      <div class="row">
-        <div class="btn-group w-100" role="group">
-          <button
-            type="button"
-            class="btn btn-warning btn-lg text-uppercase"
-            @click="
-              () => {
-                taraSeen = false;
-              }
-            "
-          >
-            <b>НАЗАД</b>
-          </button>
-          <button
-            type="button"
-            class="btn btn-success btn-lg text-uppercase"
-            @click="saveContainers"
-          >
-            <b>СОХРАНИТЬ</b>
-          </button>
-        </div>
-      </div>
-    </BootstrapModalWindow>
+    <ContainersWidget v-model:seen="taraSeen" />
     <!-- Окно с тарой КОНЕЦ -->
     <ArticulScreen />
   </div>
@@ -137,8 +112,15 @@ import { MainManager } from "@/classes/MainManager";
 import { IDocument } from "@/interfaces/IDocument";
 import BootstrapModalWindow from "../widgets/BootstrapModalWindow.vue";
 import { ScanerManager } from "@/classes/ScanerManager";
+import { ScaningController } from "@/controllers/ScaningController";
+import ContainersWidget from "@/components/shipment/containers/ContainersWidget.vue";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentCheck, show, close);
+/// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
+const scaningController: ScaningController = new ScaningController(
+  ShipmentManager.instance
+);
+
 const seen = ref(false);
 const articulSeen = ref(false);
 const taraSeen = ref(false);
@@ -231,12 +213,10 @@ async function addManual(item: IScaning) {
         break;
       }
     }
-  }
-  if (!scanIsFind) {
-    NotificationManager.error("Сканирований по данной Номенклатуре не найдено");
-    return;
-  }
-  if (!item.bc) {
+    if (!scanIsFind) {
+      NotificationManager.error("Сканирований по данной Номенклатуре не найдено");
+      return;
+    }
     NotificationManager.error("Штрихкод продукции не заполнен");
     return;
   }
@@ -246,7 +226,7 @@ async function addManual(item: IScaning) {
     return;
   }
   //const newScaning = await ShipmentManager.instance.getScaning(res, itPalet.value);
-  const newScaning = await ShipmentManager.instance.getScaning(res);
+  const newScaning = await scaningController.getScaning(res);
 
   if (!newScaning) {
     return;
@@ -254,7 +234,7 @@ async function addManual(item: IScaning) {
 
   if (newScaning) {
     ShipmentManager.instance.addScaning(newScaning);
-    ShipmentManager.instance.isValidScaning(
+    scaningController.isValidScaning(
       newScaning,
       ShipmentManager.instance.currentScanings.value
     );
@@ -273,7 +253,7 @@ async function save() {
   saveIsStart.value = true;
   const currentDocLink = ShipmentManager.instance.currentDocument.value?.Ссылка.Ссылка;
   //const userDocs = await UserManager.instance.getUserDocuments();
-  const documents = await MainManager.instance.local.allDocs();
+  const documents = await MainManager.instance.local.allUserDocs();
   let isFind = false;
   if (documents) {
     for (const userDoc of documents) {
