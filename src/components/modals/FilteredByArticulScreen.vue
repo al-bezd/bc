@@ -30,11 +30,20 @@
               </div>-->
       </div>
     </div>
-    <slot name="footer"
-      ><span class="mb-3"
-        >Количество <b>{{ countThisArticul }}</b> Шт.</span
-      ></slot
-    >
+    <slot name="footer">
+      <div class="row my-2">
+        <div class="col">
+          <span class="mb-3"
+            >Количество <b>{{ count }}</b> Шт.</span
+          >
+        </div>
+        <div class="col">
+          <span class="mb-3"
+            >Вес <b>{{ weight }}</b> Кг.</span
+          >
+        </div>
+      </div>
+    </slot>
     <div class="">
       <button
         type="button"
@@ -54,6 +63,7 @@ import { IScaning } from "@/interfaces/IScaning";
 import ModelWidget from "@/components/widgets/ModeWidget.vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
+import { GetCount } from "@/functions/GetCount";
 
 interface IProps {
   controller: FilteredByArticulController;
@@ -68,10 +78,19 @@ const emit = defineEmits(["delete", "tap"]);
 //   });
 // });
 
-const countThisArticul = computed(() => {
+const count = computed(() => {
   //let Count = 0;
   if (props.controller.scaning) {
     return props.controller.items.value.length;
+  }
+  return 0;
+  //return Count;
+});
+
+const weight = computed(() => {
+  //let Count = 0;
+  if (props.controller.scaning) {
+    return GetCount(props.controller.items.value, "Количество", 3);
   }
   return 0;
   //return Count;

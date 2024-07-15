@@ -1,8 +1,8 @@
 /* Возвращает количество по заданному параметру в переданной таблице */
-export function GetCount(Таблица: any[], Параметр: string): number {
+export function GetCount(Таблица: any[], Параметр: string, КоличествоЗнаковПослеЗапятой = 2): number {
   let Количество = 0
   for (const i of Таблица) {
     Количество = Количество + Number(i[Параметр])
   }
-  return Number(Количество.toFixed(2)) 
+  return Number(Количество.toFixed(КоличествоЗнаковПослеЗапятой))
 }

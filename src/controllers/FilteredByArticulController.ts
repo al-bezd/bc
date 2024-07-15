@@ -52,7 +52,7 @@ export class FilteredByArticulController {
         this.items.value = GetGroupScans(
             items, mode
         )
-        console.log('this.items.value ', this.items.value)
+        //console.log('this.items.value ', this.items.value)
     }
 
     setMode(value: RowKeyMode) {

@@ -159,6 +159,8 @@ function onEnter() {
   barcode.value = "";
 }
 
+const validators = [isValidScaning];
+
 async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
@@ -167,18 +169,23 @@ async function onScan(barcodeStr: string) {
   if (!scaning) {
     return false;
   }
-  if (checkScaningBeforeAdd(scaning)) {
-    await GettingManager.instance.addScaning(scaning);
-    scaningController.isValidScaning(
-      scaning,
-      GettingManager.instance.currentScanings.value
-    );
-    return true;
+  /// Проверяем сканирование на бизнес условие
+  for (const validator of validators) {
+    const condition = await validator(scaning);
+    if (!condition) {
+      return false;
+    }
   }
-  return false;
+
+  await GettingManager.instance.addScaning(scaning);
+  scaningController.isValidScaning(
+    scaning,
+    GettingManager.instance.currentScanings.value
+  );
+  return true;
 }
 
-function checkScaningBeforeAdd(scan: IScaning): boolean {
+function isValidScaning(scan: IScaning): boolean {
   const prodDoc = GettingManager.instance.currentDocument.value!;
   const inOrder =
     prodDoc.Товары.filter(

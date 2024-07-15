@@ -49,4 +49,7 @@ export interface IРеквизит extends ILinkedObject{
     Значение:any
 }
 
-export type IСерия = IProperty
+export interface IСерия extends IProperty {
+    ДатаПроизводства:string
+    ГоденДо:string
+}

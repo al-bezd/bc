@@ -6,7 +6,7 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { Date1C } from "@/functions/Date1C";
 import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { IProperty, IНоменклатура, IХарактеристика } from "@/interfaces/IDocument";
+import { IProperty, IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
@@ -119,9 +119,11 @@ export class ScaningController {
 
         //text = ''
 
-        const Серия: IProperty = {
+        const Серия: IСерия = {
             Наименование: Date1C(ДатаПроизводства, ГоденДо),
             Ссылка: `${ДатаПроизводства}${ГоденДо}`,
+            ДатаПроизводства:ДатаПроизводства,
+            ГоденДо:ГоденДо
         };
 
         if (itPalet == true) {

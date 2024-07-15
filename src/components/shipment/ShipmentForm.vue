@@ -86,16 +86,21 @@ import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { ScaningController } from "@/controllers/ScaningController";
 import { RowKeyMode } from "@/functions/GetGroupScans";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
+import { UserManager } from "@/managers/user/UserManager";
+import { formatDate, GetOstDate } from "@/functions/GetOstDate";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentForm, show, close);
+
 const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance
 );
-const items = ShipmentManager.instance.currentScanings;
+
 const filteredByArticulController = new FilteredByArticulController(
-  items,
+  ShipmentManager.instance.currentScanings,
   ref("НомХарСер")
 );
+
+const items = ShipmentManager.instance.currentScanings;
 
 const seen = ref(false);
 const barcode = ref("");
@@ -162,6 +167,8 @@ function onEnter() {
   barcode.value = "";
 }
 
+const validators = [isValidScaning, isValidFutureProduct, isValidOstSrokGodnosti];
+
 async function onScan(barcode: string) {
   if (itInfoList.value) {
     itInfoList.value = false;
@@ -178,22 +185,30 @@ async function onScan(barcode: string) {
     ShipmentManager.instance.setCurrentScanings([...res.data, ...oldScanings]);
     return;
   }
+
   const scan = await scaningController.getScaning(barcode, itPalet.value);
   if (scan) {
-    if (checkScaningBeforeAdd(scan)) {
-      ShipmentManager.instance.addScaning(scan);
-      scaningController.isValidScaning(
-        scan,
-        ShipmentManager.instance.currentScanings.value
-      );
+    /// Проверяем сканирование на бизнес условие
+    for (const validator of validators) {
+      const condition = await validator(scan);
+      if (!condition) {
+        return;
+      }
     }
+
+    ShipmentManager.instance.addScaning(scan);
+    scaningController.isValidScaning(
+      scan,
+      ShipmentManager.instance.currentScanings.value
+    );
+
     return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");
 }
 
 /// Проверяем сканирование перед добавлением в список сканирований
-function checkScaningBeforeAdd(scan: IScaning): boolean {
+function isValidScaning(scan: IScaning): boolean {
   const prodDoc: IShipmentDocument = ShipmentManager.instance.currentDocument.value!;
   const inOrder =
     prodDoc.Товары.filter(
@@ -223,6 +238,54 @@ function checkScaningBeforeAdd(scan: IScaning): boolean {
     NotificationManager.swal(text);
     NotificationManager.instance.playError();
     return false;
+  }
+  return true;
+}
+
+/// Проверка продукции из будущего
+function isValidFutureProduct(scan: IScaning): boolean {
+  if (UserManager.instance.controlFutureDate.value) {
+    const date = new Date();
+    const bdate = new Date(
+      Number("20" + scan.Серия.ДатаПроизводства.slice(0, 2)),
+      Number(scan.Серия.ДатаПроизводства.slice(2, 4)) - 1,
+      Number(scan.Серия.ДатаПроизводства.slice(4, 6))
+    );
+    if (bdate > date) {
+      const future_date = bdate.toLocaleDateString();
+      const current_date = date.toLocaleDateString();
+      NotificationManager.error(
+        `Текущая дата ${current_date},\n дата производства на коробке ${future_date} коробка из будущего \nСКАНИРОВАНИЕ НЕ ДОБАВЛЕНО`
+      );
+
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Проверка остаточного срока годности
+async function isValidOstSrokGodnosti(scan: IScaning): Promise<boolean> {
+  const curDoc = ShipmentManager.instance.currentDocument.value!;
+  const date = new Date("1970.01.01");
+  date.setSeconds(GetOstDate(curDoc.Товары, scan.Номенклатура, scan.Характеристика));
+  date.setHours(0);
+  date.setMinutes(0);
+  date.setSeconds(0);
+  const condition =
+    new Date(
+      `20${scan.Серия.ДатаПроизводства.slice(0, 2)}.${scan.Серия.ДатаПроизводства.slice(
+        2,
+        4
+      )}.${scan.Серия.ДатаПроизводства.slice(4, 6)}`
+    ) <= date;
+
+  if (condition) {
+    const quest = `Нарушение остаточного срока годности, отгрузить не позднее ${formatDate(
+      date
+    )} вы точно хотите отгрузить данную продукцию?`;
+    const answer = await NotificationManager.showConfirm(quest);
+    return answer;
   }
   return true;
 }

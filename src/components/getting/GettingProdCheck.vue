@@ -2,7 +2,7 @@
   <!-- Форма проверки для приемки-->
   <div class="reft_screen_form p-3" v-show="seen">
     <div>
-      <h4 class="text-muted">{{ docName }}</h4>
+      <h5 class="text-muted">{{ docName }}: Проверка</h5>
       <span>Поддон № {{ оитНомерПалета }}</span>
     </div>
     <div class="space">
