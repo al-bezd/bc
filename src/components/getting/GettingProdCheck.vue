@@ -39,16 +39,17 @@
       </button>
     </div>
 
-    <ArticulScreen />
+    <FilteredByArticulScreen :controller="filteredByArticulController" />
   </div>
   <!--Форма проверки для приемки-->
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { Ref, computed, ref, toRaw } from "vue";
-import ArticulScreen from "@/components/widgets/ArticulScreen.vue";
-import { IScaning } from "@/interfaces/IScaning";
+
+import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { GetCount } from "@/functions/GetCount";
 import {
@@ -58,9 +59,10 @@ import {
 import { rounded } from "@/functions/rounded";
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
-import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
+import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { MainManager } from "@/classes/MainManager";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -76,6 +78,12 @@ const currentDoc: Ref<IGettingProductionDocument | null> =
 const оитНомерПалета = computed(() => {
   return currentDoc.value?.оитНомерПалета;
 });
+
+const filteredByArticulController = new FilteredByArticulController(
+  allItem,
+  ref("НомХарСер")
+);
+
 //const countScaning = computed(()=>GettingManager.instance.currentScanings.value.length)
 const boxCount = computed(() => {
   return GetCount(GettingManager.instance.currentScanings.value, "Грузоместа");
@@ -224,10 +232,9 @@ async function send() {
   }
 }
 
-function openArticulScreen(productName: string) {
-  if (seen.value) {
-    GettingManager.instance.emit("openArticulScreen", [productName]);
-  }
+function openArticulScreen(scaning: IScaningGroup, mode: RowKeyMode = "НомХарСер") {
+  filteredByArticulController.init(scaning, mode);
+  filteredByArticulController.show();
 }
 
 function fillCurrentResult(

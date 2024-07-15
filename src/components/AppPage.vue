@@ -66,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import FormSelectUser from "./FormSelectUser.vue";
 import MainMenu from "./MainMenu.vue";
 import GettingProdLoad from "./getting/GettingProdLoad.vue";
@@ -73,8 +74,8 @@ import GettingProdForm from "./getting/GettingProdForm.vue";
 import GettingProdCheck from "./getting/GettingProdCheck.vue";
 import SettingsButton from "./widgets/SettingsButton.vue";
 import SettingsScreen from "./SettingsScreen.vue";
-import ConfirmScreen from "./widgets/ConfirmScreen.vue";
-import AddManualFormScreen from "./widgets/AddManualFormScreen.vue";
+import ConfirmScreen from "@/components/modals/ConfirmScreen.vue";
+import AddManualFormScreen from "@/components/modals/AddManualFormScreen.vue";
 import { onMounted } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";

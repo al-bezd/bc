@@ -90,14 +90,13 @@
     <!-- Окно с тарой НАЧАЛО -->
     <ContainersWidget v-model:seen="taraSeen" />
     <!-- Окно с тарой КОНЕЦ -->
-    <ArticulScreen />
   </div>
   <!--Форма проверки для приемки-->
 </template>
 <script setup lang="ts">
 import { RoutingManager } from "@/classes/RoutingManager";
 import { Ref, computed, ref, toRaw } from "vue";
-import ArticulScreen from "@/components/widgets/ArticulScreen.vue";
+
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";

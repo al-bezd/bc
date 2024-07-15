@@ -1,13 +1,13 @@
 
-import {  IНоменклатура, IХарактеристика } from "./IDocument"
+import {  IНоменклатура, IСерия, IХарактеристика } from "./IDocument"
 
 export interface IScaning{
     IDSec:number
     ID: string
     Номенклатура: IНоменклатура,
     Характеристика: IХарактеристика,
+    Серия: IСерия,
     ПЛУ: string,
-    Серия: any,
     Количество: number,
     КоличествоВЕдиницахИзмерения: number,
     ЕдиницаИзмерения: string,

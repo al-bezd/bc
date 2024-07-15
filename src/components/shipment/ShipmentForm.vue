@@ -28,6 +28,7 @@
         :key="item.ID"
         :data="item"
         @delete="itemDelete"
+        @tap="filterByArticul(item)"
       />
     </div>
     <div class="navbar-fixed-bottom">
@@ -64,9 +65,11 @@
       </div>
     </div>
   </div>
+  <FilteredByArticulScreen :controller="filteredByArticulController" />
   <!-- Форма сканирования для приемки-->
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
@@ -74,16 +77,26 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { GetCount } from "@/functions/GetCount";
-import { computed, ref, toRaw } from "vue";
+import { computed, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { OrderBy } from "@/functions/OrderBy";
 import { MainManager } from "@/classes/MainManager";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { ScaningController } from "@/controllers/ScaningController";
+import { RowKeyMode } from "@/functions/GetGroupScans";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentForm, show, close);
-const scaningController:ScaningController = new ScaningController(ShipmentManager.instance)
+const scaningController: ScaningController = new ScaningController(
+  ShipmentManager.instance
+);
+const items = ShipmentManager.instance.currentScanings;
+const filteredByArticulController = new FilteredByArticulController(
+  items,
+  ref("НомХарСер")
+);
+
 const seen = ref(false);
 const barcode = ref("");
 
@@ -96,7 +109,6 @@ const docName = computed(() => {
   }
   return "Документ не найден";
 });
-const items = ShipmentManager.instance.currentScanings;
 
 const boxCount = computed(() =>
   GetCount(ShipmentManager.instance.currentScanings.value, "Грузоместа")
@@ -126,6 +138,11 @@ function onSort(mode: string) {
     ShipmentManager.instance.currentScanings.value,
     mode
   );
+}
+
+function filterByArticul(scaning: IScaning, mode: RowKeyMode = "НомХарСер") {
+  filteredByArticulController.init(scaning, mode);
+  filteredByArticulController.show();
 }
 
 function close() {
@@ -170,7 +187,7 @@ async function onScan(barcode: string) {
         ShipmentManager.instance.currentScanings.value
       );
     }
-    return
+    return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");
 }
