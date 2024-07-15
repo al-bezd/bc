@@ -3,7 +3,7 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
       <div class="col-8">
-        <h4 class="text-muted fs-6">{{ docName }}</h4>
+        <h4 class="text-muted fs-6">{{ docName }}: Проверка</h4>
       </div>
       <div class="col-4">
         <button
@@ -57,13 +57,24 @@
         <button type="button" class="btn btn-primary btn-lg text-uppercase" @click="save">
           <b>СОХРАНИТЬ</b>
         </button>
-        <button type="button" class="btn btn-success btn-lg text-uppercase" @click="send">
+        <button
+          type="button"
+          class="btn btn-success btn-lg text-uppercase"
+          @click="send({ Режим: 'проверка' })"
+        >
           <b>ОТПРАВИТЬ</b>
         </button>
       </div>
     </div>
     <!-- Отфильтрованные по Номенклатура.Наименование НАЧАЛО -->
-    <BootstrapModalWindow v-model:seen="articulSeen">
+    <FilteredByArticulScreen :controller="filteredByArticulController">
+      <!-- <template v-slot:footer>
+        <span class="mb-3"
+          >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
+        >
+      </template> -->
+    </FilteredByArticulScreen>
+    <!-- <BootstrapModalWindow v-model:seen="articulSeen">
       <span class="mb-3"
         >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
       >
@@ -85,7 +96,7 @@
       >
         <b>НАЗАД</b>
       </button>
-    </BootstrapModalWindow>
+    </BootstrapModalWindow> -->
     <!-- Отфильтрованные по Номенклатура.Наименование КОНЕЦ -->
     <!-- Окно с тарой НАЧАЛО -->
     <ContainersWidget v-model:seen="taraSeen" />
@@ -113,6 +124,8 @@ import BootstrapModalWindow from "../widgets/BootstrapModalWindow.vue";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ScaningController } from "@/controllers/ScaningController";
 import ContainersWidget from "@/components/shipment/containers/ContainersWidget.vue";
+import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentCheck, show, close);
 /// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
@@ -121,17 +134,22 @@ const scaningController: ScaningController = new ScaningController(
 );
 
 const seen = ref(false);
-const articulSeen = ref(false);
+
 const taraSeen = ref(false);
 
 const allItem: Ref<IScaningGroup[]> = ref([]); // группированные сканирования
 const tableTotal: Ref<IScaningGroup[]> = ref([]); // товары из документа
 
-const filteredAllItem: Ref<IScaningGroup[]> = ref([]);
+const filteredByArticulController = new FilteredByArticulController(
+  ShipmentManager.instance.currentScanings,
+  ref("НомХар")
+);
 
-const filteredBoxCount = computed(() => {
-  return GetCount(filteredAllItem.value, "КоличествоКоробок");
-});
+// const filteredAllItem: Ref<IScaningGroup[]> = ref([]);
+
+// const filteredBoxCount = computed(() => {
+//   return GetCount(filteredByArticulController.items.value, "КоличествоКоробок");
+// });
 
 const boxCount = computed(() => {
   return GetCount(ShipmentManager.instance.currentScanings.value, "Грузоместа");
@@ -200,14 +218,14 @@ async function closeWithQuest() {
 /// Добавляем сканирование в ручном режиме
 async function addManual(item: IScaning) {
   let scanIsFind = false;
-  if (!item.bc) {
+  if (!item.ШтрихкодПродукции) {
     for (const i of currentScanings.value) {
       if (
         i.Номенклатура.Ссылка.Ссылка == item.Номенклатура.Ссылка.Ссылка &&
         i.Характеристика.Ссылка.Ссылка == item.Характеристика.Ссылка.Ссылка &&
-        i.bc !== ""
+        i.ШтрихкодПродукции !== ""
       ) {
-        item.bc = i.bc;
+        item.ШтрихкодПродукции = i.ШтрихкодПродукции;
         scanIsFind = true;
         break;
       }
@@ -216,8 +234,10 @@ async function addManual(item: IScaning) {
       NotificationManager.error("Сканирований по данной Номенклатуре не найдено");
       return;
     }
-    NotificationManager.error("Штрихкод продукции не заполнен");
-    return;
+    if (!item.ШтрихкодПродукции) {
+      NotificationManager.error("Штрихкод продукции не заполнен");
+      return;
+    }
   }
 
   const res = await ScanerManager.showAddManualScaning(item);
@@ -258,7 +278,7 @@ async function save() {
     for (const userDoc of documents) {
       if (userDoc.Ссылка.Ссылка == currentDocLink) {
         isFind = true;
-        Object.assign(userDoc, toRaw(ShipmentManager.instance.currentDocument.value!));
+        //Object.assign(userDoc, toRaw(ShipmentManager.instance.currentDocument.value!));
         userDoc.scanings = ShipmentManager.instance.currentScanings.value.map((x) =>
           toRaw(x)
         );
@@ -294,18 +314,16 @@ async function saveDocument(documents: IDocument[]) {
   const saveRes = await UserManager.instance.saveUserDocs(documents);
   if (saveRes) {
     NotificationManager.success(`Документ ${curDoc.Наименование}\nУспешно сохранен!`);
+    return;
   }
-}
-
-async function saveContainers() {
-  taraSeen.value = false;
+  NotificationManager.error(`Документ ${curDoc.Наименование}\nНе сохранен`);
 }
 
 /// отправляет данные на сервер
 async function send(mode: any) {
   if (mode.Режим == "запись") {
     //$('#ok_button_id').hide()
-    NotificationManager.info("<strong>Ожидайте записи документа!!!</strong>");
+    NotificationManager.info("<b>Ожидайте записи документа!!!</b>");
     //qw.question_window_text = 'Ожидайте записи документа!!!'
   }
   if (sendIsStart.value) {
@@ -361,23 +379,34 @@ async function send(mode: any) {
   }
 }
 
-function openArticulScreen(productName: string) {
-  articulSeen.value = true;
-  filteredAllItem.value = allItem.value.filter(
-    (x) => x.Номенклатура.Наименование === productName
-  );
+/// передаем в контроллер данные показываем экран с отфильтрованным содержимым
+function openArticulScreen(scaning: IScaning) {
+  filteredByArticulController.filter(scaning);
+  filteredByArticulController.show();
 }
 
+/// заполняем сгруппированные элементы
 function fillCurrentResult(
   tableTotal: IScaningGroup[],
   scanings: IScaning[],
   mode: RowKeyMode
 ) {
+  /// очищаем таблицу перед ее заполнением
+  for (const tableRow of tableTotal) {
+    tableRow.ТекущееКоличество = 0;
+    tableRow.ТекущееКоличествоВЕдиницахИзмерения = 0;
+    tableRow.КоличествоВЕдиницахИзмерения = 0;
+    tableRow.КоличествоКоробок = 0;
+    tableRow.ТекущееКоличествоГрузомест = 0;
+    tableRow.Количество = 0;
+  }
+  /// заполняем таблицу насканированным
   for (const scan of scanings) {
     const scanKey = getRowKey(scan, mode);
     for (const tableRow of tableTotal) {
       const tableRowKey = getRowKey(tableRow, mode);
-      if (tableRowKey == scanKey) {
+
+      if (tableRowKey === scanKey) {
         tableRow.ТекущееКоличество += scan.Количество;
         tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
@@ -399,6 +428,7 @@ function fillCurrentResult(
           tableRow.КоличествоВЕдиницахИзмерения
         );
         tableRow.КоличествоКоробок += scan.Грузоместа;
+        tableRow.ТекущееКоличествоГрузомест += scan.Грузоместа;
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;
       }

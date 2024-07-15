@@ -29,6 +29,12 @@
         :key="item.ID"
         :data="item"
         @delete="itemDelete"
+        @tap="
+          () => {
+            filteredByArticulController.filter(item);
+            filteredByArticulController.show();
+          }
+        "
       />
     </div>
 
@@ -68,9 +74,12 @@
       </div>
     </div>
   </div>
+  <FilteredByArticulScreen :controller="filteredByArticulController" />
   <!-- Форма сканирования (без документа)-->
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
@@ -79,7 +88,7 @@ import { computed, ref } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
-import { OrderBy } from "@/functions/OrderBy";
+import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
 
@@ -88,7 +97,14 @@ RoutingManager.instance.registry(
   show,
   close
 );
-const scaningController:ScaningController = new ScaningController(ShipmentManager.instance, true)
+const scaningController: ScaningController = new ScaningController(
+  ShipmentManager.instance,
+  true
+);
+const filteredByArticulController = new FilteredByArticulController(
+  ShipmentManager.instance.currentScanings,
+  ref("НомХар")
+);
 const pageTitle = ref("Отражение остатков");
 const seen = ref(false);
 const itPalet = ref(false);
@@ -124,14 +140,14 @@ async function onScan(barcodeStr: string) {
   if (scaning) {
     scaning.free = true;
     await ShipmentManager.instance.addScaning(scaning);
-    scaningController.isValidScaning(scaning, ShipmentManager.instance.currentScanings.value);
+    scaningController.isValidScaning(
+      scaning,
+      ShipmentManager.instance.currentScanings.value
+    );
     return true;
   }
   return false;
 }
-
-
-
 
 function goToCheck() {
   //check_doc_free.show(GetData('no_order_mode'))
@@ -152,8 +168,8 @@ async function clearWithQuest() {
   }
 }
 
-function onSort(mode: string) {
-  ShipmentManager.instance.currentScanings.value = OrderBy(
+function onSort(mode: OrderByType) {
+  ShipmentManager.instance.currentScanings.value = GetListSortBy(
     ShipmentManager.instance.currentScanings.value,
     mode
   );

@@ -254,7 +254,9 @@ ScanerManager.instance.connect("showAddManualScaningForm:object", (data) => {
   Артикул.value = scaning.Артикул;
   Грузоместа.value = 1;
   //Палетная.value = "row alert alert-info"
-
+  if (!scaning.ШтрихкодПродукции) {
+    throw "ШтрихкодПродукции не заполнен";
+  }
   ШтрихкодПродукции.value = scaning.ШтрихкодПродукции;
 
   ПЛУ.value = scaning.ПЛУ;

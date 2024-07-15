@@ -2,13 +2,13 @@
   <!-- Форма сканирования для приемки-->
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
-      <div class="col-9">
-        <h4 class="text-muted">{{ docName }}</h4>
+      <div class="col-12">
+        <h5 class="text-muted">{{ docName }}</h5>
       </div>
-      <div class="col-3">
+      <!-- <div class="col-3">
         <h5>кол. {{ countScaning }}</h5>
-        <h5>г/м. {{ boxInOrder }}</h5>
-      </div>
+        <h5>г/м. {{ boxCount }}</h5>
+      </div> -->
     </div>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
@@ -19,6 +19,7 @@
       @keyup.enter="onEnter"
       id="getting_prod_form_bc"
     />
+    <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
 
     <div class="space">
       <!--<div id="getting_prod_list"></div>-->
@@ -27,6 +28,12 @@
         :key="item.ID"
         :data="item"
         @delete="itemDelete"
+        @tap="
+          () => {
+            filteredByArticulController.filter(item);
+            filteredByArticulController.show();
+          }
+        "
       />
     </div>
     <div class="navbar-fixed-bottom">
@@ -64,10 +71,14 @@
     </div>
   </div>
   <!-- Форма сканирования для приемки-->
+  <FilteredByArticulScreen :controller="filteredByArticulController" />
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
+import SortWidget from "@/components/widgets/SortWidget.vue";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
@@ -76,10 +87,15 @@ import { GettingManager } from "@/managers/getting/GettingManager";
 import { computed, ref } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ScaningController } from "@/controllers/ScaningController";
+import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
 const scaningController: ScaningController = new ScaningController(
   GettingManager.instance
+);
+const filteredByArticulController = new FilteredByArticulController(
+  GettingManager.instance.currentScanings,
+  ref("НомХар")
 );
 
 const seen = ref(false);
@@ -97,7 +113,7 @@ const items = computed(() => {
   return GettingManager.instance.currentScanings.value;
 });
 
-const boxInOrder = computed(() =>
+const boxCount = computed(() =>
   GetCount(GettingManager.instance.currentScanings.value, "Грузоместа")
 );
 
@@ -110,13 +126,20 @@ async function closeWithConfirm() {
     RoutingManager.instance.pushName(RoutingManager.route.gettingProductionLoad);
   }
 }
-
+// Добавляем товар в ручном режиме
 async function addManualScaning() {
   // HandAddItem.Show('prod_list')
   const result = await ScanerManager.showAddManualScaning();
   if (result) {
     onScan(result);
   }
+}
+
+function onSort(mode: OrderByType) {
+  GettingManager.instance.currentScanings.value = GetListSortBy(
+    GettingManager.instance.currentScanings.value,
+    mode
+  );
 }
 
 function close() {

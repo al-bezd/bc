@@ -1,7 +1,7 @@
 <template>
   <!-- Форма проверки сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>Проверка</h4>
+    <h4 class="text-center">Отражение остатков: Проверка</h4>
     <ModeWidget :mode="currentMode" @tap="showWithMode" />
 
     <div :class="`alert alert-${ifSettingsFilled ? 'success' : 'danger'}`">
@@ -55,7 +55,12 @@
         :key="item.Номенклатура.Ссылка.Ссылка"
         :mode="currentMode"
         :show-procent="false"
-        @tap="openThisArticul(item)"
+        @tap="
+          () => {
+            filteredByArticulController.filter(item);
+            filteredByArticulController.show();
+          }
+        "
       />
     </div>
 
@@ -89,47 +94,17 @@
       </div>
     </div>
   </div>
-  <BootstrapModalWindow v-model:seen="modalIsSeen">
-    <div class="col-12">
-      <span
-        >Коробок <b>{{ CountThisArticul }}</b> Шт.</span
-      >
 
-      <div class="space">
-        <ScaningGroupItem
-          v-for="item in groupedScansFilteredByName"
-          :data="item"
-          :key="item.Номенклатура.Ссылка.Ссылка"
-          :mode="currentMode"
-          :show-procent="false"
-        />
-        <!-- <div v-for="item in groupedScansFilteredByName" :key="item.IDSec">
-              <scaning-tmp v-bind:item="item" obj="'check_doc_free'"></scaning-tmp>
-            </div> -->
-      </div>
-
-      <button
-        type="button"
-        class="btn btn-primary btn-lg text-uppercase w-100"
-        @click="
-          () => {
-            modalIsSeen = !modalIsSeen;
-          }
-        "
-        tabindex="-1"
-      >
-        <b>НАЗАД</b>
-      </button>
-    </div>
-  </BootstrapModalWindow>
+  <FilteredByArticulScreen :controller="filteredByArticulController" />
   <!-- Форма проверки сканирования (без документа)-->
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { Ref, computed, ref, toRaw } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
-import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import { DBManager } from "@/classes/DBManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { GetGroupScans, RowKeyMode } from "@/functions/GetGroupScans";
@@ -137,7 +112,7 @@ import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
-import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
+import { IScaningGroup } from "@/interfaces/IScaning";
 import { MainManager } from "@/classes/MainManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
@@ -160,20 +135,17 @@ const currentMode: Ref<RowKeyMode> = ref("НомХарСер");
 
 const seen = ref(false);
 
-const modalIsSeen = ref(false);
-
 const groupedScans: Ref<IScaningGroup[]> = ref([]);
-const groupedScansFilteredByName: Ref<IScaningGroup[]> = ref([]);
+const filteredByArticulController = new FilteredByArticulController(
+  ShipmentManager.instance.currentScanings,
+  ref("НомХар")
+);
 // scaning_free
 
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
   return groupedScans.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
-});
-
-const CountThisArticul = computed(() => {
-  return groupedScansFilteredByName.value.length;
 });
 
 const ifSettingsFilled = computed(() => {
@@ -231,13 +203,6 @@ function showWithMode(mode: RowKeyMode) {
   );
 }
 
-function openThisArticul(scan: IScaningGroup) {
-  groupedScansFilteredByName.value = groupedScans.value.filter((x: IScaningGroup) => {
-    return x.Номенклатура.Ссылка === scan.Номенклатура.Ссылка;
-  });
-  modalIsSeen.value = true;
-}
-
 async function saveIn1C() {
   if (!ifSettingsFilled.value) {
     NotificationManager.error("Не все данные заполнены");
@@ -272,7 +237,7 @@ async function saveIn1C() {
 
 function clear() {
   groupedScans.value = [];
-  groupedScansFilteredByName.value = [];
+
   ShipmentManager.instance.setCurrentScanings([]);
   selectedSklad.value = null;
   DBManager.deleteDatabase(selectedSkladKey);

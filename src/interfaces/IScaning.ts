@@ -22,6 +22,8 @@ export interface IScaning{
 export interface IScaningGroup extends IScaning{
     ВПроцСоотношении:number
     ТекущееКоличество:number
+    ТекущееКоличествоГрузомест:number
+    
     ТекущееКоличествоВЕдиницахИзмерения:number
     КоличествоКоробок:number
     имКоличествоВПересчетеНаКг:number

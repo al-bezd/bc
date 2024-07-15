@@ -9,37 +9,40 @@
           role="button"
           @click="
             () => {
-              emit('tap', data.Номенклатура.Наименование);
+              emit('tap', data);
             }
           "
         >
           <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
         </div>
-        <div>{{ data.Характеристика.Наименование }}</div>
+        <div v-if="mode == 'НомХар' || mode == 'НомХарСер'">
+          {{ data.Характеристика.Наименование }}
+        </div>
         <div v-if="mode == 'НомХарСер'">{{ data.Серия.Наименование }}</div>
         <div>
           <b>ПЛУ : {{ data.ПЛУ }}</b>
         </div>
-        <div v-if="isGroup">
-          <b>к/к. {{ (data as IScaningGroup).КоличествоКоробок }}</b>
+        <div>
+          <b>к/к. {{ data.КоличествоКоробок }}</b>
         </div>
-        <div v-if="isGroup">
+        <div>
           <b
-            >тек {{ (data as IScaningGroup).ТекущееКоличество }} / зак
-            {{ (data as IScaningGroup).имКоличествоВПересчетеНаКг }} кг</b
+            >тек {{ data.ТекущееКоличество }} кг / зак
+            {{ data.имКоличествоВПересчетеНаКг }} кг</b
           >
         </div>
-        <div v-if="isGroup">
+        <div>
           <b
-            >тек {{ (data as IScaningGroup).ТекущееКоличествоВЕдиницахИзмерения }} / зак
-            {{ (data as IScaningGroup).КоличествоУпаковок }}
+            >тек {{ data.ТекущееКоличествоВЕдиницахИзмерения }}
+            {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }} / зак
+            {{ data.КоличествоУпаковок }}
             {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }}</b
           >
         </div>
       </div>
       <div class="col-2">
         <div v-if="showProcent && isGroup">
-          <b>{{ (data as IScaningGroup).ВПроцСоотношении }}%</b>
+          <b>{{ data.ВПроцСоотношении }}%</b>
         </div>
         <slot name="addButton"></slot>
       </div>
@@ -50,10 +53,9 @@
 import { RowKeyMode } from "@/functions/GetGroupScans";
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 import { computed } from "vue";
-import { prop } from "vue-class-component";
 
 interface Props {
-  data: IScaningGroup | IScaning;
+  data: IScaningGroup;
   mode: RowKeyMode;
   showProcent: boolean;
 }

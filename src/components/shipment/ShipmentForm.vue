@@ -80,7 +80,7 @@ import { GetCount } from "@/functions/GetCount";
 import { computed, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { OrderBy } from "@/functions/OrderBy";
+import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import { MainManager } from "@/classes/MainManager";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { ScaningController } from "@/controllers/ScaningController";
@@ -133,15 +133,15 @@ async function addManualScaning() {
   }
 }
 
-function onSort(mode: string) {
-  ShipmentManager.instance.currentScanings.value = OrderBy(
+function onSort(mode: OrderByType) {
+  ShipmentManager.instance.currentScanings.value = GetListSortBy(
     ShipmentManager.instance.currentScanings.value,
     mode
   );
 }
 
 function filterByArticul(scaning: IScaning, mode: RowKeyMode = "НомХарСер") {
-  filteredByArticulController.init(scaning, mode);
+  filteredByArticulController.filter(scaning, mode);
   filteredByArticulController.show();
 }
 

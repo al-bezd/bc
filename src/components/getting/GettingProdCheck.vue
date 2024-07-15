@@ -10,7 +10,12 @@
         v-for="item in allItem"
         :key="item.рсУИД"
         :data="item"
-        @tap="openArticulScreen"
+        @tap="
+          () => {
+            filteredByArticulController.filter(item);
+            filteredByArticulController.show();
+          }
+        "
       />
     </div>
 
@@ -44,7 +49,9 @@
   <!--Форма проверки для приемки-->
 </template>
 <script setup lang="ts">
-import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
+
 import { RoutingManager } from "@/classes/RoutingManager";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { Ref, computed, ref, toRaw } from "vue";
@@ -62,7 +69,6 @@ import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { MainManager } from "@/classes/MainManager";
-import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
@@ -80,7 +86,7 @@ const оитНомерПалета = computed(() => {
 });
 
 const filteredByArticulController = new FilteredByArticulController(
-  allItem,
+  GettingManager.instance.currentScanings,
   ref("НомХарСер")
 );
 
@@ -230,11 +236,6 @@ async function send() {
     NotificationManager.swal(response.data.Текст);
     //RoutingManager.instance.pushName(RoutingManager.route.gettingProductionCheck);
   }
-}
-
-function openArticulScreen(scaning: IScaningGroup, mode: RowKeyMode = "НомХарСер") {
-  filteredByArticulController.init(scaning, mode);
-  filteredByArticulController.show();
 }
 
 function fillCurrentResult(

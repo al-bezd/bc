@@ -1,14 +1,24 @@
 <template>
   <BootstrapModalWindow :seen="controller.seen.value">
-    <span class="mb-3"
-      >Коробок <b>{{ countThisArticul }}</b> Шт.</span
-    >
+    <ModelWidget
+      :mode="controller.mode.value"
+      :items="['Ном', 'НомХар', 'НомХарСер']"
+      @tap="
+        (value) => {
+          controller.setMode(value);
+        }
+      "
+    />
+
+    <!--  -->
     <div class="space">
       <div>
         <ScaningGroupItem
           v-for="item in controller.items.value"
           :key="item.IDSec"
           :data="item"
+          :mode="controller.mode.value"
+          :show-procent="controller.showProcent.value"
           @tap="
             () => {
               emit('tap', item);
@@ -20,11 +30,16 @@
               </div>-->
       </div>
     </div>
-    <div class="row">
+    <slot name="footer"
+      ><span class="mb-3"
+        >Количество <b>{{ countThisArticul }}</b> Шт.</span
+      ></slot
+    >
+    <div class="">
       <button
         type="button"
         class="btn btn-primary btn-lg text-uppercase w-100"
-        @click="close"
+        @click="controller.close"
       >
         <b>НАЗАД</b>
       </button>
@@ -32,20 +47,20 @@
   </BootstrapModalWindow>
 </template>
 <script setup lang="ts">
-import { Ref, computed, ref } from "vue";
+import { computed } from "vue";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
-import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
-import { GetCount } from "@/functions/GetCount";
+import { IScaning } from "@/interfaces/IScaning";
+
+import ModelWidget from "@/components/widgets/ModeWidget.vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 
 interface IProps {
   controller: FilteredByArticulController;
-  
 }
-const props = defineProps<IProps>()
-const emit = defineEmits([ "delete", "tap"]);
-const currentArticul: Ref<IScaning | null> = ref(null);
+const props = defineProps<IProps>();
+const emit = defineEmits(["delete", "tap"]);
+//const currentArticul: Ref<IScaning | null> = ref(null);
 
 // const prodList = computed(() => {
 //   return GettingManager.instance.currentScanings.value.filter((x) => {
@@ -54,20 +69,13 @@ const currentArticul: Ref<IScaning | null> = ref(null);
 // });
 
 const countThisArticul = computed(() => {
-  let Count = 0;
-  if (currentArticul.value) {
-    return GetCount(props.controller.items.value, "Грузоместа");
-    //return items.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
-    // for (const item of prodList.value) {
-    //   Count += item.Грузоместа;
-    // }
+  //let Count = 0;
+  if (props.controller.scaning) {
+    return props.controller.items.value.length;
   }
-  return Count;
+  return 0;
+  //return Count;
 });
-function close() {
-  //emit("update:seen", false);
-  props.controller.close()
-}
 
 async function itemDelete(item: IScaning) {
   emit("delete", item);

@@ -19,7 +19,7 @@ export class UserManager extends BaseManager {
   public controlFutureDate = ref(false)
   public useLocalOrders = ref(false)
   public useLocalDb = ref(false)
-  public user: Ref<null|IUser> = ref(null)
+  public user: Ref<IUser|null> = ref(null)
 
   constructor() {
     super()
@@ -63,7 +63,7 @@ export class UserManager extends BaseManager {
   setUser(val: any) {
     this.user.value = val
     DBManager.setData(MainManager.keys.user, toRaw(val)) // current_user
-    this.emit('setUser', [this.user])
+    this.emit('setUser', [this.user.value])
   }
 
   clearUser(){
@@ -193,13 +193,13 @@ export class UserManager extends BaseManager {
     //this.setBarcode("")
   }
 
-  async getUserDocuments():Promise<IDocument[] | null>{
+  async getUserDocuments():Promise<IDocument[]>{
     if(this.user.value){
       const baseName = MainManager.keys.userDocument
       const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
     return docs?.data.docs
     }
-    return null
+    return []
     
   }
 

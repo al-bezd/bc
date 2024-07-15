@@ -1,5 +1,5 @@
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
-export type RowKeyMode = "НомХарСер"|"НомХар"
+export type RowKeyMode = "НомХарСер"|"НомХар"|"Ном"
 /// Возвращает key строки таблицы
 export function getRowKey(row: IScaning, mode:RowKeyMode="НомХарСер") {
 
@@ -8,6 +8,8 @@ export function getRowKey(row: IScaning, mode:RowKeyMode="НомХарСер") {
 
     if(mode=="НомХар"){
         return НоменклатураСсылка + ХарактеристикаСсылка
+    } else if(mode=="Ном"){
+      return НоменклатураСсылка
     }
     
     const СерияСсылка = row.Серия.Наименование; //Используем наименование как ссылку потому что мы идентифицируем в приложении серию по наименованию
@@ -21,23 +23,36 @@ export function GetGroupScans(
     const list: any = {};
     for (const item of scanings) {
       const key = getRowKey(item, mode);
-  
+      
+      ///const dataItem: IScaningGroup = list[key];
       // eslint-disable-next-line no-prototype-builtins
-      if (!list.hasOwnProperty(key)) {
-        list[key] = Object.assign({} as IScaningGroup, item);
+      //const condition = !list.hasOwnProperty(key)
+      const condition = !(key in list)
+      if (condition) {
+        
+        list[key] = Object.assign({}, item);
         list[key].key = key;
         list[key].cls = " alert alert-primary ";
         list[key].ВПроцСоотношении = 0;
+
         list[key].ТекущееКоличество = 0;
         list[key].ТекущееКоличествоВЕдиницахИзмерения = 0;
+        list[key].КоличествоВЕдиницахИзмерения = 0;
+        list[key].ТекущееКоличествоГрузомест = 0
+        
         list[key].КоличествоКоробок = 0;
   
-        continue;
+        //continue;
       }
-      const dataItem: IScaningGroup = list[key];
-      dataItem.Количество += item.Количество;
-      dataItem.КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения;
-      dataItem.КоличествоКоробок += item.Грузоместа;
+      
+      list[key].ТекущееКоличество+=item.Количество??0
+      list[key].ТекущееКоличествоВЕдиницахИзмерения+=item.КоличествоВЕдиницахИзмерения??0
+      list[key].КоличествоВЕдиницахИзмерения += item.КоличествоВЕдиницахИзмерения??0;
+      list[key].ТекущееКоличествоГрузомест+=item.Грузоместа??0
+
+      list[key].Количество += item.Количество??0;
+      
+      list[key].КоличествоКоробок += item.Грузоместа??0;
       // ВПроцСоотношении = Math.round(
       //   (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
       // );

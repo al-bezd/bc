@@ -12,23 +12,19 @@
       id="form_doc_bc_free"
     />
     <SortWidget :box-count="boxCount" :scan-count="items.length" @tap="onSort" />
-    <!-- <div class="btn-group w-100 mb-3" role="group">
-      <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
-        по Артикулу
-      </button>
-      <button class="btn btn-primary text-uppercase" @click="OrderBy('История')">
-        по Истории
-      </button>
-      <button disabled class="btn btn-primary text-uppercase">
-        Кол.кор {{ boxCount }}
-      </button>
-    </div> -->
+
     <div class="space">
       <ScaningItem
         v-for="item in items"
         :key="item.ID"
         :data="item"
         @delete="itemDelete"
+        @tap="
+          () => {
+            filteredByArticulController.filter(item);
+            filteredByArticulController.show();
+          }
+        "
       />
     </div>
 
@@ -68,9 +64,12 @@
       </div>
     </div>
   </div>
+  <FilteredByArticulScreen :controller="filteredByArticulController" />
   <!-- Форма сканирования (без документа)-->
 </template>
 <script setup lang="ts">
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
+import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
@@ -79,9 +78,10 @@ import { computed, ref } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
-import { OrderBy } from "@/functions/OrderBy";
+import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
+
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListForm,
   show,
@@ -90,6 +90,11 @@ RoutingManager.instance.registry(
 const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance,
   true
+);
+
+const filteredByArticulController: FilteredByArticulController = new FilteredByArticulController(
+  ShipmentManager.instance.currentScanings,
+  ref("НомХар")
 );
 
 const pageTitle = ref("Создание Инфо. листа");
@@ -156,8 +161,8 @@ async function clearWithQuest() {
   }
 }
 
-function onSort(mode: string) {
-  ShipmentManager.instance.currentScanings.value = OrderBy(
+function onSort(mode: OrderByType) {
+  ShipmentManager.instance.currentScanings.value = GetListSortBy(
     ShipmentManager.instance.currentScanings.value,
     mode
   );

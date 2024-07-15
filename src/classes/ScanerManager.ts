@@ -50,7 +50,6 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
         const callback = (result:string)=>{
           if(result){
             resolve(result)
-
           }
         }
         if(scaning){

@@ -85,10 +85,6 @@ watch(
   (newVal, _) => {
     if (newVal) {
       initContainers();
-      // Вызовите вашу функцию здесь
-    } else {
-      console.log("seen изменился на false");
-      // Вызовите вашу функцию здесь
     }
   }
 );
