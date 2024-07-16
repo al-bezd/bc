@@ -39,7 +39,7 @@
     <div class="navbar-fixed-bottom">
       <div class="col-12">
         <button
-          class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-3"
+          class="btn btn-info btn-block text-uppercase w-100 mb-3"
           @click="addManualScaning"
         >
           +
@@ -47,21 +47,21 @@
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning btn-lg text-uppercase fs-6"
+            class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
             <b>ЗАКРЫТЬ<br />ДОКУМЕНТ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary btn-lg text-uppercase fs-6"
+            class="btn btn-primary text-uppercase fs-6"
             @click="clearCurrentScanings"
           >
             <b>ОЧИСТИТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-success btn-lg text-uppercase fs-6"
+            class="btn btn-success text-uppercase fs-6"
             @click="goCheck()"
           >
             <b>ПРОВЕРИТЬ</b>

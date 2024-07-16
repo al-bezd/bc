@@ -1,85 +1,88 @@
 <template>
-  <div
-    class="modal fade show"
-    v-if="seen"
-    tabindex="-1"
-    aria-labelledby="exampleModalLiveLabel"
-    style="display: block"
-    aria-modal="true"
-    role="dialog"
-  >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title text-center">{{ addOrders.Заголовок }}</h4>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="ДатаНачала" class="control-label">Дата начала</label>
-            <input
-              type="date"
-              class="form-control"
-              id="ДатаНачала"
-              v-model="addOrders.ДатаНачала"
-            />
-          </div>
-          <div class="form-group">
-            <label for="ДатаОкончания" class="control-label">Дата окончания</label>
-            <input
-              type="date"
-              class="form-control"
-              id="ДатаОкончания"
-              v-model="addOrders.ДатаОкончания"
-            />
-          </div>
-          <div class="form-group">
-            <label for="Склад" class="control-label">Склад</label>
-            <input
-              disabled
-              type="text"
-              class="form-control"
-              id="Склад"
-              :value="addOrders.СкладНаименование"
-            />
-          </div>
-        </div>
-        <div class="d-grid gap-2 p-3">
-          <button
-            type="button"
-            class="btn btn-primary btn-lg btn-block text-uppercase"
-            @click="LoadOrdersExecute(MainManager.keys.orders)"
-          >
-            Загрузить заказы
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary btn-lg btn-block text-uppercase"
-            @click="LoadOrdersExecute(MainManager.keys.infoSheets)"
-          >
-            Загрузить инфо. листы
-          </button>
-          <button
-            type="button"
-            class="btn btn-outline-primary btn-lg btn-block text-uppercase"
-            data-dismiss="modal"
-            @click="close()"
-          >
-            Закрыть
-          </button>
+  <BootstrapModalWindow :seen="seen">
+    <template v-slot:header>
+      <div class="modal-header">
+        <h4 class="modal-title text-center">{{ addOrders.Заголовок }}</h4>
+      </div>
+    </template>
+
+    <div class="row">
+      <div class="col-6">
+        <div class="form-group">
+          <label for="ДатаНачала" class="control-label">Дата начала</label>
+          <DatePicker id="ДатаНачала" v-model:date="addOrders.ДатаНачала" />
+          <!-- <input
+          type="date"
+          class="form-control"
+          id="ДатаНачала"
+          v-model="addOrders.ДатаНачала"
+        /> -->
         </div>
       </div>
-      <!-- /.modal-content -->
+      <div class="col-6">
+        <div class="form-group">
+          <label for="ДатаОкончания" class="control-label">Дата окончания</label>
+          <DatePicker id="ДатаОкончания" v-model:date="addOrders.ДатаОкончания" />
+          <!-- <input
+          type="date"
+          class="form-control"
+          id="ДатаОкончания"
+          v-model="addOrders.ДатаОкончания"
+        /> -->
+        </div>
+      </div>
     </div>
-    <!-- /.modal-dialog -->
-  </div>
-  <div v-if="seen" class="modal-backdrop fade show"></div>
+
+    <div class="form-group">
+      <label for="Склад" class="control-label">Склад</label>
+      <input
+        disabled
+        type="text"
+        class="form-control"
+        id="Склад"
+        :value="addOrders.СкладНаименование"
+      />
+    </div>
+
+    <div class="d-grid gap-2">
+      <button
+        type="button"
+        class="btn btn-primary btn-block text-uppercase"
+        @click="LoadOrdersExecute(MainManager.keys.orders)"
+      >
+        <b>Загрузить заказы</b>
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-block text-uppercase"
+        @click="LoadOrdersExecute(MainManager.keys.infoSheets)"
+      >
+        <b>Загрузить инфо. листы</b>
+      </button>
+    </div>
+    <div class="space"></div>
+    <button
+      type="button"
+      class="btn btn-warning btn-block text-uppercase"
+      data-dismiss="modal"
+      @click="close()"
+    >
+      <b>Закрыть</b>
+    </button>
+  </BootstrapModalWindow>
 </template>
 <script setup lang="ts">
+import DatePicker from "@/components/widgets/DatePicker.vue";
 import { DBManager, IDBDataRecord } from "@/classes/DBManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
+import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { Ref, ref } from "vue";
+import { Ref, ref, watch } from "vue";
+import {
+  getCurrentDateByDatePickerFormat,
+  getCurrentDateFromDatePickerFormat,
+} from "@/functions/GetCurrentDateByDatePickerFormat";
 
 interface IAddOrdersModel {
   ДатаНачала: string;
@@ -88,27 +91,37 @@ interface IAddOrdersModel {
   Заголовок: string;
 }
 
-const seen = ref(false);
+interface IProps {
+  seen: boolean;
+}
+const props = defineProps<IProps>();
+const emit = defineEmits(["update:seen"]);
+//const seen = ref(false);
 
 const addOrders: Ref<IAddOrdersModel> = ref(getEmptyAddOrdersModel());
 
 function getEmptyAddOrdersModel(): IAddOrdersModel {
+  const currentDate = getCurrentDateByDatePickerFormat();
   return {
-    ДатаНачала: "",
-    ДатаОкончания: "",
+    ДатаНачала: currentDate,
+    ДатаОкончания: currentDate,
     СкладНаименование: "" + MainManager.instance.mainStore.value?.Наименование,
     Заголовок: "Загрузка заказов",
   };
 }
 
-function close() {
-  seen.value = false;
-}
+watch(
+  () => props.seen,
+  (newVal, _) => {
+    if (newVal) {
+      addOrders.value.СкладНаименование =
+        "" + MainManager.instance.mainStore.value?.Наименование;
+    }
+  }
+);
 
-function show() {
-  addOrders.value.СкладНаименование =
-    "" + MainManager.instance.mainStore.value?.Наименование;
-  seen.value = true;
+function close() {
+  emit("update:seen", false);
 }
 
 async function LoadOrdersExecute(type: string) {
@@ -125,8 +138,8 @@ async function LoadOrdersExecute(type: string) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ!");
 
     const documents = await ShipmentManager.instance.getOrdersFromServer(
-      new Date(addOrders.value.ДатаНачала).getTime(),
-      new Date(addOrders.value.ДатаОкончания).getTime(),
+      getCurrentDateFromDatePickerFormat(addOrders.value.ДатаНачала).getTime(),
+      getCurrentDateFromDatePickerFormat(addOrders.value.ДатаОкончания).getTime(),
       addOrders.value.СкладНаименование
     );
     if (documents) {
@@ -141,8 +154,8 @@ async function LoadOrdersExecute(type: string) {
   } else if (type == MainManager.keys.infoSheets) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ИНФО ЛИСТОВ!");
     const sheets = await MainManager.instance.getInfoList(
-      new Date(addOrders.value.ДатаНачала).getTime(),
-      new Date(addOrders.value.ДатаОкончания).getTime(),
+      getCurrentDateFromDatePickerFormat(addOrders.value.ДатаНачала).getTime(),
+      getCurrentDateFromDatePickerFormat(addOrders.value.ДатаОкончания).getTime(),
       addOrders.value.СкладНаименование
     );
     if (sheets) {
@@ -162,8 +175,4 @@ async function LoadOrdersExecute(type: string) {
 
   close();
 }
-
-ShipmentManager.instance.connect("showLoadOrders", (data) => {
-  show();
-});
 </script>

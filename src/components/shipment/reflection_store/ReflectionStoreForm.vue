@@ -40,23 +40,24 @@
 
     <div class="row">
       <div class="col-12">
-        <button
+        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <button
           class="btn btn-info btn-lg btn-block mb-3 w-100"
           @click="addManualScaning"
         >
           +
-        </button>
+        </button> -->
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning btn-lg text-uppercase fs-6"
+            class="btn btn-warning text-uppercase fs-6"
             @click="closeWithQuest()"
           >
             <b>ЗАКРЫТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary btn-lg text-uppercase fs-6"
+            class="btn btn-primary text-uppercase fs-6"
             @click="clearWithQuest()"
           >
             <b>ОЧИСТИТЬ</b>
@@ -64,7 +65,7 @@
 
           <button
             type="button"
-            class="btn btn-success btn-lg text-uppercase fs-6"
+            class="btn btn-success text-uppercase fs-6"
             attr="check"
             @click="goToCheck()"
           >
@@ -78,6 +79,7 @@
   <!-- Форма сканирования (без документа)-->
 </template>
 <script setup lang="ts">
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
 import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { NotificationManager } from "@/classes/NotificationManager";

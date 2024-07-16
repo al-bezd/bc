@@ -12,7 +12,8 @@
       role="document"
     >
       <div class="modal-content h-100">
-        <!-- <slot name="header"> <div class="modal-header"></div></slot> -->
+        <!-- <div class="modal-header"></div> -->
+        <slot name="header"> </slot>
 
         <div class="modal-body" style="display: flex; flex-direction: column">
           <slot></slot>

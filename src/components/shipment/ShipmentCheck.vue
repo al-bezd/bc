@@ -49,17 +49,17 @@
       <div class="btn-group w-100" role="group">
         <button
           type="button"
-          class="btn btn-warning btn-lg text-uppercase"
+          class="btn btn-warning  text-uppercase"
           @click="closeWithQuest"
         >
           <b>НАЗАД</b>
         </button>
-        <button type="button" class="btn btn-primary btn-lg text-uppercase" @click="save">
+        <button type="button" class="btn btn-primary text-uppercase" @click="save">
           <b>СОХРАНИТЬ</b>
         </button>
         <button
           type="button"
-          class="btn btn-success btn-lg text-uppercase"
+          class="btn btn-success text-uppercase"
           @click="send({ Режим: 'проверка' })"
         >
           <b>ОТПРАВИТЬ</b>
@@ -74,30 +74,7 @@
         >
       </template> -->
     </FilteredByArticulScreen>
-    <!-- <BootstrapModalWindow v-model:seen="articulSeen">
-      <span class="mb-3"
-        >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
-      >
-      <div class="space">
-        <ScaningGroupItem v-for="item in filteredAllItem" :key="item.IDSec" :data="item">
-          <template v-slot:addButton>
-            <button class="btn btn-info" @click="addManual(item)">+</button>
-          </template>
-        </ScaningGroupItem>
-      </div>
-      <button
-        type="button"
-        class="btn btn-primary btn-lg text-uppercase w-100"
-        @click="
-          () => {
-            articulSeen = false;
-          }
-        "
-      >
-        <b>НАЗАД</b>
-      </button>
-    </BootstrapModalWindow> -->
-    <!-- Отфильтрованные по Номенклатура.Наименование КОНЕЦ -->
+    
     <!-- Окно с тарой НАЧАЛО -->
     <ContainersWidget v-model:seen="taraSeen" />
     <!-- Окно с тарой КОНЕЦ -->

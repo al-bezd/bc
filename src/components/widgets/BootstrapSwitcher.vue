@@ -1,7 +1,6 @@
 <template>
-  <div class="form-check form-switch">
+  <!-- <div class="form-check form-switch">
     <label class="form-check-label" :for="id">{{ label }}</label>
-    <!--<input class="form-check-input" type="checkbox" :id="id" :value="value" @input="onInput">-->
     <input
       class="form-check-input"
       type="checkbox"
@@ -9,6 +8,13 @@
       :checked="value"
       @change="onChanged"
     />
+  </div> -->
+
+  <div class="custom-control custom-switch">
+    <input type="checkbox" class="custom-control-input" :id="id" />
+    <label class="custom-control-label" :for="id" :checked="value" @change="onChanged">{{
+      label
+    }}</label>
   </div>
 </template>
 <script setup lang="ts">

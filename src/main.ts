@@ -23,9 +23,11 @@ import { FileManager } from './classes/FileManager';
 
 
 
+
 const app = createApp(App);
 app.use(Vue3Toasity)
-const pinia = createPinia();
+//const pinia = createPinia();
+
 
 
 FileManager.init()
@@ -62,6 +64,7 @@ NotificationManager.instance.load()
 RoutingManager.instance.load()
 
 
-app.use(pinia);
+//app.use(pinia);
 
 app.mount('#app');
+

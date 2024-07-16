@@ -47,7 +47,7 @@
     <div class="">
       <button
         type="button"
-        class="btn btn-primary btn-lg text-uppercase w-100"
+        class="btn btn-primary text-uppercase w-100"
         @click="controller.close"
       >
         <b>НАЗАД</b>

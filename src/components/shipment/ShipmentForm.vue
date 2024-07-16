@@ -32,31 +32,32 @@
       />
     </div>
     <div class="navbar-fixed-bottom">
-      <div class="col-12">
-        <button
+      <div class="">
+        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <button
           class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-3"
           @click="addManualScaning"
         >
           +
-        </button>
+        </button> -->
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning btn-lg text-uppercase fs-6"
+            class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
             <b>ЗАКРЫТЬ<br />ДОКУМЕНТ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary btn-lg text-uppercase fs-6"
+            class="btn btn-primary text-uppercase fs-6"
             @click="clearCurrentScanings"
           >
             <b>ОЧИСТИТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-success btn-lg text-uppercase fs-6"
+            class="btn btn-success text-uppercase fs-6"
             @click="goCheck()"
           >
             <b>ПРОВЕРИТЬ</b>
@@ -69,7 +70,8 @@
   <!-- Форма сканирования для приемки-->
 </template>
 <script setup lang="ts">
-import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";

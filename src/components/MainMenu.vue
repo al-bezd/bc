@@ -23,10 +23,11 @@
           >
             Прием продукции
           </button>
-          <button @click="exit" class="btn btn-outline-primary btn-lg text-uppercase">
-            ВЫЙТИ
-          </button>
         </div>
+        <div class="space"></div>
+        <button @click="exit" class="btn btn-warning btn-lg btn-block text-uppercase">
+          ВЫЙТИ
+        </button>
       </div>
     </div>
   </div>

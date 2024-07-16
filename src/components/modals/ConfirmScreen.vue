@@ -5,14 +5,14 @@
     <div class="btn-group" role="group">
       <button
         type="button"
-        class="btn btn-warning btn-lg text-uppercase fs-6"
+        class="btn btn-warning  text-uppercase fs-6"
         @click="cancel"
       >
         <b>Отмена</b>
       </button>
       <button
         type="button"
-        class="btn btn-primary btn-lg text-uppercase fs-6"
+        class="btn btn-primary  text-uppercase fs-6"
         @click="accept"
       >
         <b>Подтвердить</b>

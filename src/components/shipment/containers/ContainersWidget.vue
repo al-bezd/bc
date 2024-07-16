@@ -47,7 +47,7 @@
       <div class="btn-group w-100" role="group">
         <button
           type="button"
-          class="btn btn-warning btn-lg text-uppercase"
+          class="btn btn-warning text-uppercase"
           @click="
             () => {
               emit('update:seen', false);
@@ -56,7 +56,7 @@
         >
           <b>НАЗАД</b>
         </button>
-        <button type="button" class="btn btn-success btn-lg text-uppercase" @click="save">
+        <button type="button" class="btn btn-success  text-uppercase" @click="save">
           <b>СОХРАНИТЬ</b>
         </button>
       </div>

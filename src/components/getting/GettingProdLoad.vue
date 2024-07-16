@@ -20,7 +20,7 @@
       />
     </div>
     <button
-      class="btn btn-outline-primary btn-lg btn-block text-uppercase w-100"
+      class="btn btn-warning btn-block text-uppercase w-100"
       @click="closeWithConfirm"
     >
       <b>НАЗАД</b>

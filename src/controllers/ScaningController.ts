@@ -82,12 +82,11 @@ export class ScaningController {
                 NotificationManager.swal(JSON.stringify(httpResult.error));
                 return null
             }
-            // if (httpResult.data.РезультатПроверки) {
-            //     NotificationManager.swal(httpResult.data.Текст);
-            //     NotificationManager.instance.playError();
-            //     return null
-
-            // }
+            if (!httpResult.data.РезультатПроверки) {
+                NotificationManager.error(httpResult.data.Текст);
+                NotificationManager.instance.playError();
+                return null
+            }
             return this.createScaning(barcodeValue,
                 barcodeStruct.Штрихкод,
                 httpResult.data.Номенклатура,

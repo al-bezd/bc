@@ -45,13 +45,13 @@
 
     <button
       type="button"
-      class="btn btn-primary btn-lg btn-block text-uppercase"
+      class="btn btn-warning btn-block text-uppercase"
       @click="closeWithQuest()"
     >
       <b>НАЗАД</b>
     </button>
 
-    <ModalUploadShipmentDocuments />
+    <ModalUploadShipmentDocuments v-model:seen="modalSeen" />
     <!-- /.modal -->
   </div>
   <!-- Окно загрузки документа-->
@@ -74,6 +74,8 @@ import { IDocument } from "@/interfaces/IDocument";
 
 const barcode = ref("");
 const savedShipmentDocs: Ref<IShipmentDocument[]> = ref([]);
+
+const modalSeen = ref(false);
 
 const seen = ref(false);
 RoutingManager.instance.registry(RoutingManager.route.shipmentLoad, show, close);
@@ -145,7 +147,8 @@ function goToCreateInfoSheet() {
 }
 
 function showLoadOrders() {
-  ShipmentManager.instance.emit("showLoadOrders");
+  //ShipmentManager.instance.emit("showLoadOrders");
+  modalSeen.value = true;
 }
 
 /// Подгружаем сохраненые документы пользователя

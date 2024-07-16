@@ -47,7 +47,7 @@
       </li>
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content space">
       <div :class="getTabClass('nav-barcode')">
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="alert alert-info" role="alert">
@@ -318,9 +318,9 @@
       </div>
     </div>
 
-    <div class="space"></div>
-
-    <button class="btn btn-outline-primary close_btn" @click="close">ЗАКРЫТЬ</button>
+    <button class="btn btn-warning btn-block close_btn" @click="close">
+      <b>ЗАКРЫТЬ</b>
+    </button>
   </div>
 </template>
 <script setup lang="ts">

@@ -1,134 +1,32 @@
 <template>
-  <!-- <div class="reft_modal" v-if="seen">
-    <div class="vh-100" v-if="!much">
-      <h4>Введите штрихкод продукции</h4>
-      <input
-        type="text"
-        class="form-control bc_input mb-3"
-        placeholder="Введите штрихкод"
-        v-model="ШК"
-        @keyup.enter="onEnter"
-        id="getting_prod_bc"
-      />
-      <div class="space"></div>
-    </div>
-    <div class="vh-100" v-else>
-      <h4 v-if="much" style="font-weight: bold">
-        {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
-      </h4>
-      <div class="row space">
-        <div class="col-6">
-          <label for="datab" class="control-label">Дата производства</label>
-          <input type="date" class="form-control" id="datab" v-model="ДатаПроизводства" />
-        </div>
-        <div class="col-6">
-          <label for="datae" class="control-label">Годен до</label>
-          <input type="date" class="form-control" id="datae" v-model="ГоденДо" />
-        </div>
-        <div class="col-6">
-          <label for="Количество" class="control-label">Вес на коробке</label>
-          <input
-            type="number"
-            step="0.001"
-            class="form-control"
-            id="Количество"
-            v-model="Количество"
-          />
-        </div>
-        <div class="col-6">
-          <label for="ЕдиницаИзмерения" class="control-label">Единица измерения</label>
-          <input
-            type="text"
-            class="form-control"
-            id="ЕдиницаИзмерения"
-            v-model="ЕдиницаИзмерения"
-            readonly
-            disabled
-          />
-        </div>
-        <div class="col-12">
-          <label for="КоличествоВЕдиницахИзмерения" class="control-label"
-            >Количество в единицах измерения</label
-          >
-          <div class="input-group">
-            <input
-              type="number"
-              step="1"
-              v-if="ЕдиницаИзмерения === 'шт'"
-              class="form-control"
-              id="КоличествоВЕдиницахИзмерения"
-              v-model="КоличествоВЕдиницахИзмерения"
-            />
-            <input
-              type="number"
-              step="0.001"
-              v-if="ЕдиницаИзмерения !== 'шт'"
-              class="form-control"
-              id="КоличествоВЕдиницахИзмерения"
-              v-model="КоличествоВЕдиницахИзмерения"
-            />
-            <div
-              class="input-group-text"
-              @click="КоличествоВЕдиницахИзмерения = Количество.toString()"
-            >
-              КП
-            </div>
-          </div>
-        </div>
-        <div class="form-group" v-if="false">
-          <label for="Грузоместа" class="control-label">Количество коробок</label>
-          <input
-            type="number"
-            class="form-control"
-            id="Грузоместа"
-            v-model="Грузоместа"
-          />
-        </div>
-      </div>
-    </div>
-    <div class="btn-group" role="group">
-      <button
-        type="button"
-        class="btn btn-primary btn-lg text-uppercase fs-6"
-        @click="cancel"
-      >
-        <b>Отмена</b>
-      </button>
-      <button
-        v-if="much"
-        type="button"
-        class="btn btn-success btn-lg text-uppercase fs-6"
-        @click="accept"
-      >
-        <b>Принять</b>
-      </button>
-    </div>
-  </div> -->
   <BootstrapModalWindow :seen="seen">
-    <div v-if="!much">
-      <h4>Введите штрихкод продукции</h4>
-      <input
-        type="text"
-        class="form-control bc_input mb-3"
-        placeholder="Введите штрихкод"
-        v-model="ШК"
-        @keyup.enter="onEnter"
-        id="getting_prod_bc"
-      />
-      <div class="space"></div>
-    </div>
-    <div v-else>
-      <h4 v-if="much" style="font-weight: bold">
-        {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
-      </h4>
-      <div class="row space">
+    <h4 v-if="!much">Введите штрихкод продукции</h4>
+
+    <h4 v-else style="font-weight: bold">
+      {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
+    </h4>
+
+    <input
+      v-if="!much"
+      type="text"
+      class="form-control bc_input mb-3"
+      placeholder="Введите штрихкод"
+      v-model="ШК"
+      @keyup.enter="onEnter"
+      id="getting_prod_bc"
+    />
+
+    <div class="space">
+      <div v-if="much" class="row">
         <div class="col-6">
           <label for="datab" class="control-label">Дата производства</label>
-          <input type="date" class="form-control" id="datab" v-model="ДатаПроизводства" />
+          <DatePicker id="datab" v-model:date="ДатаПроизводства" />
+          <!-- <input type="date" class="form-control" id="datab" v-model="ДатаПроизводства" /> -->
         </div>
         <div class="col-6">
           <label for="datae" class="control-label">Годен до</label>
-          <input type="date" class="form-control" id="datae" v-model="ГоденДо" />
+          <DatePicker id="datae" v-model:date="ГоденДо" />
+          <!-- <input type="date" class="form-control" id="datae" v-model="ГоденДо" /> -->
         </div>
         <div class="col-6">
           <label for="Количество" class="control-label">Вес на коробке</label>
@@ -191,19 +89,15 @@
         </div>
       </div>
     </div>
-    <div class="space"></div>
-    <div class="btn-group" role="group">
-      <button
-        type="button"
-        class="btn btn-primary btn-lg text-uppercase fs-6"
-        @click="cancel"
-      >
+
+    <div class="btn-group w-100" role="group">
+      <button type="button" class="btn btn-primary text-uppercase fs-6" @click="cancel">
         <b>Отмена</b>
       </button>
       <button
         v-if="much"
         type="button"
-        class="btn btn-success btn-lg text-uppercase fs-6"
+        class="btn btn-success text-uppercase fs-6"
         @click="accept"
       >
         <b>Сохранить</b>
@@ -219,6 +113,7 @@ import { ScanerManager } from "@/classes/ScanerManager";
 import { IScaning } from "@/interfaces/IScaning";
 import { Ref, ref } from "vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
+import DatePicker from "@/components/widgets/DatePicker.vue";
 
 const seen = ref(false);
 const much = ref(false);
@@ -325,8 +220,8 @@ function cancel() {
 }
 
 function accept() {
-  ДатаПроизводства.value = ДатаПроизводства.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
-  ГоденДо.value = ГоденДо.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
+  //ДатаПроизводства.value = ДатаПроизводства.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
+  //ГоденДо.value = ГоденДо.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
 
   if (("" + КоличествоВЕдиницахИзмерения.value).length === 1) {
     КоличествоВЕдиницахИзмерения.value = "00" + КоличествоВЕдиницахИзмерения.value;

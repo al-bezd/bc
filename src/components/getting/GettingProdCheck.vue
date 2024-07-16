@@ -31,15 +31,15 @@
     <div class="btn-group w-100" role="group">
       <button
         type="button"
-        class="btn btn-warning btn-lg text-uppercase"
+        class="btn btn-warning text-uppercase"
         @click="closeWithQuest"
       >
         <b>НАЗАД</b>
       </button>
-      <button type="button" class="btn btn-primary btn-lg text-uppercase" @click="save">
+      <button type="button" class="btn btn-primary text-uppercase" @click="save">
         <b>СОХРАНИТЬ</b>
       </button>
-      <button type="button" class="btn btn-success btn-lg text-uppercase" @click="send">
+      <button type="button" class="btn btn-success text-uppercase" @click="send">
         <b>ПРИНЯТЬ</b>
       </button>
     </div>

@@ -77,7 +77,7 @@
       <div class="btn-group w-100 mb-3" role="group">
         <button
           type="button"
-          class="btn btn-primary btn-lg text-uppercase fs-6"
+          class="btn btn-primary text-uppercase fs-6"
           @click="exit()"
           tabindex="-1"
         >
@@ -86,7 +86,7 @@
 
         <button
           type="button"
-          class="btn btn-success btn-lg text-uppercase fs-6"
+          class="btn btn-success text-uppercase fs-6"
           @click="saveIn1C()"
         >
           <b>СОХРАНИТЬ В 1С</b>

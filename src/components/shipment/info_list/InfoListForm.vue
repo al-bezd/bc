@@ -39,14 +39,14 @@
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning btn-lg text-uppercase fs-6"
+            class="btn btn-warning  text-uppercase fs-6"
             @click="closeWithQuest()"
           >
             <b>ЗАКРЫТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary btn-lg text-uppercase fs-6"
+            class="btn btn-primary  text-uppercase fs-6"
             @click="clearWithQuest()"
           >
             <b>ОЧИСТИТЬ</b>
@@ -54,7 +54,7 @@
 
           <button
             type="button"
-            class="btn btn-success btn-lg text-uppercase fs-6"
+            class="btn btn-success  text-uppercase fs-6"
             attr="check"
             @click="goToCheck()"
           >

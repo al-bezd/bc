@@ -27,6 +27,10 @@
   overflow-y: auto;
 }
 
+.btn {
+  flex-shrink: 0;
+}
+
 .fs-7 {
   font-size: 0.75rem !important;
 }
@@ -66,7 +70,6 @@
 </template>
 
 <script setup lang="ts">
-import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import FormSelectUser from "./FormSelectUser.vue";
 import MainMenu from "./MainMenu.vue";
 import GettingProdLoad from "./getting/GettingProdLoad.vue";
