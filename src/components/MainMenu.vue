@@ -1,35 +1,31 @@
 <template>
   <!-- Главное меню-->
-  <div class="row form_menu p-3" id="form_menu" v-show="seen">
-    <div class="">
-      <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="panel panel-success">
-          <div class="panel-heading">
-            <h3 style="font-weight: bold; text-align: center; text-transform: uppercase">
-              {{ UserManager.instance.user.value?.ФИО }}
-            </h3>
-          </div>
-        </div>
-        <div class="d-grid gap-2">
-          <button
-            @click="showBildOrder"
-            class="btn btn-primary btn-lg btn-block text-uppercase"
-          >
-            Отгрузка продукции
-          </button>
-          <button
-            @click="showGettingProd"
-            class="btn btn-primary btn-lg btn-block text-uppercase"
-          >
-            Прием продукции
-          </button>
-        </div>
-        <div class="space"></div>
-        <button @click="exit" class="btn btn-warning btn-lg btn-block text-uppercase">
-          ВЫЙТИ
-        </button>
+  <div class="reft_screen_form p-3" id="form_menu" v-show="seen">
+    <div class="alert alert-success">
+      <div class="panel-heading">
+        <h3 style="font-weight: bold; text-align: center; text-transform: uppercase">
+          {{ UserManager.instance.user.value?.ФИО }}
+        </h3>
       </div>
     </div>
+    <div class="d-grid gap-2">
+      <button
+        @click="showBildOrder"
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+      >
+        Отгрузка продукции
+      </button>
+      <button
+        @click="showGettingProd"
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+      >
+        Прием продукции
+      </button>
+    </div>
+    <div class="space"></div>
+    <button @click="exit" class="btn btn-warning btn-block text-uppercase mt-3">
+      <b>ВЫЙТИ</b>
+    </button>
   </div>
   <!-- Главное меню-->
 </template>

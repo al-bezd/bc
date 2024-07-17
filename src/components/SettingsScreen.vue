@@ -318,13 +318,13 @@
       </div>
     </div>
 
-    <button class="btn btn-warning btn-block close_btn" @click="close">
+    <button class="btn btn-warning btn-block close_btn mb-0" @click="close">
       <b>ЗАКРЫТЬ</b>
     </button>
   </div>
 </template>
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { UserManager } from "../managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { ScanerManager } from "@/classes/ScanerManager";

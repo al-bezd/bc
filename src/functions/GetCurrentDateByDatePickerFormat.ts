@@ -16,6 +16,6 @@ export function getStrDayMonth(value: number) {
     const month = parseInt(value.slice(2, 4), 10) - 1;  // месяцы в JavaScript начинаются с 0
     const day = parseInt(value.slice(4, 6), 10);
     const res  = new Date(year, month, day)
-    console.log('orig date ',value,' new date ',res,' d ',day,' m ',month, ' y ',year)
+    //console.log('orig date ',value,' new date ',res,' d ',day,' m ',month, ' y ',year)
     return res ;
   }
