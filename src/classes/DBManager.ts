@@ -1,3 +1,4 @@
+/**import { DB2Manager } from "./DB2Manager";
 import { NotificationManager } from "./NotificationManager";
 export interface IDBDataRecord {
   id: string
@@ -23,43 +24,45 @@ export class DBManager {
     // alert(res.data)
   }
 
-  static async setData(key:string, data:any) : Promise<IDBValidKey>{
-    await DBManager.deleteDatabase(key);
-    const result = await this.setFileAsync({ id: "0", data: data }, key, key)
-    return result
+  static async setData(key: string, data: any): Promise<IDBValidKey> {
+    return await DB2Manager.instance.local!.set(key,data)
+    // await DBManager.deleteDatabase(key);
+    // const result = await this.setFileAsync({ id: "0", data: data }, key, key)
+    // return result
   }
 
-  static async getData(key:string) : Promise<any|null> {
-    const result = await this.getFileAsync("0", key, key)
-    if(result===null){
-      return null
-    }
-    return result.data
+  static async getData<T>(key: string): Promise<any | null> {
+    return await DB2Manager.instance.local!.get<T>(key)
+    // const result = await this.getFileAsync("0", key, key)
+    // if (result === null) {
+    //   return null
+    // }
+    // return result.data
   }
 
-  static removeData(key:string){
+  static removeData(key: string) {
     this.deleteDatabase(key)
   }
 
   /// процедура вызывается когда в операции с локальной бд происходит ошибка
   static logerr(err: any) {
-    NotificationManager.swal(JSON.stringify(err.error),"error");
+    NotificationManager.swal(JSON.stringify(err.error), "error");
   }
   /// Удаляет базу
-  static async deleteDatabase(name: string):Promise<boolean> {
-    return new Promise((resolve,reject)=>{
+  static async deleteDatabase(name: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
       const request = indexedDB.deleteDatabase(name);
-      request.onsuccess = (event)=>{
+      request.onsuccess = (event) => {
         resolve(true)
       }
-      request.onerror = (event)=>{
+      request.onerror = (event) => {
         reject(false)
       }
     })
-    
+
   }
   /// Конектится с базой если базы нет то создает базу и конекстится с ней
-  static connectDB(callback: (data:IDBDatabase,base:string,store:string)=>void, base: string, store: string) {
+  static connectDB(callback: (data: IDBDatabase, base: string, store: string) => void, base: string, store: string) {
 
     const request = indexedDB.open(base, 1);
     request.onerror = DBManager.logerr;
@@ -76,9 +79,9 @@ export class DBManager {
     };
   }
 
-  static async getFileAsync(id: string, base: string, store=''): Promise<IDBDataRecord|null> {
-    if(store==''){
-      store=base
+  static async getFileAsync(id: string, base: string, store = ''): Promise<IDBDataRecord | null> {
+    if (store == '') {
+      store = base
     }
     return new Promise((resolve, reject) => {
       try {
@@ -108,34 +111,34 @@ export class DBManager {
   }
 
   /// Получаем все записи из БД
-  static async getFilesAsync(base: string): Promise<IDBDataRecord[]|null> {
+  // static async getFilesAsync(base: string): Promise<IDBDataRecord[] | null> {
 
-    return new Promise((resolve, reject) => {
-      try {
-        DBManager.connectDB(
-          (db: any, base: string, store: string) => {
-            const request = db
-              .transaction([store], "readonly")
-              .objectStore(store)
-              .getAll();
-            request.onerror = (err: any) => {
-              DBManager.logerr(err)
-              reject(err)
-            };
-            request.onsuccess = () => {
-              resolve(request.result ? request.result : null)
-            };
-          },
-          base,
-          base
-        );
-      } catch (err) {
-        reject(err)
-      }
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       DBManager.connectDB(
+  //         (db: any, base: string, store: string) => {
+  //           const request = db
+  //             .transaction([store], "readonly")
+  //             .objectStore(store)
+  //             .getAll();
+  //           request.onerror = (err: any) => {
+  //             DBManager.logerr(err)
+  //             reject(err)
+  //           };
+  //           request.onsuccess = () => {
+  //             resolve(request.result ? request.result : null)
+  //           };
+  //         },
+  //         base,
+  //         base
+  //       );
+  //     } catch (err) {
+  //       reject(err)
+  //     }
 
-    })
+  //   })
 
-  }
+  // }
 
   static getFile(id: string, callback: any, base: string, store: string) {
 
@@ -184,7 +187,7 @@ export class DBManager {
     );
   }
 
-  static async setFileAsync(file: IDBDataRecord, base: string, store: string):Promise<IDBValidKey> {
+  static async setFileAsync(file: IDBDataRecord, base: string, store: string): Promise<IDBValidKey> {
 
     return new Promise((resolve, reject) => {
       try {
@@ -252,7 +255,7 @@ export class DBManager {
   }
 
   /// Запись в локальную бд итерируемого объекта
-  static async WriteDataInDB(key:string, data: IDBDataRecord[],):Promise<boolean> {
+  static async WriteDataInDB(key: string, data: IDBDataRecord[],): Promise<boolean> {
     await DBManager.deleteDatabase(key);
     const db = await this.openDatabase(key, key);
     const transaction = db.transaction(key, 'readwrite');
@@ -263,14 +266,18 @@ export class DBManager {
         console.log('Все записи успешно добавлены.');
         resolve(true);
       };
-  
+
       transaction.onerror = (event) => {
         console.error('Ошибка при добавлении записей:', event);
         reject(event);
       };
-  
+
       for (const item of data) {
         const request = objectStore.add(item);
+        //console.log('item ',item,'request ',request)
+        //request.onerror=(e)=>{
+        //  console.log('request error',e)
+        //}
       }
     });
 
@@ -291,45 +298,72 @@ export class DBManager {
     // }
   }
 
-  static async clear(){
-    
-      // Получить доступ к API IndexedDB
-      const indexedDB = window.indexedDB;
-    
-      // Получить список всех баз данных
-      const databases = await indexedDB.databases();
-    
-      // Удалить каждую базу данных по имени
-      for (const dbInfo of databases) {
-        if (dbInfo.name) {
-          await DBManager.deleteDatabase(dbInfo.name);
-        }
+  static async clear() {
+
+    // Получить доступ к API IndexedDB
+    const indexedDB = window.indexedDB;
+    let databases:string[] = []
+    // Получить список всех баз данных
+    if((indexedDB as any).databases){
+      const tmp = await indexedDB.databases();
+      databases = tmp.map(x=>x.name!)
+    } else {
+      databases = await DBManager.getDataBasesNames()
+    }
+   
+
+    // Удалить каждую базу данных по имени
+    for (const name of databases) {
+      if (name) {
+        await DBManager.deleteDatabase(name);
       }
-      
-    
+    }
+
   }
 
+  static async getDataBasesNames():Promise<string[]>{
+    return new Promise((resolve,reject)=>{
+      if ((indexedDB as any).webkitGetDatabaseNames) {
+        const request = (indexedDB as any).webkitGetDatabaseNames();
+        request.onsuccess = function(event:any) {
+            resolve(event.target.result)
+        };
+        request.onerror = function(event:any) {
+          reject(event)
+        };
+    } else {
+      reject("webkitGetDatabaseNames is not supported in this browser.") 
+    }
+    })
+  }
+
+
+
   // Функция для открытия соединения с IndexedDB
-private static openDatabase(dbName: string, storeName: string): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+  private static openDatabase(dbName: string, storeName: string): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(dbName, 1);
 
-    request.onerror = (event) => {
-      console.error('Ошибка при открытии базы данных:', event);
-      reject(event);
-    };
+      request.onerror = (event) => {
+        console.error('Ошибка при открытии базы данных:', event);
+        reject(event);
+      };
 
-    request.onsuccess = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
-    };
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        resolve(db);
+      };
 
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
-      }
-    };
-  });
-}
-}
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          // db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+          db .createObjectStore(storeName, { keyPath: "id" })
+        .createIndex("id", "id", { unique: true });
+        }
+      };
+    });
+  }
+} */
+
+

@@ -105,8 +105,8 @@ async function deleteDocument(document: IDocument) {
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await GettingManager.instance.deleteDocumentById(
-      document.Ссылка.Ссылка
+    const response = await GettingManager.instance.deleteDocument(
+      document
     );
     if (response) {
       initSavedDocuments();

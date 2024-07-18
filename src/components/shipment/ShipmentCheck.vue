@@ -36,7 +36,7 @@
       </ScaningGroupItem>
     </div>
 
-    <div class="col-12">
+    <div class="">
       <h5>
         <b>Итог {{ boxCount }} Кор.</b>
       </h5>
@@ -45,11 +45,11 @@
       </h5>
     </div>
 
-    <div class="row">
+    <div class="">
       <div class="btn-group w-100" role="group">
         <button
           type="button"
-          class="btn btn-warning  text-uppercase"
+          class="btn btn-warning text-uppercase"
           @click="closeWithQuest"
         >
           <b>НАЗАД</b>
@@ -74,7 +74,7 @@
         >
       </template> -->
     </FilteredByArticulScreen>
-    
+
     <!-- Окно с тарой НАЧАЛО -->
     <ContainersWidget v-model:seen="taraSeen" />
     <!-- Окно с тарой КОНЕЦ -->

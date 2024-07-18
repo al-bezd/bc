@@ -66,7 +66,6 @@ import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { DBManager } from "@/classes/DBManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { MainManager } from "@/classes/MainManager";
 import { IScaning } from "@/interfaces/IScaning";
@@ -166,8 +165,8 @@ async function onDeleteDocument(document: IShipmentDocument) {
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await ShipmentManager.instance.deleteDocumentById(
-      document.Ссылка.Ссылка
+    const response = await ShipmentManager.instance.deleteDocument(
+      document
     );
     console.log(document, document.Ссылка.Ссылка);
     if (response) {

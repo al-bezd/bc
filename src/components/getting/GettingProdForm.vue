@@ -36,14 +36,9 @@
         "
       />
     </div>
-    <div class="navbar-fixed-bottom">
+    <div class="row">
       <div class="col-12">
-        <button
-          class="btn btn-info btn-block text-uppercase w-100 mb-3"
-          @click="addManualScaning"
-        >
-          +
-        </button>
+        <AddManualScaningButton @tap="addManualScaning" />
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -74,6 +69,7 @@
   <FilteredByArticulScreen :controller="filteredByArticulController" />
 </template>
 <script setup lang="ts">
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
 import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";

@@ -21,7 +21,7 @@
         <p class="w-100 mb-0">Настройки</p>
       </div>
       <div v-if="settingsIsShow">
-        <div class="col-12">
+        <div class="">
           <div class="mb-3">
             <label for="Склад" class="form-label">Склад</label>
             <select
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <div class="col-12">
+        <div class="">
           <div class="mb-3">
             <label for="Сеть" class="form-label">Сеть</label>
             <select
@@ -111,7 +111,7 @@
     </div>
 
     <div>
-      <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="">
         <h5>
           <b>Итог {{ boxCount }} Коробок</b>
         </h5>
@@ -120,7 +120,7 @@
         </h5>
       </div>
 
-      <div class="btn-group w-100 mb-3" role="group">
+      <div class="btn-group w-100" role="group">
         <button
           type="button"
           class="btn btn-primary text-uppercase fs-6"
@@ -132,7 +132,7 @@
 
         <button
           type="button"
-          class="btn btn-success  text-uppercase fs-6"
+          class="btn btn-success text-uppercase fs-6"
           @click="saveIn1C()"
         >
           <b>СОХРАНИТЬ В 1С</b>
@@ -237,12 +237,12 @@ async function afterShow() {
     sklads.value = [mainStoreRes];
   }
 
-  const selectedSetRes = await DBManager.getData(selectedTorgovayaSetKey);
+  const selectedSetRes = await DBManager.getData<IDocument|null>(selectedTorgovayaSetKey);
   if (selectedSetRes) {
     selectedTorgovayaSet.value = selectedSetRes;
   }
 
-  const selectedSkladRes = await DBManager.getData(selectedSkladKey);
+  const selectedSkladRes = await DBManager.getData<IDocument|null>(selectedSkladKey);
   if (selectedSkladRes) {
     selectedSklad.value = selectedSkladRes;
   }

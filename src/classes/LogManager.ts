@@ -1,6 +1,7 @@
 import { Ref, ref, toRaw } from "vue";
 import { BaseManager, ILoadableManager } from "./BaseManager";
-import { DBManager } from "./DBManager";
+import { DB2Manager } from "./DB2Manager";
+//import { DBManager } from "./DBManager";
 interface ILogItem {
     arguments: any[]
     dateCreate: Date
@@ -19,7 +20,7 @@ export class LogManager extends BaseManager implements ILoadableManager {
         new LogManager()
     }
 
-    public customLog: Ref<string[]> = ref([])
+    public customLog: Ref<any[]> = ref([])
     public maxSizeLog = 1000
 
 
@@ -52,7 +53,7 @@ export class LogManager extends BaseManager implements ILoadableManager {
                 dateCreate: new Date(),
                 logType: "log"
             }
-            this.customLog.value.unshift(JSON.stringify(item))
+            this.customLog.value.unshift(item)
             old_function_log.apply(console, data)
             //setFile({ id: "1", data: JSON.stringify(custom_log) }, 'log', 'log')
             this.saveLog()
@@ -65,7 +66,7 @@ export class LogManager extends BaseManager implements ILoadableManager {
     }
 
     private saveLog() {
-        DBManager.setData('log',toRaw(this.customLog.value))
+        DB2Manager.setData('log',toRaw(this.customLog.value))
     }
 
 }

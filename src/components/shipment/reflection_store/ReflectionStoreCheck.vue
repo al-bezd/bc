@@ -2,7 +2,7 @@
   <!-- Форма проверки сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
     <h4 class="text-center">Отражение остатков: Проверка</h4>
-    <ModeWidget :mode="currentMode" @tap="showWithMode" />
+    <!-- <ModeWidget :mode="currentMode" @tap="showWithMode" /> -->
 
     <div :class="`alert alert-${ifSettingsFilled ? 'success' : 'danger'}`">
       <div class="w-100" style="display: flex; flex-direction: row-reverse">
@@ -21,7 +21,7 @@
         <p class="w-100 mb-0">Настройки</p>
       </div>
       <div v-if="settingsIsShow">
-        <div class="col-12">
+        <div class="">
           <div class="mb-3">
             <label for="Склад" class="form-label">Склад</label>
             <select
@@ -30,7 +30,7 @@
               v-model="selectedSklad"
               @change="
                 () => {
-                  DBManager.setData(selectedSkladKey, toRaw(selectedSklad));
+                  DB2Manager.setData(selectedSkladKey, toRaw(selectedSklad));
                 }
               "
             >
@@ -65,7 +65,7 @@
     </div>
 
     <div>
-      <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="">
         <h5>
           <b>Итог {{ boxCount }} Коробок</b>
         </h5>
@@ -74,7 +74,7 @@
         </h5>
       </div>
 
-      <div class="btn-group w-100 mb-3" role="group">
+      <div class="btn-group w-100" role="group">
         <button
           type="button"
           class="btn btn-primary text-uppercase fs-6"
@@ -105,7 +105,7 @@ import { Ref, computed, ref, toRaw } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
-import { DBManager } from "@/classes/DBManager";
+//import { DBManager } from "@/classes/DBManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { GetGroupScans, RowKeyMode } from "@/functions/GetGroupScans";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
@@ -116,6 +116,7 @@ import { IScaningGroup } from "@/interfaces/IScaning";
 import { MainManager } from "@/classes/MainManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
+import { DB2Manager } from "@/classes/DB2Manager";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentReflectionStoreCheck,
@@ -170,7 +171,7 @@ async function afterShow() {
     sklads.value = [mainStoreRes];
   }
 
-  const selectedSkladRes = await DBManager.getData(selectedSkladKey);
+  const selectedSkladRes = await DB2Manager.getData<IDocument|null>(selectedSkladKey);
   if (selectedSkladRes) {
     selectedSklad.value = selectedSkladRes;
   }
@@ -183,7 +184,8 @@ async function afterShow() {
 
 function show() {
   seen.value = true;
-  afterShow();
+  setTimeout(afterShow, 500);
+  //afterShow();
 }
 
 function close() {
@@ -240,7 +242,7 @@ function clear() {
 
   ShipmentManager.instance.setCurrentScanings([]);
   selectedSklad.value = null;
-  DBManager.deleteDatabase(selectedSkladKey);
+  DB2Manager.instance.local!.delete(selectedSkladKey);
   LocalStorageManager.remove(currentModeKey);
   LocalStorageManager.remove(settingsIsShowKey);
 }

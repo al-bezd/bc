@@ -16,6 +16,7 @@
     "@types/uuid": "^10.0.0",
     "bootstrap": "4.3",
     "cordova": "^9.0.0",
+    "dexie": "^4.0.8",
     "pinia": "^2.1.7",
     "regenerator-runtime": "^0.14.1",
     "uuid": "^10.0.0",

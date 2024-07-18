@@ -25,6 +25,7 @@
 .space {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .btn {
@@ -91,7 +92,7 @@ import InfoListCheck from "./shipment/info_list/InfoListCheck.vue";
 import ReflectionStoreForm from "./shipment/reflection_store/ReflectionStoreForm.vue";
 import ReflectionStoreCheck from "./shipment/reflection_store/ReflectionStoreCheck.vue";
 
-onMounted(() => {
-  RoutingManager.instance.afterReload();
-});
+// onMounted(() => {
+//   RoutingManager.instance.afterReload();
+// });
 </script>

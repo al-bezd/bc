@@ -31,15 +31,10 @@
         @tap="filterByArticul(item)"
       />
     </div>
-    <div class="navbar-fixed-bottom">
-      <div class="">
+    <div class="row">
+      <div class="col-12">
         <AddManualScaningButton @tap="addManualScaning" />
-        <!-- <button
-          class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-3"
-          @click="addManualScaning"
-        >
-          +
-        </button> -->
+
         <div class="btn-group w-100" role="group">
           <button
             type="button"

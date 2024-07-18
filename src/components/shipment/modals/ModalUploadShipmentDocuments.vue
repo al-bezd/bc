@@ -73,7 +73,7 @@
 </template>
 <script setup lang="ts">
 import DatePicker from "@/components/widgets/DatePicker.vue";
-import { DBManager, IDBDataRecord } from "@/classes/DBManager";
+//import { DBManager, IDBDataRecord } from "@/classes/DBManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
@@ -83,6 +83,8 @@ import {
   getCurrentDateByDatePickerFormat,
   getCurrentDateFromDatePickerFormat,
 } from "@/functions/GetCurrentDateByDatePickerFormat";
+import { DB2Manager } from "@/classes/DB2Manager";
+import { IInfoList } from "@/interfaces/IInfoList";
 
 interface IAddOrdersModel {
   ДатаНачала: string;
@@ -143,12 +145,13 @@ async function LoadOrdersExecute(type: string) {
       addOrders.value.СкладНаименование
     );
     if (documents) {
-      const data: IDBDataRecord[] = documents.map((i) => {
-        return { data: i, id: i.ШК };
-      });
+      // const data: IDBDataRecord[] = documents.map((i) => {
+      //   return { data: i, id: i.ШК };
+      // });
 
-      await DBManager.WriteDataInDB(MainManager.keys.orders, data);
-      NotificationManager.success(`В систему загруженно ${data.length} заказа(ов)`);
+      // await DBManager.WriteDataInDB(MainManager.keys.orders, data);
+      await DB2Manager.instance.orders!.setAll(documents)
+      NotificationManager.success(`В систему загруженно ${documents.length} заказа(ов)`);
       return;
     }
   } else if (type == MainManager.keys.infoSheets) {
@@ -159,15 +162,19 @@ async function LoadOrdersExecute(type: string) {
       addOrders.value.СкладНаименование
     );
     if (sheets) {
-      const data: IDBDataRecord[] = sheets.map((i: any) => {
-        return { data: i.list, id: i.ID.replace(/ /g, "") };
-      });
+      // const data: IDBDataRecord[] = sheets.map((i: any) => {
+      //   return { data: i.list, id: i.ID.replace(/ /g, "") };
+      // });
       NotificationManager.info("Загрузка информационных листов начата");
 
-      await DBManager.WriteDataInDB(MainManager.keys.infoSheets, data);
+      //await DBManager.WriteDataInDB(MainManager.keys.infoSheets, data);
+      const infList:IInfoList[] = sheets.map((i: any) => {
+        return { data: i.list, ШК: i.ID.replace(/ /g, "") };
+      })
+      await DB2Manager.instance.infoSheets!.setAll(infList)
 
       NotificationManager.success(
-        `В систему загруженно ${data.length} информационных листа`
+        `В систему загруженно ${infList.length} информационных листа`
       );
       return;
     }

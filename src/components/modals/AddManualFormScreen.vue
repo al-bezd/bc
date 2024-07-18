@@ -114,19 +114,22 @@ import { IScaning } from "@/interfaces/IScaning";
 import { Ref, ref } from "vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import DatePicker from "@/components/widgets/DatePicker.vue";
+import { getCurrentDateByDatePickerFormat } from "@/functions/GetCurrentDateByDatePickerFormat";
 
 const seen = ref(false);
 const much = ref(false);
 const ШК = ref("");
 const ШтрихкодПродукции = ref("");
 
+const currentDate = getCurrentDateByDatePickerFormat();
+
 const Номенклатура = ref("");
 const Характеристика = ref("");
 const Артикул = ref("");
 const ПЛУ = ref("");
 
-const ДатаПроизводства = ref("");
-const ГоденДо = ref("");
+const ДатаПроизводства = ref(currentDate);
+const ГоденДо = ref(currentDate);
 const Количество = ref(0);
 const ЕдиницаИзмерения = ref("шт");
 const КоличествоВЕдиницахИзмерения = ref("0");
@@ -206,8 +209,8 @@ function clear() {
   ПЛУ.value = "";
   //Объект.value           = ""
   ШК.value = "";
-  ДатаПроизводства.value = "";
-  ГоденДо.value = "";
+  ДатаПроизводства.value = currentDate;
+  ГоденДо.value = currentDate;
   Количество.value = 0;
   КоличествоВЕдиницахИзмерения.value = "";
   Грузоместа.value = 0;
@@ -220,6 +223,12 @@ function cancel() {
 }
 
 function accept() {
+  if (Количество.value <= 0) {
+    NotificationManager.error("Вес не может быть равен 0 или меньше");
+    return;
+  } else if (КоличествоВЕдиницахИзмерения.value === "") {
+    NotificationManager.error("КоличествоВЕдиницахИзмерения должно быть заполнено");
+  }
   //ДатаПроизводства.value = ДатаПроизводства.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
   //ГоденДо.value = ГоденДо.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
 
@@ -258,3 +267,5 @@ function accept() {
   //   }
 }
 </script>
+import { getCurrentDateByDatePickerFormat } from
+"@/functions/GetCurrentDateByDatePickerFormat";

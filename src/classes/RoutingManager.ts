@@ -59,9 +59,11 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
 
     load() {
         this.currentScreen = LocalStorageManager.get("currentScreen");
+        this.afterReload()
     }
 
     pushName(key: string) {
+        //debugger
         //this.emit("go", [this.currentScreen]);
         this.emit('pushName', [key])
     }

@@ -1,12 +1,12 @@
 <template>
   <div class="reft_modal" v-if="seen">
     <h3>Панель администратора</h3>
-    <div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="">
       <div class="alert alert-info" role="alert">
         HOST:<b>{{ host }}</b>
       </div>
     </div>
-    <div v-if="UserManager.instance.user.value" class="col-md-12 col-sm-12 col-xs-12">
+    <div v-if="UserManager.instance.user.value" class="">
       <div class="alert alert-success" role="alert">
         <b>{{ UserManager.instance.user.value.ФИО }}</b>
       </div>
@@ -49,7 +49,7 @@
 
     <div class="tab-content space">
       <div :class="getTabClass('nav-barcode')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <input type="file" id="file" /><br />
             <button
@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <!--<div class="col-md-12 col-sm-12 col-xs-12" hidden>
+        <!--<div class="" hidden>
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
@@ -73,7 +73,7 @@
           </div>
         </div>-->
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <button
               class="btn btn-primary text-uppercase w-100"
@@ -84,19 +84,20 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
-            <div
+            <button
+              role="button"
               class="btn btn-primary text-uppercase w-100"
               @click="showCountLoadedBarcodes()"
             >
               Количество загруженных ШК
-            </div>
+            </button>
           </div>
         </div>
       </div>
       <div :class="getTabClass('nav-app')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info text-uppercase" role="alert">
             <div v-if="thisAndroid">
               <div class="btn btn-primary" @click="updateApp">Обновить приложение</div>
@@ -126,7 +127,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12" v-if="!isWindows">
+        <div class="" v-if="!isWindows">
           <div class="alert alert-info" role="alert">
             <a class="btn btn-primary text-uppercase w-100" @click="openInWeb"
               >Открыть в браузере</a
@@ -135,7 +136,7 @@
         </div>
       </div>
       <div :class="getTabClass('nav-storage')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <BootstrapSwitcher
               label="Использовать локальное хранилище"
@@ -145,7 +146,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <div class="btn btn-danger text-uppercase w-100" @click="clearStorage">
               Очистить хранилище
@@ -153,7 +154,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <div class="btn btn-primary text-uppercase w-100" @click="testDB">
               Проверка функционирования БД
@@ -162,7 +163,7 @@
         </div>
       </div>
       <div :class="getTabClass('nav-orders')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <BootstrapSwitcher
               label="Использовать локальное хранилище для поиска заказов"
@@ -172,7 +173,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
@@ -183,15 +184,15 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <!-- <div class="">
           <div class="alert alert-info" role="alert">
             <div class="btn btn-primary text-uppercase w-100" @click="loadShipmentOrders">
               Загрузить Заказы
             </div>
           </div>
-        </div>
+        </div> -->
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
@@ -203,7 +204,7 @@
         </div>
       </div>
       <div :class="getTabClass('nav-scaner')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <BootstrapSwitcher
               label="Использовать буфер обмена для сканирования"
@@ -213,7 +214,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <p>Сервисная кнопка после сканирования</p>
             <div class="form-group">
@@ -231,7 +232,7 @@
         </div>
       </div>
       <div :class="getTabClass('nav-other')">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <BootstrapSwitcher
               label="Контроль будущей даты
@@ -242,10 +243,10 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
-            <p>Настройки сервера</p>
             <div class="form-floating mb-3">
+              <label for="hostID">Адрес сервера</label>
               <input
                 class="form-control"
                 id="hostID"
@@ -254,10 +255,10 @@
                 @change="HttpManager.setHost(host)"
                 placeholder="СХЕМА://ХОСТ:ПОРТ"
               />
-              <label for="hostID">Адрес сервера</label>
             </div>
 
             <div class="form-floating mb-3">
+              <label for="routePathID">Путь на сервере</label>
               <input
                 id="routePathID"
                 v-model="routePath"
@@ -266,7 +267,6 @@
                 @change="HttpManager.setPath(routePath)"
                 placeholder="СХЕМА://ХОСТ:ПОРТ"
               />
-              <label for="routePathID">Путь на сервере</label>
             </div>
 
             <div
@@ -294,7 +294,7 @@
           </div>
         </div>
 
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="">
           <div class="alert alert-info" role="alert">
             <div class="form-group mb-3">
               <textarea class="form-control" rows="3" v-model="executeCommand"></textarea>
@@ -333,9 +333,10 @@ import { LogManager } from "@/classes/LogManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { MainManager } from "@/classes/MainManager";
-import { DBManager, IDBDataRecord } from "@/classes/DBManager";
+// import { DBManager, IDBDataRecord } from "@/classes/DBManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { FileManager } from "@/classes/FileManager";
+import { DB2Manager } from "@/classes/DB2Manager";
 
 const seen = ref(false);
 const host = HttpManager.host;
@@ -393,19 +394,20 @@ function openInWeb() {
 async function clearStorage() {
   try {
     LocalStorageManager.clear();
-    await DBManager.clear();
+    //await DBManager.clear();
+    await DB2Manager.instance.clear();
     NotificationManager.success("Локальное хранилище очищено");
     RoutingManager.instance.pushName(RoutingManager.route.selectUser);
   } catch (e) {
-    NotificationManager.error(JSON.stringify(e));
+    NotificationManager.error(e.toString());
   }
 }
 
 async function testDB() {
   const key = "dbTest";
-  const writeResult = await DBManager.setData(key, "Тест базы прошел успешно!");
+  const writeResult = await DB2Manager.setData(key, "Тест базы прошел успешно!");
   if (writeResult) {
-    const readResult = await DBManager.getData(key);
+    const readResult = await DB2Manager.getData<string>(key);
     if (readResult) {
       NotificationManager.swal(readResult, "success");
       return;
@@ -448,48 +450,52 @@ function setTab(value: string) {
 /// показываем пользователю сколько заказов на отгрузку сейчас загружено в БД
 async function showCountLoadedShipmentOrders() {
   //EXECUTE(`getStorage(function(res){alert(res.length)},'orders','orders')`)
-  const res = await DBManager.getFilesAsync("orders");
-  if (res) {
-    const records = res ?? [];
-    NotificationManager.swal(records.length.toString(), "success");
-    return;
-  }
-  NotificationManager.swal("Данные по запросу не были найдены", "error");
+  //const res = await DBManager.getFilesAsync(MainManager.keys.orders);
+  const res = await DB2Manager.instance.orders!.count();
+  NotificationManager.success(res.toString());
+  // if (res) {
+  //   const records = res ?? [];
+  //   NotificationManager.swal(res, "success");
+  //   return;
+  // }
+  // NotificationManager.swal("Данные по запросу не были найдены", "error");
 }
 
 async function loadShipmentOrders() {
   //
 }
 
+/// Показываем пользователю сколько ШК сейчас загружено в бд
 async function showCountLoadedBarcodes() {
   //EXECUTE(`getStorage(function(res){alert(res.length)},'1c','barcodes')`)
-  const res = await DBManager.getFilesAsync("barcodes");
-  if (res) {
-    const records = res ?? [];
-    NotificationManager.swal(records.length.toString(), "success");
-    return;
-  }
-  NotificationManager.swal("Данные по запросу не были найдены", "error");
+  //const res = await DBManager.getFilesAsync(MainManager.keys.barcodes);
+  const res = await DB2Manager.instance.barcodes!.count();
+  NotificationManager.success(res.toString());
+  // if (res) {
+  //   const records = res ?? [];
+  //   NotificationManager.swal(records.length.toString(), "success");
+  //   return;
+  // }
+  // NotificationManager.error("Данные по запросу не были найдены");
 }
 
 async function loadBarcodesFromFile() {
   //readFile()
-  NotificationManager.swal("Загрузка ШК в локальную базу начата", "info");
+  NotificationManager.info("Загрузка ШК в локальную базу начата");
   try {
     const fileReadRes = await FileManager.readFile(document.getElementById("file"));
     if (fileReadRes) {
       const data = JSON.parse(fileReadRes as string);
-      const tmp: IDBDataRecord[] = data.map((x: any) => {
-        return { id: x.ШК, data: x };
-      });
-
-      await DBManager.WriteDataInDB("barcodes", tmp);
+      // const tmp: IDBDataRecord[] = data.map((x: any) => {
+      //   return { id: x.ШК, data: x };
+      // });
+      //await DBManager.WriteDataInDB(MainManager.keys.barcodes, tmp);
+      await DB2Manager.instance.barcodes!.setAll(data);
     }
-    NotificationManager.swal("Загрузка ШК в локальную базу завершена", "info");
+    NotificationManager.info("Загрузка ШК в локальную базу завершена");
   } catch (e) {
-    NotificationManager.swal(
-      "Загрузка ШК в локальную базу завершена с ошибкой\n" + `${e}`,
-      "error"
+    NotificationManager.error(
+      "Загрузка ШК в локальную базу завершена с ошибкой\n" + `${e}`
     );
   }
 }

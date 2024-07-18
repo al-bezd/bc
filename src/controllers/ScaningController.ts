@@ -1,5 +1,5 @@
-import { BaseManager } from "@/classes/BaseManager";
-import { DBManager } from "@/classes/DBManager";
+
+import { DB2Manager } from "@/classes/DB2Manager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
@@ -55,10 +55,8 @@ export class ScaningController {
 
 
         if (UserManager.instance.useLocalDb.value) {
-            const barcodeFromDB = await DBManager.getFileAsync(
-                barcodeStruct.Штрихкод,
-                MainManager.keys.barcodes,
-                MainManager.keys.barcodes
+            const barcodeFromDB = await DB2Manager.instance.barcodes!.get(
+                barcodeStruct.Штрихкод
             );
             if (!barcodeFromDB) {
                 return null
@@ -66,9 +64,9 @@ export class ScaningController {
             return this.createScaning(
                 barcodeValue,
                 barcodeStruct.Штрихкод,
-                barcodeFromDB.data.Номенклатура,
-                barcodeFromDB.data.Характеристика,
-                barcodeFromDB.data.ПЛУ,
+                barcodeFromDB.Номенклатура,
+                barcodeFromDB.Характеристика,
+                barcodeFromDB.ПЛУ,
                 barcodeStruct.Количество,
                 barcodeStruct.ДатаПроизводства,
                 barcodeStruct.ГоденДо,
