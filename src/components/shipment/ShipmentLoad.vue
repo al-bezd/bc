@@ -152,6 +152,8 @@ function showLoadOrders() {
 
 /// Подгружаем сохраненые документы пользователя
 async function initSavedDocuments() {
+  
+
   savedShipmentDocs.value = await MainManager.instance.local.shipmentDocs();
 }
 
@@ -165,9 +167,7 @@ async function onDeleteDocument(document: IShipmentDocument) {
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await ShipmentManager.instance.deleteDocument(
-      document
-    );
+    const response = await ShipmentManager.instance.deleteDocument(document);
     console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();

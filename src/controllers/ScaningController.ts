@@ -64,9 +64,9 @@ export class ScaningController {
             return this.createScaning(
                 barcodeValue,
                 barcodeStruct.Штрихкод,
-                barcodeFromDB.Номенклатура,
-                barcodeFromDB.Характеристика,
-                barcodeFromDB.ПЛУ,
+                barcodeFromDB.Ссылка.Номенклатура,
+                barcodeFromDB.Ссылка.Характеристика,
+                barcodeFromDB.Ссылка.ПЛУ,
                 barcodeStruct.Количество,
                 barcodeStruct.ДатаПроизводства,
                 barcodeStruct.ГоденДо,

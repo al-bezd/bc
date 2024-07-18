@@ -30,7 +30,7 @@
               v-model="selectedSklad"
               @change="
                 () => {
-                  DBManager.setData(selectedSkladKey, toRaw(selectedSklad));
+                  DB2Manager.setData(selectedSkladKey, toRaw(selectedSklad));
                 }
               "
             >
@@ -55,7 +55,10 @@
               v-model="selectedTorgovayaSet"
               @change="
                 () => {
-                  DBManager.setData(selectedTorgovayaSetKey, toRaw(selectedTorgovayaSet));
+                  DB2Manager.setData(
+                    selectedTorgovayaSetKey,
+                    toRaw(selectedTorgovayaSet)
+                  );
                 }
               "
             >
@@ -149,9 +152,6 @@ import { Ref, computed, ref, toRaw } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
-
-import ModeWidget from "@/components/widgets/ModeWidget.vue";
-import { DBManager } from "@/classes/DBManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { GetGroupScans, RowKeyMode } from "@/functions/GetGroupScans";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
@@ -163,6 +163,7 @@ import { MainManager } from "@/classes/MainManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
+import { DB2Manager } from "@/classes/DB2Manager";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListCheck,
@@ -237,12 +238,14 @@ async function afterShow() {
     sklads.value = [mainStoreRes];
   }
 
-  const selectedSetRes = await DBManager.getData<IDocument|null>(selectedTorgovayaSetKey);
+  const selectedSetRes = await DB2Manager.getData<IDocument | null>(
+    selectedTorgovayaSetKey
+  );
   if (selectedSetRes) {
     selectedTorgovayaSet.value = selectedSetRes;
   }
 
-  const selectedSkladRes = await DBManager.getData<IDocument|null>(selectedSkladKey);
+  const selectedSkladRes = await DB2Manager.getData<IDocument | null>(selectedSkladKey);
   if (selectedSkladRes) {
     selectedSklad.value = selectedSkladRes;
   }
@@ -320,9 +323,9 @@ function clear() {
 
   ShipmentManager.instance.setCurrentScanings([]);
   selectedSklad.value = null;
-  DBManager.deleteDatabase(selectedSkladKey);
+  DB2Manager.removeData(selectedSkladKey);
   selectedTorgovayaSet.value = null;
-  DBManager.deleteDatabase(selectedTorgovayaSetKey);
+  DB2Manager.removeData(selectedTorgovayaSetKey);
   НомерПоддона.value = "";
   ВесПоддона.value = 0;
 

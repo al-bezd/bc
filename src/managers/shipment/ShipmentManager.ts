@@ -208,10 +208,11 @@ export class ShipmentManager extends BaseManager {
 
   //Удаляем документ из списка документов пользователя
   async deleteDocument(doc: IDocument): Promise<boolean> {
-    const baseName = MainManager.keys.userDocument
-    const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
+
     await DB2Manager.instance.userDocuments!.delete(doc)
     return true
+    // const baseName = MainManager.keys.userDocument
+    // const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
     // const files = await DBManager.getFileAsync(currentUser, baseName, baseName)
     // if (files) {
     //   for (const i of files.data.docs) {

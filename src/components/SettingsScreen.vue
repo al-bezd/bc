@@ -184,13 +184,7 @@
           </div>
         </div>
 
-        <!-- <div class="">
-          <div class="alert alert-info" role="alert">
-            <div class="btn btn-primary text-uppercase w-100" @click="loadShipmentOrders">
-              Загрузить Заказы
-            </div>
-          </div>
-        </div> -->
+       
 
         <div class="">
           <div class="alert alert-info" role="alert">

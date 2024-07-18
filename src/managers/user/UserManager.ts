@@ -199,6 +199,7 @@ export class UserManager extends BaseManager {
   }
 
   async getUserDocuments():Promise<IDocument[]>{
+    
     if(this.user.value){
       return (await MainManager.instance.local.allUserDocs())??[]
       //const baseName = MainManager.keys.userDocument

@@ -6,21 +6,26 @@ import Dexie, { EntityTable } from "dexie";
 import { BaseManager } from "./BaseManager";
 import { IScaning } from "@/interfaces/IScaning";
 import { IContainer } from "@/interfaces/IStore";
-import { IDocument, ILinkedObject, IUser, IНоменклатура, IХарактеристика } from "@/interfaces/IDocument";
+import { IDocument, IUser, IНоменклатура, IХарактеристика } from "@/interfaces/IDocument";
 import { ITorgovieSeti } from "@/interfaces/ITorgovieSeti";
 import { IInfoList } from "@/interfaces/IInfoList";
+import { ILogItem } from "./LogManager";
+
 export interface IlocalData {
     id: string;
     data: any
 }
-export interface IBarcode {
-    Наименование: string
-    Ссылка: ILinkedObject
-    Номенклатура:IНоменклатура,
+export interface IBarcodeLinkedObject{
+    Номенклатура:IНоменклатура
     Характеристика:IХарактеристика
     ПЛУ:string
-                
 }
+
+export interface IBarcode {
+    Наименование: string
+    Ссылка: IBarcodeLinkedObject        
+}
+
 type IShipmentScaningStore = { shipmentCurrentScanings: EntityTable<IScaning, 'IDSec'> }
 type IGettingScaningStore = { gettingCurrentScanings: EntityTable<IScaning, 'IDSec'> }
 type IContainerStore = { containers: EntityTable<IContainer, 'id'> }
@@ -31,6 +36,7 @@ type ILocalStore = { localStore: EntityTable<IlocalData, 'id'> }
 type IOrdersStore = { orders: EntityTable<IDocument, 'ШК'> }
 type IInfoSheetsStore = { infoSheets: EntityTable<IInfoList, 'ШК'> }
 type IUserDocumentsStore = { userDocuments: EntityTable<IDocument, 'ШК'> }
+type ILogStore = {log:EntityTable<ILogItem,'key'>}
 
 interface ILocalStoreController {
     store: EntityTable<IlocalData, "id">,
@@ -101,6 +107,14 @@ interface IUserDocumentsStoreController{
     delete(value: IDocument): Promise<void>
 }
 
+interface ILogStoreController{
+    store: EntityTable<ILogItem, 'key'>,
+    getAll(): Promise<ILogItem[]>,
+    add(item:ILogItem): Promise<string>,
+    clear(): Promise<void>
+    
+}
+
 
 export class DB2Manager extends BaseManager {
     public static instance: DB2Manager
@@ -128,6 +142,7 @@ export class DB2Manager extends BaseManager {
     public orders: IOrdersStoreController | null = null
     public infoSheets: IInfoSheetsStoreController | null = null
     public userDocuments: IUserDocumentsStoreController | null = null
+    public log:ILogStoreController | null = null
     public local: ILocalStoreController | null = null
 
     async fillManager() {
@@ -234,7 +249,7 @@ export class DB2Manager extends BaseManager {
         this.orders = {
             store: (DB2Manager.instance.db! as Dexie & IOrdersStore).orders,
             async setAll(values: IDocument[]) {
-                debugger
+                
                 await this.store.clear()
                 return await this.store.bulkAdd(values)
             },
@@ -291,6 +306,20 @@ export class DB2Manager extends BaseManager {
 
         }
 
+        this.log = {
+            store:(DB2Manager.instance.db! as Dexie & ILogStore).log,
+            async add(item:ILogItem) {
+                return await this.store.add(item)
+            },
+            async getAll() {
+                return (await this.store.toArray())??[]
+            },
+            async clear() {
+                return await this.store.clear()
+            }
+            
+        }
+
         this.local = {
             store: (DB2Manager.instance.db! as Dexie & ILocalStore).localStore,
             async set(key: string, value: any) {
@@ -339,7 +368,8 @@ export class DB2Manager extends BaseManager {
             ITorgovieSetiStore &
             IOrdersStore &
             IUserDocumentsStore &
-            IInfoSheetsStore
+            IInfoSheetsStore &
+            ILogStore
 
         this.db.version(1).stores({
             localStore: '++id, data', // primary key "id" (for the runtime!),
@@ -351,7 +381,8 @@ export class DB2Manager extends BaseManager {
             torgovieSeti: '++Код, data',
             orders: '++ШК, data',
             userDocuments: '++ШК, data',
-            infoSheets: '++ШК, data'
+            infoSheets: '++ШК, data',
+            log: '++key, data'
         });
     }
 

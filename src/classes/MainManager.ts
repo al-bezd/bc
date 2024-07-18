@@ -45,7 +45,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
     },
     allUserDocs: async (): Promise<IDocument[] | null> => {
       //return UserManager.instance.getUserDocuments()
-      return await DB2Manager.instance.local!.get<IDocument[]>(MainManager.keys.userDocument)
+      
+      return await DB2Manager.instance.userDocuments!.getAll()
     },
     infoSheets: async (): Promise<IInfoList[] | null> => {
       //return DBManager.getFilesAsync(MainManager.keys.infoSheets)
