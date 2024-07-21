@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.cordova.hellocordova"
+<widget id="com.reftp.barcode2024"
     version="1.0.0"
     xmlns="http://www.w3.org/ns/widgets"
     xmlns:cdv="http://cordova.apache.org/ns/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <name>HelloCordova</name>
-    <description>Sample Apache Cordova App</description>
+    <name>Barcode 2024</name>
+    <description>Barcode 2024</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
         Apache Cordova Team
     </author>
@@ -41,6 +41,14 @@
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
         </config-file>
+
+        
+        <icon src="resources/android/icon/mipmap-hdpi/ic_launcher.png" density="hdpi"/>
+        <icon src="resources/android/icon/mipmap-xhdpi/ic_launcher.png" density="xhdpi"/>
+        <icon src="resources/android/icon/mipmap-xxhdpi/ic_launcher.png" density="xxhdpi"/>
+        <icon src="resources/android/icon/mipmap-xxxhdpi/ic_launcher.png" density="xxxhdpi"/>
     </platform>
+
+    
 
 </widget>
