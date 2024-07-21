@@ -30,12 +30,8 @@
 
     <div class="row">
       <div class="col-12">
-        <button
-          class="btn btn-info btn-lg btn-block mb-3 w-100"
-          @click="addManualScaning"
-        >
-          +
-        </button>
+        <AddManualScaningButton @tap="addManualScaning" />
+
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -81,6 +77,7 @@ import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListForm,

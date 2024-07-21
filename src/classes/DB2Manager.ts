@@ -93,6 +93,7 @@ interface IOrdersStoreController{
 interface IInfoSheetsStoreController{
     store: EntityTable<IInfoList, 'ШК'>,
     setAll(values: IInfoList[]): Promise<string>,
+    addAll(values: IInfoList[]): Promise<string>,
     getAll(): Promise<IInfoList[]>,
     get(ШК: string): Promise<IInfoList | null>,
     count(): Promise<number>
@@ -273,6 +274,10 @@ export class DB2Manager extends BaseManager {
                 return await this.store.bulkAdd(values)
             },
 
+            async addAll(values: IInfoList[]) {
+                return await this.store.bulkPut(values)
+            },
+
             async getAll() {
                 return await this.store.toArray()
             },
@@ -324,7 +329,8 @@ export class DB2Manager extends BaseManager {
             store: (DB2Manager.instance.db! as Dexie & ILocalStore).localStore,
             async set(key: string, value: any) {
                 await this.store.delete(key)
-                return await this.store.add({ 'id': key, "data": value })
+                //return await this.store.add({ 'id': key, "data": value })
+                return await this.store.put({ 'id': key, "data": value })
             },
             async get<T>(key: string): Promise<T | null> {
                 const tmp = await this.store.get(key)

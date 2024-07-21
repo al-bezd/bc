@@ -66,6 +66,7 @@
 
     <InfoListForm />
     <InfoListCheck />
+    <InfoListUploadByBarcode />
 
     <ReflectionStoreForm />
     <ReflectionStoreCheck />
@@ -93,6 +94,7 @@ import SettingsButton from "./widgets/SettingsButton.vue";
 import SettingsScreen from "./SettingsScreen.vue";
 import ConfirmScreen from "@/components/modals/ConfirmScreen.vue";
 import AddManualFormScreen from "@/components/modals/AddManualFormScreen.vue";
+import InfoListUploadByBarcode from "@/components/shipment/info_list/InfoListUploadByBarcode.vue";
 // import { onMounted } from "vue";
 // import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";

@@ -14,6 +14,7 @@ interface IRoutingMap {
 
     shipmentCreateInfoListForm:string
     shipmentCreateInfoListCheck:string
+    shipmentUploadInfoListByBarcode:string
 
     shipmentReflectionStoreForm:string
     shipmentReflectionStoreCheck:string
@@ -35,6 +36,8 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
 
         shipmentCreateInfoListForm:"shipment__Create_InfoList__Form",
         shipmentCreateInfoListCheck:"shipment__Create_InfoList__Check",
+        shipmentUploadInfoListByBarcode:"shipment__Upload_InfoList__ByBarcode",
+
         shipmentReflectionStoreForm:"shipment__ReflectionStore__Form",
         shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check"
 

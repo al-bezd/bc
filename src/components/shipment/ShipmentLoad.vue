@@ -28,6 +28,13 @@
       <button
         type="button"
         class="btn btn-primary btn-lg btn-block text-uppercase"
+        @click="goToAddInfoSheets()"
+      >
+        <b>Добавление ИНФ. ЛИСТОВ</b>
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-lg btn-block text-uppercase"
         @click="showLoadOrders()"
       >
         <b>ЗАГРУЗИТЬ ЗАДАНИЯ</b>
@@ -145,6 +152,10 @@ function goToCreateInfoSheet() {
   //eval(`form_doc_free.show('ИнфоЛист');form_doc_free.ClearScaning()`)
 }
 
+function goToAddInfoSheets() {
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentUploadInfoListByBarcode);
+}
+
 function showLoadOrders() {
   //ShipmentManager.instance.emit("showLoadOrders");
   modalSeen.value = true;
@@ -152,8 +163,6 @@ function showLoadOrders() {
 
 /// Подгружаем сохраненые документы пользователя
 async function initSavedDocuments() {
-  
-
   savedShipmentDocs.value = await MainManager.instance.local.shipmentDocs();
 }
 

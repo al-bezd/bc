@@ -187,8 +187,8 @@ async function closeWithQuest() {
     "Вы уверенны что хотите перейти обратно?"
   );
   if (response) {
-    //close()
     clear();
+    close();
 
     RoutingManager.instance.pushName(RoutingManager.route.shipmentLoad);
   }

@@ -150,7 +150,7 @@ async function LoadOrdersExecute(type: string) {
       // });
 
       // await DBManager.WriteDataInDB(MainManager.keys.orders, data);
-      await DB2Manager.instance.orders!.setAll(documents)
+      await DB2Manager.instance.orders!.setAll(documents);
       NotificationManager.success(`В систему загруженно ${documents.length} заказа(ов)`);
       return;
     }
@@ -168,10 +168,17 @@ async function LoadOrdersExecute(type: string) {
       NotificationManager.info("Загрузка информационных листов начата");
 
       //await DBManager.WriteDataInDB(MainManager.keys.infoSheets, data);
-      const infList:IInfoList[] = sheets.map((i: any) => {
-        return { data: i.list, ШК: i.ID.replace(/ /g, "") };
-      })
-      await DB2Manager.instance.infoSheets!.setAll(infList)
+      const infList: IInfoList[] = sheets.map((i: any) => {
+        return {
+          data: i.list,
+          ШК: i.ID.delSpaces(),
+          ВесПоддона: i.ВесПоддона,
+          НомерПоддона: i.НомерПоддона,
+          Сеть: i.Сеть,
+          Склад: i.Склад,
+        } as IInfoList;
+      });
+      await DB2Manager.instance.infoSheets!.setAll(infList);
 
       NotificationManager.success(
         `В систему загруженно ${infList.length} информационных листа`
