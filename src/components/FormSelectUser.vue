@@ -46,6 +46,7 @@ function show() {
 // },10000)
 
 ScanerManager.instance.onScan((value) => {
+  console.log("Выбор пользователя сканирование ", value);
   barcode.value = value;
   getUser();
 });

@@ -193,6 +193,10 @@ async function onScan(barcode: string) {
       }
     }
 
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
+
     ShipmentManager.instance.addScaning(scan);
     scaningController.isValidScaning(
       scan,

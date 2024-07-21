@@ -161,7 +161,7 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (!scaning) {
     return false;
   }
@@ -171,6 +171,10 @@ async function onScan(barcodeStr: string) {
     if (!condition) {
       return false;
     }
+  }
+
+  if (itPalet.value) {
+    itPalet.value = false;
   }
 
   await GettingManager.instance.addScaning(scaning);

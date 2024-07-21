@@ -39,14 +39,14 @@
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning  text-uppercase fs-6"
+            class="btn btn-warning text-uppercase fs-6"
             @click="closeWithQuest()"
           >
             <b>ЗАКРЫТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary  text-uppercase fs-6"
+            class="btn btn-primary text-uppercase fs-6"
             @click="clearWithQuest()"
           >
             <b>ОЧИСТИТЬ</b>
@@ -54,7 +54,7 @@
 
           <button
             type="button"
-            class="btn btn-success  text-uppercase fs-6"
+            class="btn btn-success text-uppercase fs-6"
             attr="check"
             @click="goToCheck()"
           >
@@ -129,9 +129,12 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (scaning) {
     scaning.free = true;
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
     await ShipmentManager.instance.addScaning(scaning);
     scaningController.isValidScaning(
       scaning,

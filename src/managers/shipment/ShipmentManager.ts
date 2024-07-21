@@ -1,18 +1,12 @@
-import { LocalStorageManager } from "@/classes/LocalStorageManager";
-import { BaseManager } from "../../classes/BaseManager";
-import { UserManager } from "../user/UserManager";
+import { BaseManager } from "@/classes/BaseManager";
+import { UserManager } from "@/managers/user/UserManager";
 //import { DBManager } from "@/classes/DBManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { IDocument, IProperty, IНоменклатура, IХарактеристика } from "@/interfaces/IDocument";
-import { IShipmentDocument } from "./interfaces";
+import { IDocument } from "@/interfaces/IDocument";
+import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { HttpManager } from "@/classes/HttpManager";
-import { MainManager } from "@/classes/MainManager";
-import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { Date1C } from "@/functions/Date1C";
-import { FindGM } from "@/functions/FindGruzoMesta";
-import { ScaningController } from "@/controllers/ScaningController";
 import { DB2Manager } from "@/classes/DB2Manager";
 
 export class ShipmentManager extends BaseManager {

@@ -11,7 +11,7 @@
       @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
-    <SortWidget :box-count="boxCount" :scan-count="items.length" :on-tap="onSort" />
+    <SortWidget :box-count="boxCount" :scan-count="items.length" @tap="onSort" />
     <!-- <div class="btn-group w-100 mb-3" role="group">
       <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
         по Артикулу
@@ -138,9 +138,14 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
+
   if (scaning) {
     scaning.free = true;
+
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
     await ShipmentManager.instance.addScaning(scaning);
     scaningController.isValidScaning(
       scaning,
@@ -171,6 +176,7 @@ async function clearWithQuest() {
 }
 
 function onSort(mode: OrderByType) {
+  debugger;
   ShipmentManager.instance.currentScanings.value = GetListSortBy(
     ShipmentManager.instance.currentScanings.value,
     mode

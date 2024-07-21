@@ -21,12 +21,12 @@ export class LogManager extends BaseManager implements ILoadableManager {
         new LogManager()
     }
 
-    public customLog: Ref<any[]> = ref([])
+    public customLog: Ref<ILogItem[]> = ref([])
     public maxSizeLog = 1000
 
 
-    load() {
-
+    async load() {
+        this.customLog.value = (await DB2Manager.instance.log?.getAll())??[]
         const old_function_log = console.log
 
 

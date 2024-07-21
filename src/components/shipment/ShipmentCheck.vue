@@ -222,7 +222,7 @@ async function addManual(item: IScaning) {
     return;
   }
   //const newScaning = await ShipmentManager.instance.getScaning(res, itPalet.value);
-  const newScaning = await scaningController.getScaning(res);
+  const newScaning = await scaningController.getScaning(res, false);
 
   if (!newScaning) {
     return;
@@ -300,7 +300,7 @@ async function saveDocument(documents: IDocument[]) {
 async function send(mode: any) {
   if (mode.Режим == "запись") {
     //$('#ok_button_id').hide()
-    NotificationManager.info("<b>Ожидайте записи документа!!!</b>");
+    NotificationManager.info("Ожидайте записи документа!!!>");
     //qw.question_window_text = 'Ожидайте записи документа!!!'
   }
   if (sendIsStart.value) {

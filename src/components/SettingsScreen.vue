@@ -184,8 +184,6 @@
           </div>
         </div>
 
-       
-
         <div class="">
           <div class="alert alert-info" role="alert">
             <div
@@ -304,8 +302,14 @@
       </div>
       <div :class="getTabClass('nav-log')">
         <div id="log-application" style="max-height: 400px; overflow: scroll">
-          <div v-for="i in log" v-bind:key="i" class="fs-8">
-            <span>{{ i }}</span>
+          <div v-for="i in log" v-bind:key="i.key" class="fs-8">
+            <div class="d-flex-direction-column">
+              <span>Key:{{ i.key }}</span>
+              <span>Type:{{ i.logType }}</span>
+              <span>Date:{{ i.dateCreate }}</span>
+              <span>Message:{{ i.arguments }}</span>
+            </div>
+
             <hr />
           </div>
         </div>

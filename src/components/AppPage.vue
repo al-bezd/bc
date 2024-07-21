@@ -1,4 +1,11 @@
 <style scope>
+.d-flex-direction-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-d-column {
+  flex-direction: column;
+}
 .reft_screen_form {
   height: 100vh;
   display: flex;
@@ -41,6 +48,12 @@
 .fs-9 {
   font-size: 0.25rem !important;
 }
+
+.alert-orange {
+  color: #573815;
+  background-color: #f9a653;
+  border-color: #e6d6c3;
+}
 </style>
 <template>
   <div>
@@ -80,8 +93,8 @@ import SettingsButton from "./widgets/SettingsButton.vue";
 import SettingsScreen from "./SettingsScreen.vue";
 import ConfirmScreen from "@/components/modals/ConfirmScreen.vue";
 import AddManualFormScreen from "@/components/modals/AddManualFormScreen.vue";
-import { onMounted } from "vue";
-import { RoutingManager } from "@/classes/RoutingManager";
+// import { onMounted } from "vue";
+// import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
 import ShipmentLoad from "./shipment/ShipmentLoad.vue";
 import ShipmentForm from "./shipment/ShipmentForm.vue";

@@ -8,6 +8,7 @@ import { IDocument, IUser } from "@/interfaces/IDocument"
 import { IShipmentDocument } from "../shipment/interfaces"
 import { IGettingProductionDocument } from "../getting/interfaces"
 import { DB2Manager } from "@/classes/DB2Manager"
+import { StringToBool } from "@/functions/StringToBoolean"
 
 
 
@@ -36,9 +37,13 @@ export class UserManager extends BaseManager {
 
   async loadAsync(){
     const user = await DB2Manager.instance.local!.get<IUser>(MainManager.keys.user)
+    
     if(user){
       this.user.value = user
     }
+    this.useLocalDb.value = StringToBool(LocalStorageManager.get('useLocalDb'))??false
+    this.useLocalOrders.value = StringToBool(LocalStorageManager.get('useLocalOrders'))??false
+    this.controlFutureDate.value = StringToBool(LocalStorageManager.get('controlFutureDate'))??false
   }
 
   setUseLocalDb(value: boolean) {

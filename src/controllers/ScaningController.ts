@@ -1,12 +1,11 @@
 
 import { DB2Manager } from "@/classes/DB2Manager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
-import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { Date1C } from "@/functions/Date1C";
 import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { IProperty, IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
+import { IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
@@ -47,7 +46,7 @@ export class ScaningController {
     }
 
     /// получаем новое сканирование по переданному штрихкоду
-    async getScaning(barcode: string, itPalet = false): Promise<IScaning | null> {
+    async getScaning(barcode: string, itPalet:boolean): Promise<IScaning | null> {
         const barcodeValue = barcode;
         const barcodeStruct: IBarcodeStructure = this.getBarcodeStructure(barcode)
 
@@ -123,7 +122,8 @@ export class ScaningController {
             ГоденДо:ГоденДо
         };
 
-        if (itPalet == true) {
+        
+        if (itPalet) {
             Грузоместа = FindGM(ПолныйШК);
             Палетная = "alert alert-warning";
 
