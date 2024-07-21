@@ -103,6 +103,9 @@ const itPalet = ref(false);
 const barcode = ref("");
 const items = ShipmentManager.instance.currentScanings;
 
+/// Валидаторы сканирования
+const validators: ((scan: IScaning) => boolean)[] = [isPaletScan];
+
 const boxCount = computed(() => {
   return ShipmentManager.instance.currentScanings.value.reduce(
     (sum, scan) => sum + scan.Грузоместа,
@@ -130,19 +133,37 @@ async function onScan(barcodeStr: string) {
     return false;
   }
   const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
-  if (scaning) {
-    scaning.free = true;
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
-    await ShipmentManager.instance.addScaning(scaning);
-    scaningController.isValidScaning(
-      scaning,
-      ShipmentManager.instance.currentScanings.value
-    );
-    return true;
+  if (!scaning) {
+    return false;
   }
-  return false;
+  /// Проверяем сканирование на бизнес условие
+  for (const validator of validators) {
+    const condition = await validator(scaning);
+    if (!condition) {
+      return false;
+    }
+  }
+
+  if (itPalet.value) {
+    itPalet.value = false;
+  }
+  await ShipmentManager.instance.addScaning(scaning);
+  scaningController.isValidScaning(
+    scaning,
+    ShipmentManager.instance.currentScanings.value
+  );
+  return true;
+}
+
+/// уведомляем пользователя если он случайно отсканировал палетную этикетку
+function isPaletScan(scan: IScaning): boolean {
+  if (!itPalet.value && scan.itPalet) {
+    NotificationManager.swal(
+      `Данное сканирование является сканированием палетной этикетки`
+    );
+    NotificationManager.instance.playError();
+  }
+  return true;
 }
 
 function goToCheck() {

@@ -84,7 +84,7 @@ export class GettingManager extends BaseManager {
     //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
     const tmp = [this.currentScanings.value, data]
     this.emit('addScaning', tmp)
-    console.log('addScaning', tmp)
+    //console.log('addScaning', tmp)
   }
 
   deleteScaning(data:IScaning) {

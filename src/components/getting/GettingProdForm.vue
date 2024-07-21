@@ -37,6 +37,10 @@
       />
     </div>
     <div class="row">
+      <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
+      <div class="col-6">Вес(ФАКТ): {{ weightScans }}</div>
+    </div>
+    <div class="row">
       <div class="col-12">
         <AddManualScaningButton @tap="addManualScaning" />
         <div class="btn-group w-100" role="group">
@@ -84,6 +88,7 @@ import { computed, ref } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ScaningController } from "@/controllers/ScaningController";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
+import { IРеквизит } from "@/interfaces/IDocument";
 
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
 const scaningController: ScaningController = new ScaningController(
@@ -98,7 +103,10 @@ const seen = ref(false);
 const barcode = ref("");
 
 const itPalet = ref(false);
-const countScaning = computed(() => GettingManager.instance.currentScanings.value.length);
+const weightInDoc = ref(0);
+const weightScans = computed(() => {
+  return GetCount(GettingManager.instance.currentScanings.value, "Количество");
+});
 const docName = computed(() => {
   if (GettingManager.instance.currentDocument.value) {
     return GettingManager.instance.currentDocument.value!.Наименование;
@@ -144,6 +152,16 @@ function close() {
 
 function show() {
   seen.value = true;
+  setTimeout(afterShow, 500);
+}
+
+function afterShow() {
+  if (GettingManager.instance.currentDocument.value) {
+    weightInDoc.value = GetCount(
+      GettingManager.instance.currentDocument.value?.Товары,
+      "Количество"
+    );
+  }
 }
 
 function goCheck() {
@@ -155,7 +173,7 @@ function onEnter() {
   barcode.value = "";
 }
 
-const validators = [isValidScaning];
+const validators = [isValidScaning, isWeightMoreWeightInChar, isWeightMoreWeightInDoc];
 
 async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
@@ -182,6 +200,35 @@ async function onScan(barcodeStr: string) {
     scaning,
     GettingManager.instance.currentScanings.value
   );
+  return true;
+}
+
+/// Запрещаем добавлять сканирование если его добавление превысит вес сканирований по дкументу
+function isWeightMoreWeightInDoc(scan: IScaning): boolean {
+  if (scan.Количество + weightScans.value > weightInDoc.value) {
+    NotificationManager.swal(
+      `Вес приемки не должен превышать вес по документу ${weightInDoc.value}`
+    );
+    NotificationManager.instance.playError();
+    return false;
+  }
+  return true;
+}
+
+/// уведомляем пользователя если вес в сканировании больше веса в характеристике
+function isWeightMoreWeightInChar(scan: IScaning): boolean {
+  const res = scan.Характеристика.ДополнительныеРеквизиты.filter(
+    (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
+  );
+  for (const i of res) {
+    if (scan.Количество > i.Значение) {
+      NotificationManager.swal(
+        `Вес в характеристике ${scan.Характеристика.Наименование}\n${i.Значение} больше чем вес в сканировании ${scan.Количество}`
+      );
+      NotificationManager.instance.playError();
+      break;
+    }
+  }
   return true;
 }
 

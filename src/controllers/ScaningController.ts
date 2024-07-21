@@ -157,6 +157,7 @@ export class ScaningController {
             ШтрихкодПродукции: ШтрихкодПродукции,
             bc: ПолныйШК,
             free: this.isFree,
+            itPalet:itPalet
         };
         return response;
     }
