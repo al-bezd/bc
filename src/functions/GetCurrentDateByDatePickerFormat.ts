@@ -16,7 +16,8 @@ export function getCurrentDateFromDatePickerFormat(value: string): Date {
     const year = parseInt(value.slice(0, 2), 10) + 2000; // добавляем 2000 к году, чтобы он был в диапазоне 2000-2099
     const month = parseInt(value.slice(2, 4), 10) - 1;  // месяцы в JavaScript начинаются с 0
     const day = parseInt(value.slice(4, 6), 10);
-    const res = new Date(year, month, day)
+    //const res = new Date(year, month, day)
+    const res = new Date(Date.UTC(year, month, day))
     //console.log('orig date ',value,' new date ',res,' d ',day,' m ',month, ' y ',year)
     return res;
 }

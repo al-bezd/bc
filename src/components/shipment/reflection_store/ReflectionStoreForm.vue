@@ -176,7 +176,6 @@ async function clearWithQuest() {
 }
 
 function onSort(mode: OrderByType) {
-  debugger;
   ShipmentManager.instance.currentScanings.value = GetListSortBy(
     ShipmentManager.instance.currentScanings.value,
     mode
