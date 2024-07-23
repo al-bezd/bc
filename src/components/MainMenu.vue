@@ -21,6 +21,9 @@
       >
         Прием продукции
       </button>
+      <button @click="showSoh" class="btn btn-primary btn-lg btn-block text-uppercase">
+        СОХ
+      </button>
     </div>
     <div class="space"></div>
     <button @click="exit" class="btn btn-warning btn-block text-uppercase mt-3">
@@ -52,6 +55,10 @@ function showBildOrder() {
 
 function showGettingProd() {
   RoutingManager.instance.pushName(RoutingManager.route.gettingProductionLoad);
+}
+
+function showSoh() {
+  RoutingManager.instance.pushName(RoutingManager.route.sohLoad);
 }
 
 async function exit() {

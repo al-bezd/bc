@@ -18,6 +18,10 @@ interface IRoutingMap {
 
     shipmentReflectionStoreForm:string
     shipmentReflectionStoreCheck:string
+    sohLoad:string
+    sohForm:string
+    sohCheck:string
+    
 }
 
 export class RoutingManager extends BaseManager implements ILoadableManager {
@@ -39,7 +43,11 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
         shipmentUploadInfoListByBarcode:"shipment__Upload_InfoList__ByBarcode",
 
         shipmentReflectionStoreForm:"shipment__ReflectionStore__Form",
-        shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check"
+        shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check",
+
+        sohLoad:"sohLoad",
+        sohForm:"sohForm",
+        sohCheck:"sohCheck"
 
     }
 

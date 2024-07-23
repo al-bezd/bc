@@ -12,6 +12,7 @@ import { IGettingProductionDocument } from "@/managers/getting/interfaces";
 import { IDocument } from "@/interfaces/IDocument";
 import { DB2Manager, IBarcode } from "./DB2Manager";
 import { IInfoList } from "@/interfaces/IInfoList";
+import { ISohDocument } from "@/managers/soh/interfaces";
 
 export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
@@ -25,7 +26,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
     userDocument: 'userDocument',
     infoSheets: 'infoSheets',
     orders: "orders",
-    containers: "containers"
+    containers: "containers",
+    sohOrders:"sohOrders"
   }
 
   public local = {
@@ -39,6 +41,9 @@ export class MainManager extends BaseManager implements ILoadableManager {
     },
     shipmentDocs: async (): Promise<IShipmentDocument[]> => {
       return await UserManager.instance.getShipmentDocuments()
+    },
+    sohDocs: async (): Promise<ISohDocument[]> => {
+      return await UserManager.instance.getSohDocuments()
     },
     gettingDocs: async (): Promise<IGettingProductionDocument[]> => {
       return await UserManager.instance.getGettingProdDocuments()

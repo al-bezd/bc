@@ -16,10 +16,12 @@ export interface ILinkedObject{
 
 // Документ заказ клиента заказ на перемещение
 export interface IDocument{
+    РезультатПроверки:boolean
     Ссылка:IСсылка
     Наименование:string
     scanings:IScaning[]
     ШК:string
+    completed:boolean|undefined
 }
 
 export interface IСсылка extends IProperty{

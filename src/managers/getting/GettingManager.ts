@@ -1,13 +1,11 @@
 
 import { BaseManager } from "@/classes/BaseManager";
 
-import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { Ref, ref, toRaw } from "vue";
 import { IGettingProductionDocument } from "./interfaces";
 import { IScaning } from "@/interfaces/IScaning";
-import { MainManager } from "@/classes/MainManager";
 import { DB2Manager } from "@/classes/DB2Manager";
 import { IDocument } from "@/interfaces/IDocument";
 
@@ -22,7 +20,7 @@ export class GettingManager extends BaseManager {
   protected currentDocumentKey = "GettingManager__currentDocument"
   protected currentScaningsKey = "GettingManager__currentScanings"
 
-  public documents: any[] = [];
+  //public documents: any[] = [];
   public currentScanings: Ref<IScaning[]> = ref([])
   public currentDocument: Ref<IGettingProductionDocument | null> = ref(null)
 
@@ -46,8 +44,6 @@ export class GettingManager extends BaseManager {
   async asyncLoad() {
     this.currentDocument.value = await DB2Manager.getData<IGettingProductionDocument>(this.currentDocumentKey) ?? null
     this.currentScanings.value = await DB2Manager.instance.getting!.getScanings()??[]
-    //this.currentScanings.value = await DBManager.getData(this.currentScaningsKey) ?? []
-    //console.log('this.currentDocument.value ', this.currentDocument.value)
   }
 
 
@@ -73,12 +69,10 @@ export class GettingManager extends BaseManager {
     }
     this.currentScanings.value = val
     DB2Manager.instance.getting!.setScanings(val.map(x=>toRaw(x)))
-    //DB2Manager.setData(key, val.map(x=>toRaw(x)))
     this.emit('setCurrentScanings', [val])
   }
 
   addScaning(data:IScaning){
-    const key = this.currentScaningsKey
     this.currentScanings.value.unshift(data)
     DB2Manager.instance.getting?.addScaning(data)
     //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
@@ -88,8 +82,6 @@ export class GettingManager extends BaseManager {
   }
 
   deleteScaning(data:IScaning) {
-    const key = this.currentScaningsKey
-
     for (const i of this.currentScanings.value) {
       if(i.IDSec === data.IDSec) {
         this.currentScanings.value.splice(this.currentScanings.value.indexOf(i), 1)
@@ -97,7 +89,6 @@ export class GettingManager extends BaseManager {
       }
     }
     DB2Manager.instance.getting!.deleteScaning(data)
-    //DBManager.setData(key, toRaw(this.currentScanings.value) )
     this.emit('deleteScaning', [this.currentScanings.value, data])
   }
 

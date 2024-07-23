@@ -9,6 +9,7 @@ import { IShipmentDocument } from "../shipment/interfaces"
 import { IGettingProductionDocument } from "../getting/interfaces"
 import { DB2Manager } from "@/classes/DB2Manager"
 import { StringToBool } from "@/functions/StringToBoolean"
+import { ISohDocument } from "../soh/interfaces"
 
 
 
@@ -254,6 +255,23 @@ export class UserManager extends BaseManager {
     }
     return documents
   }
+
+  /// Получаем сохраненные(документы пользователя) документы ОтгрузкаТоваровСХранения
+  async getSohDocuments():Promise<ISohDocument[]>{
+    const res = await this.getUserDocuments()
+    const documents:ISohDocument[] = []
+    if(res){
+      const dosc:IDocument[]=res
+      for(const doc of dosc){
+        if(doc.Ссылка.Вид==="ОтгрузкаТоваровСХранения"){
+          documents.unshift(doc as ISohDocument)
+        }
+      }
+    }
+    return documents
+  }
+
+  
 
 
 

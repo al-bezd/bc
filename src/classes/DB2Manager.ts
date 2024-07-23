@@ -28,6 +28,8 @@ export interface IBarcode {
 
 type IShipmentScaningStore = { shipmentCurrentScanings: EntityTable<IScaning, 'IDSec'> }
 type IGettingScaningStore = { gettingCurrentScanings: EntityTable<IScaning, 'IDSec'> }
+type ISohScaningStore = { sohCurrentScanings: EntityTable<IScaning, 'IDSec'> }
+
 type IContainerStore = { containers: EntityTable<IContainer, 'id'> }
 type IUserStore = { user: EntityTable<IUser, 'ФИО'> }
 type IBarcodeStore = { barcodes: EntityTable<IBarcode, 'Наименование'> }
@@ -84,6 +86,7 @@ interface ITorgovieSetiStoreController{
 
 interface IOrdersStoreController{
     store: EntityTable<IDocument, 'ШК'>,
+    addAll(values: IDocument[]): Promise<string>,
     setAll(values: IDocument[]): Promise<string>,
     getAll(): Promise<IDocument[]>,
     get(ШК: string): Promise<IDocument | undefined>,
@@ -117,6 +120,8 @@ interface ILogStoreController{
 }
 
 
+
+
 export class DB2Manager extends BaseManager {
     public static instance: DB2Manager
 
@@ -145,6 +150,7 @@ export class DB2Manager extends BaseManager {
     public userDocuments: IUserDocumentsStoreController | null = null
     public log:ILogStoreController | null = null
     public local: ILocalStoreController | null = null
+    public soh:IScaningStoreController | null = null
 
     async fillManager() {
         // this.user = {
@@ -218,6 +224,27 @@ export class DB2Manager extends BaseManager {
 
         }
 
+        this.soh = {
+            store: (DB2Manager.instance.db! as Dexie & ISohScaningStore).sohCurrentScanings,
+            async addScaning(scaning: IScaning) {
+                return await this.store.add(scaning)
+            },
+            async setScanings(scanings: IScaning[]) {
+               
+                await this.store.clear()
+                return await this.store.bulkAdd(scanings)
+            },
+            async deleteScaning(scaning: IScaning) {
+                return await this.store.delete(scaning.IDSec)
+            },
+            async getScanings() {
+                return (await this.store.toArray()) ?? []
+            },
+            async clearScanings() {
+                return await this.store.clear()
+            }
+        }
+
         this.barcodes = {
             store: (DB2Manager.instance.db! as Dexie & IBarcodeStore).barcodes,
             async setAll(barcodes: IBarcode[]) {
@@ -249,6 +276,9 @@ export class DB2Manager extends BaseManager {
 
         this.orders = {
             store: (DB2Manager.instance.db! as Dexie & IOrdersStore).orders,
+            async addAll(values: IDocument[]) {
+                return await this.store.bulkPut(values)
+            },
             async setAll(values: IDocument[]) {
                 
                 await this.store.clear()
@@ -368,6 +398,7 @@ export class DB2Manager extends BaseManager {
             ILocalStore &
             IShipmentScaningStore &
             IGettingScaningStore &
+            ISohScaningStore &
             IContainerStore &
             IUserStore &
             IBarcodeStore &
@@ -381,6 +412,7 @@ export class DB2Manager extends BaseManager {
             localStore: '++id, data', // primary key "id" (for the runtime!),
             shipmentCurrentScanings: '++IDSec, data',
             gettingCurrentScanings: '++IDSec, data',
+            sohCurrentScanings: '++IDSec, data',
             containers: '++id, data',
             user: '++id, data',
             barcodes: '++Наименование, data',

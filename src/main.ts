@@ -20,6 +20,7 @@ import 'vue3-toastify/dist/index.css';
 import { LogManager } from './classes/LogManager';
 import { FileManager } from './classes/FileManager';
 import { DB2Manager } from './classes/DB2Manager';
+import { SohManager } from './managers/soh/SohManager';
 
 
 
@@ -37,6 +38,7 @@ FileManager.init()
 LogManager.init()
 ShipmentManager.init()
 GettingManager.init()
+SohManager.init()
 UserManager.init()
 //DBManager.init()
 LocalStorageManager.init()
@@ -55,6 +57,7 @@ MainManager.load=async()=>{
     MainManager.instance.load()
     GettingManager.instance.load()
     ShipmentManager.instance.load();
+    SohManager.instance.load(),
     HttpManager.instance.load()
     ScanerManager.instance.load()
     UserManager.instance.load()

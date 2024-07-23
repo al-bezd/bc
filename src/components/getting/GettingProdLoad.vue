@@ -32,7 +32,7 @@
 import GettingProdLoadItem from "@/components/getting/widgets/GettingProdLoadItem.vue";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { UserManager } from "@/managers/user/UserManager";
@@ -42,7 +42,7 @@ import { IGettingProductionDocument } from "@/managers/getting/interfaces";
 const seen = ref(false);
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionLoad, show, close);
 
-const documents = ref(GettingManager.instance.documents);
+const documents: Ref<IGettingProductionDocument[]> = ref([]);
 const barcode = ref("");
 
 ScanerManager.instance.onScan((value) => {
@@ -105,9 +105,7 @@ async function deleteDocument(document: IDocument) {
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await GettingManager.instance.deleteDocument(
-      document
-    );
+    const response = await GettingManager.instance.deleteDocument(document);
     if (response) {
       initSavedDocuments();
     }
