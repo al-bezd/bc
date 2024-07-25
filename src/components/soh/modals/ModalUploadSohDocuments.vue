@@ -33,26 +33,6 @@
       </div>
     </div>
 
-    <div class="">
-      <div class="mb-3">
-        <label for="Сеть" class="form-label">Склад</label>
-        <select
-          class="form-control"
-          id="Сеть"
-          v-model="selectedStore"
-          @change="
-            () => {
-              addOrders.СкладНаименование = selectedStore?.Наименование ?? '';
-            }
-          "
-        >
-          <option v-for="item in stores" selected :key="item.Ссылка.Ссылка" :value="item">
-            {{ item.Наименование }}
-          </option>
-        </select>
-      </div>
-    </div>
-
     <div class="d-grid gap-2">
       <button
         type="button"
@@ -85,7 +65,7 @@ import {
   getCurrentDateFromDatePickerFormat,
 } from "@/functions/GetCurrentDateByDatePickerFormat";
 import { DB2Manager } from "@/classes/DB2Manager";
-import { SohManager } from "@/managers/soh/SohManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { IStore } from "@/interfaces/IStore";
 
 interface IAddOrdersModel {
@@ -102,9 +82,6 @@ const props = defineProps<IProps>();
 const emit = defineEmits(["update:seen"]);
 //const seen = ref(false);
 
-const stores: Ref<IStore[]> = ref([]);
-const selectedStore: Ref<IStore | null> = ref(null);
-
 const addOrders: Ref<IAddOrdersModel> = ref(getEmptyAddOrdersModel());
 
 function getEmptyAddOrdersModel(): IAddOrdersModel {
@@ -116,19 +93,6 @@ function getEmptyAddOrdersModel(): IAddOrdersModel {
     Заголовок: "Загрузка заказов (СОХ)",
   };
 }
-
-watch(
-  () => props.seen,
-  (newVal, _) => {
-    if (newVal) {
-      if (SohManager.instance.stores.length == 0 && stores.value.length == 0) {
-        SohManager.instance.getSohStores().then((items) => {
-          stores.value = items;
-        });
-      }
-    }
-  }
-);
 
 function close() {
   emit("update:seen", false);
@@ -147,7 +111,7 @@ async function LoadOrdersExecute(type: string) {
   if (type == MainManager.keys.sohOrders) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ СОХ!");
 
-    const documents = await SohManager.instance.getOrdersFromServer(
+    const documents = await SohShipmentManager.instance.getOrdersFromServer(
       getCurrentDateFromDatePickerFormat(addOrders.value.ДатаНачала).getTime(),
       getCurrentDateFromDatePickerFormat(addOrders.value.ДатаОкончания).getTime(),
       addOrders.value.СкладНаименование

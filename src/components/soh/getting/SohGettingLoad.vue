@@ -1,7 +1,7 @@
 <template>
   <!-- Окно загрузки документа СОХ-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>Отсканируйте ШК с листа сборки в поле</h4>
+    <h6>Отсканируйте ШК в поле</h6>
     <input
       type="text"
       class="form-control bc_input mb-3"
@@ -9,7 +9,7 @@
       v-model="barcode"
       @keyup.enter="onEnter()"
     />
-    <div class="d-grid gap-2 mb-3">
+    <!-- <div class="d-grid gap-2 mb-3">
       <button
         type="button"
         class="btn btn-primary btn-lg btn-block text-uppercase"
@@ -17,7 +17,7 @@
       >
         <b>ЗАГРУЗИТЬ ЗАДАНИЯ (СОХ)</b>
       </button>
-    </div>
+    </div> -->
     <div class="space">
       <DocumentItemComponent
         v-for="document in savedSohDocs"
@@ -47,22 +47,21 @@ import ModalUploadSohDocuments from "@/components/soh/modals/ModalUploadSohDocum
 import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
-import { SohManager } from "@/managers/soh/SohManager";
-import { Ref, ref } from "vue";
-import { IShipmentDocument } from "@/managers/shipment/interfaces";
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
+import { computed, Ref, ref } from "vue";
 import { UserManager } from "@/managers/user/UserManager";
 import { MainManager } from "@/classes/MainManager";
 import { IScaning } from "@/interfaces/IScaning";
 import { IDocument } from "@/interfaces/IDocument";
 import { ISohDocument } from "@/managers/soh/interfaces";
-
+const currentManager = computed(() => SohGettingManager.instance);
 const barcode = ref("");
 const savedSohDocs: Ref<ISohDocument[]> = ref([]);
 
 const modalSeen = ref(false);
 
 const seen = ref(false);
-RoutingManager.instance.registry(RoutingManager.route.sohLoad, show, close);
+RoutingManager.instance.registry(RoutingManager.route.sohGettingLoad, show, close);
 
 ScanerManager.instance.onScan((value) => {
   if (!seen.value) {
@@ -89,20 +88,20 @@ async function close() {
 
 /// Подгружаем сохраненые документы пользователя
 async function initSavedDocuments() {
-  savedSohDocs.value = await MainManager.instance.local.sohDocs();
+  savedSohDocs.value = await MainManager.instance.local.sohGettingDocs();
 }
 
-function onTapDocument(document: ISohDocument) {
+function onTapDocument(document: IDocument) {
   setCurrentDocument(document, document.scanings ?? []);
 }
 
 /// удаляет ранее добавленый документ из списка документов
-async function onDeleteDocument(document: IShipmentDocument) {
+async function onDeleteDocument(document: IDocument) {
   const resultQuest = await NotificationManager.showConfirm(
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await SohManager.instance.deleteDocument(document);
+    const response = await currentManager.value.deleteDocument(document);
     console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();
@@ -118,7 +117,7 @@ async function closeWithQuest() {
   );
   if (response) {
     //close()
-    SohManager.instance.clear();
+    currentManager.value.clear();
     RoutingManager.instance.pushName(RoutingManager.route.mainMenu);
   }
 }
@@ -138,9 +137,9 @@ async function getDocumentByBarcode(barcode: string) {
   /// если не нашли документ в документах пользователя то получаем его с сервера или из списка ранее загруженных заказов
   let document: ISohDocument | null = null;
   if (UserManager.instance.useLocalOrders.value) {
-    document = await SohManager.instance.getDocumentFromLocalDBByBarcode(barcode);
+    document = await currentManager.value.getDocumentFromLocalDBByBarcode(barcode);
   } else {
-    document = await SohManager.instance.getDocumentFromServerByBarcode(barcode);
+    document = await currentManager.value.getDocumentFromServerByBarcode(barcode);
   }
 
   if (document) {
@@ -149,9 +148,9 @@ async function getDocumentByBarcode(barcode: string) {
 }
 
 function setCurrentDocument(document: IDocument, scans: IScaning[] = []) {
-  SohManager.instance.setCurrentDocument(document as ISohDocument);
-  SohManager.instance.setCurrentScanings(scans);
-  RoutingManager.instance.pushName(RoutingManager.route.sohForm);
+  currentManager.value.setCurrentDocument(document as ISohDocument);
+  currentManager.value.setCurrentScanings(scans);
+  RoutingManager.instance.pushName(RoutingManager.route.sohGettingForm);
 }
 
 function showLoadOrders() {

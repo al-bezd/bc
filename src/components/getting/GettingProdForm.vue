@@ -173,7 +173,12 @@ function onEnter() {
   barcode.value = "";
 }
 
-const validators = [isValidScaning, isWeightMoreWeightInChar, isWeightMoreWeightInDoc];
+const validators = [
+  isValidScaning,
+  isWeightMoreWeightInChar,
+  isWeightMoreWeightInDoc,
+  isLentaTanderRule,
+];
 
 async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
@@ -228,6 +233,23 @@ function isWeightMoreWeightInChar(scan: IScaning): boolean {
       NotificationManager.instance.playError();
       break;
     }
+  }
+  return true;
+}
+
+function isLentaTanderRule(scan: IScaning): boolean {
+  const con1 =
+    scan.Характеристика.Наименование.includes("(Лента)") ||
+    scan.Характеристика.Наименование.includes("(Тандер)");
+  const con2 = scan.Характеристика.ДополнительныеРеквизиты.filter(
+    (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
+  );
+  if (con1 && con2.length && scan.Количество > con2[0].Значение) {
+    NotificationManager.swal(
+      `Вес в сканировании больше чем доступно в характеристике ${scan.Характеристика.Наименование} ${con2[0].Значение}\nвес в сканировании ${scan.Количество}`
+    );
+    NotificationManager.instance.playError();
+    return false;
   }
   return true;
 }

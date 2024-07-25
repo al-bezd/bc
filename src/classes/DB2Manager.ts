@@ -15,20 +15,21 @@ export interface IlocalData {
     id: string;
     data: any
 }
-export interface IBarcodeLinkedObject{
-    Номенклатура:IНоменклатура
-    Характеристика:IХарактеристика
-    ПЛУ:string
+export interface IBarcodeLinkedObject {
+    Номенклатура: IНоменклатура
+    Характеристика: IХарактеристика
+    ПЛУ: string
 }
 
 export interface IBarcode {
     Наименование: string
-    Ссылка: IBarcodeLinkedObject        
+    Ссылка: IBarcodeLinkedObject
 }
 
 type IShipmentScaningStore = { shipmentCurrentScanings: EntityTable<IScaning, 'IDSec'> }
 type IGettingScaningStore = { gettingCurrentScanings: EntityTable<IScaning, 'IDSec'> }
-type ISohScaningStore = { sohCurrentScanings: EntityTable<IScaning, 'IDSec'> }
+type ISohShipingScaningStore = { sohShipingCurrentScanings: EntityTable<IScaning, 'IDSec'> }
+type ISohGettingScaningStore = { sohGettingCurrentScanings: EntityTable<IScaning, 'IDSec'> }
 
 type IContainerStore = { containers: EntityTable<IContainer, 'id'> }
 type IUserStore = { user: EntityTable<IUser, 'ФИО'> }
@@ -38,7 +39,7 @@ type ILocalStore = { localStore: EntityTable<IlocalData, 'id'> }
 type IOrdersStore = { orders: EntityTable<IDocument, 'ШК'> }
 type IInfoSheetsStore = { infoSheets: EntityTable<IInfoList, 'ШК'> }
 type IUserDocumentsStore = { userDocuments: EntityTable<IDocument, 'ШК'> }
-type ILogStore = {log:EntityTable<ILogItem,'key'>}
+type ILogStore = { log: EntityTable<ILogItem, 'key'> }
 
 interface ILocalStoreController {
     store: EntityTable<IlocalData, "id">,
@@ -60,31 +61,31 @@ interface IContainerStoreController {
     getAll(): Promise<IContainer[]>
 }
 
-interface IScaningStoreController{
+export interface IScaningStoreController {
     store: EntityTable<IScaning, 'IDSec'>,
     addScaning(scaning: IScaning): Promise<number>,
     setScanings(scanings: IScaning[]): Promise<number>,
     deleteScaning(scaning: IScaning): Promise<void>,
     getScanings(): Promise<IScaning[]>,
     clearScanings(): Promise<void>
-    
+
 }
 
-interface IBarcodeStoreController{
+interface IBarcodeStoreController {
     store: EntityTable<IBarcode, 'Наименование'>,
     setAll(barcodes: IBarcode[]): Promise<string>,
     get(key: string): Promise<IBarcode | undefined>,
     count(): Promise<number>
 }
 
-interface ITorgovieSetiStoreController{
+interface ITorgovieSetiStoreController {
     store: EntityTable<ITorgovieSeti, 'Код'>,
     setAll(values: ITorgovieSeti[]): Promise<string>,
     getAll(): Promise<ITorgovieSeti[]>,
     get(Код: string): Promise<ITorgovieSeti | undefined>
 }
 
-interface IOrdersStoreController{
+interface IOrdersStoreController {
     store: EntityTable<IDocument, 'ШК'>,
     addAll(values: IDocument[]): Promise<string>,
     setAll(values: IDocument[]): Promise<string>,
@@ -93,7 +94,7 @@ interface IOrdersStoreController{
     count(): Promise<number>
 }
 
-interface IInfoSheetsStoreController{
+interface IInfoSheetsStoreController {
     store: EntityTable<IInfoList, 'ШК'>,
     setAll(values: IInfoList[]): Promise<string>,
     addAll(values: IInfoList[]): Promise<string>,
@@ -102,7 +103,7 @@ interface IInfoSheetsStoreController{
     count(): Promise<number>
 }
 
-interface IUserDocumentsStoreController{
+interface IUserDocumentsStoreController {
     store: EntityTable<IDocument, 'ШК'>,
     setAll(values: IDocument[]): Promise<string>,
     getAll(): Promise<IDocument[]>,
@@ -111,12 +112,12 @@ interface IUserDocumentsStoreController{
     delete(value: IDocument): Promise<void>
 }
 
-interface ILogStoreController{
+interface ILogStoreController {
     store: EntityTable<ILogItem, 'key'>,
     getAll(): Promise<ILogItem[]>,
-    add(item:ILogItem): Promise<string>,
+    add(item: ILogItem): Promise<string>,
     clear(): Promise<void>
-    
+
 }
 
 
@@ -148,9 +149,10 @@ export class DB2Manager extends BaseManager {
     public orders: IOrdersStoreController | null = null
     public infoSheets: IInfoSheetsStoreController | null = null
     public userDocuments: IUserDocumentsStoreController | null = null
-    public log:ILogStoreController | null = null
+    public log: ILogStoreController | null = null
     public local: ILocalStoreController | null = null
-    public soh:IScaningStoreController | null = null
+    public soh_getting: IScaningStoreController | null = null
+    public soh_shiping: IScaningStoreController | null = null
 
     async fillManager() {
         // this.user = {
@@ -224,13 +226,34 @@ export class DB2Manager extends BaseManager {
 
         }
 
-        this.soh = {
-            store: (DB2Manager.instance.db! as Dexie & ISohScaningStore).sohCurrentScanings,
+        this.soh_getting = {
+            store: (DB2Manager.instance.db! as Dexie & ISohGettingScaningStore).sohGettingCurrentScanings,
             async addScaning(scaning: IScaning) {
                 return await this.store.add(scaning)
             },
             async setScanings(scanings: IScaning[]) {
-               
+
+                await this.store.clear()
+                return await this.store.bulkAdd(scanings)
+            },
+            async deleteScaning(scaning: IScaning) {
+                return await this.store.delete(scaning.IDSec)
+            },
+            async getScanings() {
+                return (await this.store.toArray()) ?? []
+            },
+            async clearScanings() {
+                return await this.store.clear()
+            }
+        }
+
+        this.soh_shiping = {
+            store: (DB2Manager.instance.db! as Dexie & ISohShipingScaningStore).sohShipingCurrentScanings,
+            async addScaning(scaning: IScaning) {
+                return await this.store.add(scaning)
+            },
+            async setScanings(scanings: IScaning[]) {
+
                 await this.store.clear()
                 return await this.store.bulkAdd(scanings)
             },
@@ -280,7 +303,7 @@ export class DB2Manager extends BaseManager {
                 return await this.store.bulkPut(values)
             },
             async setAll(values: IDocument[]) {
-                
+
                 await this.store.clear()
                 return await this.store.bulkAdd(values)
             },
@@ -313,7 +336,7 @@ export class DB2Manager extends BaseManager {
             },
 
             async get(ШК: string) {
-                return (await this.store.get(ШК))??null
+                return (await this.store.get(ШК)) ?? null
             },
             async count() {
                 return await this.store.count()
@@ -324,8 +347,8 @@ export class DB2Manager extends BaseManager {
             store: (DB2Manager.instance.db! as Dexie & IUserDocumentsStore).userDocuments,
             async count() {
                 return await this.store.count()
-            },async get(ШК: string) {
-                return (await this.store.get(ШК))??null
+            }, async get(ШК: string) {
+                return (await this.store.get(ШК)) ?? null
             },
             async setAll(values: IDocument[]) {
                 await this.store.clear()
@@ -335,24 +358,24 @@ export class DB2Manager extends BaseManager {
             async getAll() {
                 return await this.store.toArray()
             },
-            async delete(value:IDocument){
+            async delete(value: IDocument) {
                 return await this.store.delete(value.ШК)
             }
 
         }
 
         this.log = {
-            store:(DB2Manager.instance.db! as Dexie & ILogStore).log,
-            async add(item:ILogItem) {
+            store: (DB2Manager.instance.db! as Dexie & ILogStore).log,
+            async add(item: ILogItem) {
                 return await this.store.add(item)
             },
             async getAll() {
-                return (await this.store.toArray())??[]
+                return (await this.store.toArray()) ?? []
             },
             async clear() {
                 return await this.store.clear()
             }
-            
+
         }
 
         this.local = {
@@ -371,7 +394,7 @@ export class DB2Manager extends BaseManager {
 
                 //return () as T
             },
-            async delete(key:string):Promise<void>{
+            async delete(key: string): Promise<void> {
                 return await this.store.delete(key)
             }
 
@@ -379,7 +402,7 @@ export class DB2Manager extends BaseManager {
     }
 
 
-    async clear(){
+    async clear() {
         await this.db!.delete();
         this.createDb('1c')
     }
@@ -398,7 +421,8 @@ export class DB2Manager extends BaseManager {
             ILocalStore &
             IShipmentScaningStore &
             IGettingScaningStore &
-            ISohScaningStore &
+            ISohGettingScaningStore &
+            ISohShipingScaningStore &
             IContainerStore &
             IUserStore &
             IBarcodeStore &
@@ -412,7 +436,8 @@ export class DB2Manager extends BaseManager {
             localStore: '++id, data', // primary key "id" (for the runtime!),
             shipmentCurrentScanings: '++IDSec, data',
             gettingCurrentScanings: '++IDSec, data',
-            sohCurrentScanings: '++IDSec, data',
+            sohGettingCurrentScanings: '++IDSec, data',
+            sohShipingCurrentScanings: '++IDSec, data',
             containers: '++id, data',
             user: '++id, data',
             barcodes: '++Наименование, data',
@@ -440,7 +465,7 @@ export class DB2Manager extends BaseManager {
         return result
     }
 
-    static async removeData(key:string):Promise<void>{
+    static async removeData(key: string): Promise<void> {
         return await DB2Manager.instance.local!.delete(key)
     }
 

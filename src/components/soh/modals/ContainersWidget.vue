@@ -67,11 +67,11 @@
 import { HttpManager } from "@/classes/HttpManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { Ref, ref, toRaw, watch } from "vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import { IContainer } from "@/interfaces/IStore";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
+import { IDocument } from "@/interfaces/IDocument";
 
 interface IProps {
   seen: boolean;
@@ -97,7 +97,7 @@ const containers: Ref<IContainer[]> = ref([]);
 // }
 
 async function initContainers() {
-  const doc: IShipmentDocument = ShipmentManager.instance.currentDocument.value!;
+  const doc: IDocument = SohShipmentManager.instance.currentDocument.value!;
   const data = {
     Тип: doc.Ссылка.Тип,
     Вид: doc.Ссылка.Вид,
@@ -114,7 +114,7 @@ async function initContainers() {
   }
 
   containers.value = httpRes.data.Текст;
-  const scanings = ShipmentManager.instance.currentScanings.value;
+  const scanings = SohShipmentManager.instance.currentScanings.value;
   const containersFromDB = (await MainManager.instance.local.containers()) ?? [];
 
   for (const y of containers.value) {
@@ -143,7 +143,7 @@ function close() {
 }
 
 async function save() {
-  const doc: IShipmentDocument = ShipmentManager.instance.currentDocument.value!;
+  const doc: IDocument = SohShipmentManager.instance.currentDocument.value!;
   const data = {
     Тип: doc.Ссылка.Тип,
     Вид: doc.Ссылка.Вид,

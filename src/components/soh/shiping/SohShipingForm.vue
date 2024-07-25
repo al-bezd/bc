@@ -3,14 +3,14 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <h5 class="text-muted">{{ docName }}</h5>
 
-    <div class="row">
+    <!-- <div class="row">
       <div class="col">
         <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
       </div>
       <div class="col">
         <BootstrapSwitcher label="Инфо. лист" v-model:value="itInfoList" />
       </div>
-    </div>
+    </div> -->
 
     <input
       type="text"
@@ -81,19 +81,19 @@ import { MainManager } from "@/classes/MainManager";
 import { ScaningController } from "@/controllers/ScaningController";
 import { RowKeyMode } from "@/functions/GetGroupScans";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
-import { SohManager } from "@/managers/soh/SohManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { ISohDocument } from "@/managers/soh/interfaces";
+const currentManager = computed(() => SohShipmentManager.instance);
+RoutingManager.instance.registry(RoutingManager.route.sohShipmentForm, show, close);
 
-RoutingManager.instance.registry(RoutingManager.route.sohForm, show, close);
-
-const scaningController: ScaningController = new ScaningController(SohManager.instance);
+const scaningController: ScaningController = new ScaningController(currentManager.value);
 
 const filteredByArticulController = new FilteredByArticulController(
-  SohManager.instance.currentScanings,
+  currentManager.value.currentScanings,
   ref("НомХарСер")
 );
 
-const items = SohManager.instance.currentScanings;
+const items = currentManager.value.currentScanings;
 
 const seen = ref(false);
 const barcode = ref("");
@@ -102,14 +102,14 @@ const itPalet = ref(false);
 const itInfoList = ref(false);
 
 const docName = computed(() => {
-  if (SohManager.instance.currentDocument.value) {
-    return SohManager.instance.currentDocument.value!.Наименование;
+  if (currentManager.value.currentDocument.value) {
+    return currentManager.value.currentDocument.value!.Наименование;
   }
   return "Документ не найден";
 });
 
 const boxCount = computed(() =>
-  GetCount(SohManager.instance.currentScanings.value, "Грузоместа")
+  GetCount(currentManager.value.currentScanings.value, "Грузоместа")
 );
 
 async function closeWithConfirm() {
@@ -117,8 +117,8 @@ async function closeWithConfirm() {
     "Вы уверенны что хотите перейти обратно?"
   );
   if (response) {
-    SohManager.instance.clear();
-    RoutingManager.instance.pushName(RoutingManager.route.sohLoad);
+    currentManager.value.clear();
+    RoutingManager.instance.pushName(RoutingManager.route.sohShipmentLoad);
   }
 }
 
@@ -132,8 +132,8 @@ async function addManualScaning() {
 }
 
 function onSort(mode: OrderByType) {
-  SohManager.instance.currentScanings.value = GetListSortBy(
-    SohManager.instance.currentScanings.value,
+  currentManager.value.currentScanings.value = GetListSortBy(
+    currentManager.value.currentScanings.value,
     mode
   );
 }
@@ -152,7 +152,7 @@ function show() {
 }
 
 function goCheck() {
-  RoutingManager.instance.pushName(RoutingManager.route.sohCheck);
+  RoutingManager.instance.pushName(RoutingManager.route.sohShipmentCheck);
 }
 
 function onEnter() {
@@ -172,8 +172,8 @@ async function onScan(barcode: string) {
     }
     /// Загружаем сканирования из инфо листа
     /// ПРОВЕРКА НА ВАЛИДНОСТЬ ДАННЫХ В ТАКОМ СЛУЧАЕ НЕ ДЕЛАЕТСЯ!!!
-    const oldScanings = SohManager.instance.currentScanings.value.map((x) => toRaw(x));
-    SohManager.instance.setCurrentScanings([...res.data, ...oldScanings]);
+    const oldScanings = currentManager.value.currentScanings.value.map((x) => toRaw(x));
+    currentManager.value.setCurrentScanings([...res.data, ...oldScanings]);
     return;
   }
 
@@ -191,8 +191,8 @@ async function onScan(barcode: string) {
       itPalet.value = false;
     }
 
-    SohManager.instance.addScaning(scan);
-    scaningController.isValidScaning(scan, SohManager.instance.currentScanings.value);
+    currentManager.value.addScaning(scan);
+    scaningController.isValidScaning(scan, currentManager.value.currentScanings.value);
 
     return;
   }
@@ -201,13 +201,13 @@ async function onScan(barcode: string) {
 
 /// Проверяем сканирование перед добавлением в список сканирований
 function isValidScaning(scan: IScaning): boolean {
-  const prodDoc: ISohDocument = SohManager.instance.currentDocument.value!;
+  const prodDoc: ISohDocument = currentManager.value.currentDocument.value!;
   const inOrder =
     prodDoc.Товары.filter(
       (item) =>
         scan.Номенклатура.Наименование == item.Номенклатура.Наименование &&
         scan.Характеристика.Наименование == item.Характеристика.Наименование &&
-        scan.Серия.Наименование == item.Ссылка.Наименование
+        scan.Серия.Наименование == item.Серия.Наименование
     ).length > 0
       ? true
       : false;
@@ -228,7 +228,7 @@ async function clearCurrentScanings() {
     "Вы действительно хотите удалить все текущие сканирования?"
   );
   if (result) {
-    SohManager.instance.clearCurrentScanings();
+    currentManager.value.clearCurrentScanings();
   }
 }
 
@@ -246,7 +246,7 @@ async function itemDelete(item: IScaning) {
       ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
   const answerIsTrue = await NotificationManager.showConfirm(text);
   if (answerIsTrue) {
-    SohManager.instance.deleteScaning(item);
+    currentManager.value.deleteScaning(item);
   }
 }
 </script>

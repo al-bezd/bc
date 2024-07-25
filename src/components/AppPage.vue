@@ -75,9 +75,13 @@
     <GettingProdForm />
     <GettingProdCheck />
 
-    <SohLoad />
-    <SohForm />
-    <SohCheck />
+    <SohShipingLoad />
+    <SohShipingForm />
+    <SohShipingCheck />
+
+    <SohGettingLoad />
+    <SohGettingForm />
+    <SohGettingCheck />
 
     <SettingsButton />
     <SettingsScreen />
@@ -110,9 +114,14 @@ import InfoListCheck from "./shipment/info_list/InfoListCheck.vue";
 
 import ReflectionStoreForm from "./shipment/reflection_store/ReflectionStoreForm.vue";
 import ReflectionStoreCheck from "./shipment/reflection_store/ReflectionStoreCheck.vue";
-import SohLoad from "@/components/soh/SohLoad.vue";
-import SohForm from "@/components/soh/SohForm.vue";
-import SohCheck from "@/components/soh/SohCheck.vue";
+
+import SohShipingLoad from "@/components/soh/shiping/SohShipingLoad.vue";
+import SohShipingForm from "@/components/soh/shiping/SohShipingForm.vue";
+import SohShipingCheck from "@/components/soh/shiping/SohShipingCheck.vue";
+
+import SohGettingLoad from "@/components/soh/getting/SohGettingLoad.vue";
+import SohGettingForm from "@/components/soh/getting/SohGettingForm.vue";
+import SohGettingCheck from "@/components/soh/getting/SohGettingCheck.vue";
 
 // onMounted(() => {
 //   RoutingManager.instance.afterReload();

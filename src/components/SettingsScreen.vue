@@ -396,7 +396,7 @@ async function clearStorage() {
     await DB2Manager.instance.clear();
     NotificationManager.success("Локальное хранилище очищено");
     RoutingManager.instance.pushName(RoutingManager.route.selectUser);
-  } catch (e) {
+  } catch (e: any) {
     NotificationManager.error(e.toString());
   }
 }

@@ -9,7 +9,7 @@ import { IНоменклатура, IСерия, IХарактеристика }
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { SohManager } from "@/managers/soh/SohManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { UserManager } from "@/managers/user/UserManager";
 
 
@@ -21,7 +21,7 @@ interface IBarcodeStructure {
 }
 
 export class ScaningController {
-    constructor(manager: ShipmentManager | GettingManager | SohManager, isFree = false) {
+    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager, isFree = false) {
         
         this.isFree = isFree
         this.manager = manager
@@ -29,7 +29,7 @@ export class ScaningController {
 
     /// параметр отвечающий за привязку к документу
     public isFree = false
-    public manager: ShipmentManager | GettingManager | SohManager
+    public manager: ShipmentManager | GettingManager | SohShipmentManager
 
 
     /// Получаем разобранную структура штрих кода

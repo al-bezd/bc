@@ -18,9 +18,14 @@ interface IRoutingMap {
 
     shipmentReflectionStoreForm:string
     shipmentReflectionStoreCheck:string
-    sohLoad:string
-    sohForm:string
-    sohCheck:string
+    
+    sohShipmentLoad:string
+    sohShipmentForm:string
+    sohShipmentCheck:string
+
+    sohGettingLoad:string
+    sohGettingForm:string
+    sohGettingCheck:string
     
 }
 
@@ -45,9 +50,13 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
         shipmentReflectionStoreForm:"shipment__ReflectionStore__Form",
         shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check",
 
-        sohLoad:"sohLoad",
-        sohForm:"sohForm",
-        sohCheck:"sohCheck"
+        sohShipmentLoad:"sohShipmentLoad",
+        sohShipmentForm:"sohShipmentForm",
+        sohShipmentCheck:"sohShipmentCheck",
+
+        sohGettingLoad:"sohGettingLoad",
+        sohGettingForm:"sohGettingForm",
+        sohGettingCheck:"sohGettingCheck"
 
     }
 

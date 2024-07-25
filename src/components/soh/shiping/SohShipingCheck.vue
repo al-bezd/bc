@@ -3,7 +3,7 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
       <div class="col-8">
-        <h4 class="text-muted fs-6">{{ docName }}: Проверка</h4>
+        <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
       </div>
       <div class="col-4">
         <button
@@ -94,21 +94,20 @@ import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
 
-import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { MainManager } from "@/classes/MainManager";
 import { IDocument } from "@/interfaces/IDocument";
-import BootstrapModalWindow from "../widgets/BootstrapModalWindow.vue";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ScaningController } from "@/controllers/ScaningController";
-import ContainersWidget from "@/components/shipment/containers/ContainersWidget.vue";
-import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
+import ContainersWidget from "@/components/soh/modals/ContainersWidget.vue";
+import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
-import { SohManager } from "@/managers/soh/SohManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { ISohDocument } from "@/managers/soh/interfaces";
 
-RoutingManager.instance.registry(RoutingManager.route.sohCheck, show, close);
+const currentManager = computed(() => SohShipmentManager.instance);
+RoutingManager.instance.registry(RoutingManager.route.sohShipmentCheck, show, close);
 /// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
-const scaningController: ScaningController = new ScaningController(SohManager.instance);
+const scaningController: ScaningController = new ScaningController(currentManager.value);
 
 const seen = ref(false);
 
@@ -118,7 +117,7 @@ const allItem: Ref<IScaningGroup[]> = ref([]); // группированные �
 const tableTotal: Ref<IScaningGroup[]> = ref([]); // товары из документа
 
 const filteredByArticulController = new FilteredByArticulController(
-  SohManager.instance.currentScanings,
+  currentManager.value.currentScanings,
   ref("НомХарСер")
 );
 
@@ -129,14 +128,14 @@ const filteredByArticulController = new FilteredByArticulController(
 // });
 
 const boxCount = computed(() => {
-  return GetCount(SohManager.instance.currentScanings.value, "Грузоместа");
+  return GetCount(currentManager.value.currentScanings.value, "Грузоместа");
 });
 const weightCount = computed(() => {
-  return GetCount(SohManager.instance.currentScanings.value, "Количество");
+  return GetCount(currentManager.value.currentScanings.value, "Количество");
 });
 
 const currentScanings = computed(() => {
-  return SohManager.instance.currentScanings.value;
+  return currentManager.value.currentScanings.value;
 });
 
 // const weightFromDocument = computed(() => {
@@ -147,8 +146,8 @@ const currentScanings = computed(() => {
 // });
 
 const docName = computed(() => {
-  if (SohManager.instance.currentDocument.value) {
-    return SohManager.instance.currentDocument.value!.Наименование;
+  if (currentManager.value.currentDocument.value) {
+    return currentManager.value.currentDocument.value!.Наименование;
   }
   return "Документ не найден";
 });
@@ -176,20 +175,20 @@ function show() {
 
 function initAllItem() {
   tableTotal.value = GetGroupScans(
-    SohManager.instance.currentDocument.value?.Товары ?? [],
+    currentManager.value.currentDocument.value?.Товары ?? [],
     currentViewMode.value
   );
 
   allItem.value = fillCurrentResult(
     tableTotal.value,
-    SohManager.instance.currentScanings.value,
+    currentManager.value.currentScanings.value,
     currentViewMode.value
   );
 }
 
 /// закрываем окно с подтверждением
 async function closeWithQuest() {
-  RoutingManager.instance.pushName(RoutingManager.route.shipmentForm);
+  RoutingManager.instance.pushName(RoutingManager.route.sohShipmentForm);
 }
 
 /// Добавляем сканирование в ручном режиме
@@ -230,10 +229,10 @@ async function addManual(item: IScaning) {
   }
 
   if (newScaning) {
-    SohManager.instance.addScaning(newScaning);
+    currentManager.value.addScaning(newScaning);
     scaningController.isValidScaning(
       newScaning,
-      SohManager.instance.currentScanings.value
+      currentManager.value.currentScanings.value
     );
     initAllItem();
   }
@@ -248,7 +247,7 @@ async function save() {
   }
 
   saveIsStart.value = true;
-  const currentDocLink = SohManager.instance.currentDocument.value?.Ссылка.Ссылка;
+  const currentDocLink = currentManager.value.currentDocument.value?.Ссылка.Ссылка;
   //const userDocs = await UserManager.instance.getUserDocuments();
   const documents = await MainManager.instance.local.allUserDocs();
   let isFind = false;
@@ -257,7 +256,9 @@ async function save() {
       if (userDoc.Ссылка.Ссылка == currentDocLink) {
         isFind = true;
         //Object.assign(userDoc, toRaw(ShipmentManager.instance.currentDocument.value!));
-        userDoc.scanings = SohManager.instance.currentScanings.value.map((x) => toRaw(x));
+        userDoc.scanings = currentManager.value.currentScanings.value.map((x) =>
+          toRaw(x)
+        );
         saveDocument(documents);
 
         break;
@@ -274,14 +275,14 @@ async function save() {
 }
 
 function getDocumnetForLocalSaving() {
-  const userDoc: ISohDocument = toRaw(SohManager.instance.currentDocument.value!);
-  userDoc.scanings = SohManager.instance.currentScanings.value.map((x) => toRaw(x));
+  const userDoc: ISohDocument = toRaw(currentManager.value.currentDocument.value!);
+  userDoc.scanings = currentManager.value.currentScanings.value.map((x) => toRaw(x));
   return userDoc;
 }
 
 /// Сохраняем текущий документ в хранилище документов пользователя
 async function saveDocument(documents: IDocument[]) {
-  const curDoc = SohManager.instance.currentDocument.value!;
+  const curDoc = currentManager.value.currentDocument.value!;
   //   const userDoc: IShipmentDocument = ShipmentManager.instance.currentDocument.value!;
   //   userDoc.scanings = ShipmentManager.instance.currentScanings.value.map((x) => toRaw(x));
   //   documents.unshift(userDoc);
@@ -305,7 +306,7 @@ async function send(mode: any) {
     return;
   }
   sendIsStart.value = true;
-  const doc = SohManager.instance.currentDocument.value!;
+  const doc = currentManager.value.currentDocument.value!;
   const itemsForSendToServer = allItem.value.map((x: IScaningGroup) => toRaw(x));
 
   //doc = GetData("current_doc", "j");
@@ -332,7 +333,7 @@ async function send(mode: any) {
       } else {
         /// После успешной записи документа мы отправляем запрос с записью сканирований в документ
         NotificationManager.swal(res.data.Текст);
-        const scaningsForSavingInOrder = SohManager.instance.currentScanings.value.map(
+        const scaningsForSavingInOrder = currentManager.value.currentScanings.value.map(
           (x) => toRaw(x)
         );
         const params = {
@@ -341,7 +342,7 @@ async function send(mode: any) {
           Вид: doc.Ссылка.Вид,
           Ссылка: doc.Ссылка.Ссылка,
           Товары: scaningsForSavingInOrder,
-          set_scaning_in_order: true,
+          set_scaning_in_shiping_soh: true, //set_scaning_in_order
         };
         /// Сохраняем сканирования в заказ
         const saveScaningInOrderRes = await HttpManager.post("/execute", params);
