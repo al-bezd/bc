@@ -2,7 +2,7 @@
   <BootstrapModalWindow :seen="seen">
     <h3>Список тары</h3>
     <div class="space">
-      <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="">
         <div v-for="item in containers" :key="item.ИД" :id="item.ИД">
           <div class="alert alert-info" role="alert">
             <div view="Тара">
@@ -43,7 +43,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="">
       <div class="btn-group w-100" role="group">
         <button
           type="button"
@@ -56,7 +56,7 @@
         >
           <b>НАЗАД</b>
         </button>
-        <button type="button" class="btn btn-success  text-uppercase" @click="save">
+        <button type="button" class="btn btn-success text-uppercase" @click="save">
           <b>СОХРАНИТЬ</b>
         </button>
       </div>
@@ -71,7 +71,7 @@ import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { Ref, ref, toRaw, watch } from "vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
-import { IТара } from "@/interfaces/IStore";
+import { IContainer } from "@/interfaces/IStore";
 
 interface IProps {
   seen: boolean;
@@ -89,7 +89,7 @@ watch(
   }
 );
 
-const containers: Ref<IТара[]> = ref([]);
+const containers: Ref<IContainer[]> = ref([]);
 
 // function show() {
 //   // emit("seen:update", true);
@@ -148,7 +148,7 @@ async function save() {
     Тип: doc.Ссылка.Тип,
     Вид: doc.Ссылка.Вид,
     Ссылка: doc.Ссылка.Ссылка,
-    Тара: containers.value.map((x: IТара) => toRaw(x)),
+    Тара: containers.value.map((x: IContainer) => toRaw(x)),
     СтатусЗапроса: "Записать",
   };
   const httpRes = await HttpManager.post("/document_container", data);
@@ -160,8 +160,6 @@ async function save() {
     NotificationManager.error(httpRes.data.Текст);
   }
 
-  //containers.value = httpRes.data.Текст
-  //SetData("document_container", httpRes.data.Текст)
   NotificationManager.success("Информация по таре успешно записана");
   close();
 }

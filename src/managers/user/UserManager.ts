@@ -1,6 +1,5 @@
 import { LocalStorageManager } from "../../classes/LocalStorageManager"
 import { BaseManager } from "../../classes/BaseManager"
-import { DBManager, IDBDataRecord } from "../../classes/DBManager"
 import { MainManager } from "../../classes/MainManager"
 import { NotificationManager } from "../../classes/NotificationManager"
 import { HttpManager } from "../../classes/HttpManager"
@@ -8,6 +7,9 @@ import { Ref, ref, toRaw } from "vue"
 import { IDocument, IUser } from "@/interfaces/IDocument"
 import { IShipmentDocument } from "../shipment/interfaces"
 import { IGettingProductionDocument } from "../getting/interfaces"
+import { DB2Manager } from "@/classes/DB2Manager"
+import { StringToBool } from "@/functions/StringToBoolean"
+import { ISohDocument } from "../soh/interfaces"
 
 
 
@@ -35,10 +37,14 @@ export class UserManager extends BaseManager {
   }
 
   async loadAsync(){
-    const user = await DBManager.getData(MainManager.keys.user)
+    const user = await DB2Manager.instance.local!.get<IUser>(MainManager.keys.user)
+    
     if(user){
       this.user.value = user
     }
+    this.useLocalDb.value = StringToBool(LocalStorageManager.get('useLocalDb'))??false
+    this.useLocalOrders.value = StringToBool(LocalStorageManager.get('useLocalOrders'))??false
+    this.controlFutureDate.value = StringToBool(LocalStorageManager.get('controlFutureDate'))??false
   }
 
   setUseLocalDb(value: boolean) {
@@ -62,14 +68,19 @@ export class UserManager extends BaseManager {
 
   setUser(val: any) {
     this.user.value = val
-    DBManager.setData(MainManager.keys.user, toRaw(val)) // current_user
+    DB2Manager.instance.local!.set(MainManager.keys.user,toRaw(val))
+    //DBManager.setData(MainManager.keys.user, toRaw(val)) // current_user
     this.emit('setUser', [this.user.value])
   }
 
   clearUser(){
     const oldValue = this.user.value
     this.user.value = null
-    DBManager.removeData(MainManager.keys.user) // current_user
+    if(oldValue){
+      DB2Manager.instance.local!.delete(MainManager.keys.user)
+    }
+    
+    //DBManager.removeData(MainManager.keys.user) // current_user
     this.emit('clearUser', [oldValue])
   }
 
@@ -96,10 +107,10 @@ export class UserManager extends BaseManager {
         //const baseName = 'user_docs'
         /// поиск в базе user_docs документов по данному пользователю
         const baseName = MainManager.keys.userDocument
-        const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
-        if (record !== null) {
-          await this.saveUserDocs([])
-        }
+        // const record = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
+        // if (record !== null) {
+        //   await this.saveUserDocs([])
+        // }
         NotificationManager.instance.playGood()
         return true
 
@@ -194,10 +205,12 @@ export class UserManager extends BaseManager {
   }
 
   async getUserDocuments():Promise<IDocument[]>{
+    
     if(this.user.value){
-      const baseName = MainManager.keys.userDocument
-      const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
-    return docs?.data.docs
+      return (await MainManager.instance.local.allUserDocs())??[]
+      //const baseName = MainManager.keys.userDocument
+      //const docs = await DBManager.getFileAsync(this.user.value!.Ссылка.Ссылка, baseName, baseName)
+    //return docs?.data.docs
     }
     return []
     
@@ -205,9 +218,9 @@ export class UserManager extends BaseManager {
 
   async saveUserDocs(docs:IDocument[]){
     if(this.user.value){
-      const baseName = MainManager.keys.userDocument
-      const tmpData = toRaw({ data: { docs: docs.map((x:IDocument)=> toRaw(x)) }, id: this.user.value!.Ссылка.Ссылка })
-      const result = await DBManager.setFileAsync(tmpData, baseName, baseName)
+     // const baseName = MainManager.keys.userDocument
+     // const tmpData = toRaw({ data: { docs: docs.map((x:IDocument)=> toRaw(x)) }, id: this.user.value!.Ссылка.Ссылка })
+      const result = await DB2Manager.instance.userDocuments!.setAll(docs.map((x:IDocument)=> toRaw(x)))
       return result
     }
     return false
@@ -242,6 +255,23 @@ export class UserManager extends BaseManager {
     }
     return documents
   }
+
+  /// Получаем сохраненные(документы пользователя) документы ОтгрузкаТоваровСХранения
+  async getSohDocuments():Promise<ISohDocument[]>{
+    const res = await this.getUserDocuments()
+    const documents:ISohDocument[] = []
+    if(res){
+      const dosc:IDocument[]=res
+      for(const doc of dosc){
+        if(doc.Ссылка.Вид==="ОтгрузкаТоваровСХранения"){
+          documents.unshift(doc as ISohDocument)
+        }
+      }
+    }
+    return documents
+  }
+
+  
 
 
 

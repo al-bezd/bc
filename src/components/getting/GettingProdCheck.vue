@@ -10,6 +10,7 @@
         v-for="item in allItem"
         :key="item.рсУИД"
         :data="item"
+        :show-procent="true"
         @tap="
           () => {
             filteredByArticulController.filter(item);
@@ -19,7 +20,7 @@
       />
     </div>
 
-    <div class="col-12">
+    <div class="">
       <h5>
         <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
       </h5>
@@ -56,7 +57,7 @@ import { RoutingManager } from "@/classes/RoutingManager";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { Ref, computed, ref, toRaw } from "vue";
 
-import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
+import { IScaning } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { GetCount } from "@/functions/GetCount";
 import {
@@ -66,7 +67,7 @@ import {
 import { rounded } from "@/functions/rounded";
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
-import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
+import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { MainManager } from "@/classes/MainManager";
 
@@ -204,6 +205,18 @@ async function send() {
     );
     return;
   }
+  const countKG = GetCount(
+    GettingManager.instance.currentScanings.value,
+    "Количество",
+    3
+  );
+  const countKGInDoc = GetCount(doc.Товары, "Количество", 3);
+  if (countKG !== countKGInDoc) {
+    NotificationManager.swal(
+      `Количество в сопроводительной(${countKGInDoc} кг) отличается от количества в сканированиях (${countKG} кг)`
+    );
+    return;
+  }
 
   const params = {
     Наименование: doc.Ссылка.Наименование,
@@ -218,10 +231,7 @@ async function send() {
   // qw.show("",console.log,getting_prod_check.show);
   // $('#ok_button_id').hide();
   // qw.question_window_text = 'Ожидайте записи документа!!!';
-  NotificationManager.swal(
-    `Запись документа <b>${doc.Ссылка.Наименование} Начата</b>`,
-    "info"
-  );
+  NotificationManager.swal(`Запись документа ${doc.Ссылка.Наименование} Начата`, "info");
   sendIsStart.value = true;
   const response = await HttpManager.post("/execute", params);
   sendIsStart.value = false;
@@ -247,8 +257,9 @@ function fillCurrentResult(
     for (const tableRow of tableTotal) {
       const tableRowKey = getRowKey(tableRow);
       if (tableRowKey == scanKey) {
-        tableRow.ТекущееКоличество += scan.Количество;
-        tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
+        tableRow.Серия = scan.Серия;
+        //tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
         ///
         if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {

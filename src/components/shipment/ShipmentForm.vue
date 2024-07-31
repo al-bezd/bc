@@ -31,15 +31,10 @@
         @tap="filterByArticul(item)"
       />
     </div>
-    <div class="navbar-fixed-bottom">
-      <div class="">
+    <div class="row">
+      <div class="col-12">
         <AddManualScaningButton @tap="addManualScaning" />
-        <!-- <button
-          class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-3"
-          @click="addManualScaning"
-        >
-          +
-        </button> -->
+
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -79,7 +74,7 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { GetCount } from "@/functions/GetCount";
-import { computed, Ref, ref, toRaw } from "vue";
+import { computed, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
@@ -196,6 +191,10 @@ async function onScan(barcode: string) {
       if (!condition) {
         return;
       }
+    }
+
+    if (itPalet.value) {
+      itPalet.value = false;
     }
 
     ShipmentManager.instance.addScaning(scan);

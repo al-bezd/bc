@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>{{ pageTitle }}</h4>
+    <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
       type="text"
@@ -11,7 +11,7 @@
       @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
-    <SortWidget :box-count="boxCount" :scan-count="items.length" :on-tap="onSort" />
+    <SortWidget :box-count="boxCount" :scan-count="items.length" @tap="onSort" />
     <!-- <div class="btn-group w-100 mb-3" role="group">
       <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
         по Артикулу
@@ -99,6 +99,14 @@ RoutingManager.instance.registry(
   show,
   close
 );
+ScanerManager.instance.onScan((value) => {
+  if (!seen.value) {
+    return;
+  }
+  barcode.value = value;
+  onEnter();
+  barcode.value = "";
+});
 const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance,
   true
@@ -138,9 +146,14 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
+
   if (scaning) {
     scaning.free = true;
+
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
     await ShipmentManager.instance.addScaning(scaning);
     scaningController.isValidScaning(
       scaning,
@@ -182,8 +195,8 @@ async function closeWithQuest() {
     "Вы уверенны что хотите перейти обратно?"
   );
   if (response) {
-    //close()
     clear();
+    close();
 
     RoutingManager.instance.pushName(RoutingManager.route.shipmentLoad);
   }

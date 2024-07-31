@@ -1,65 +1,81 @@
 import { LocalStorageManager } from "./LocalStorageManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
-import { DBManager, IDBDataRecord } from "./DBManager";
+//import { DBManager, IDBDataRecord } from "./DBManager";
 import { NotificationManager } from "./NotificationManager";
 import { ShipmentManager } from "../managers/shipment/ShipmentManager";
 import { HttpManager } from "./HttpManager";
 import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { IStore } from "@/interfaces/IStore";
+import { IContainer, IStore } from "@/interfaces/IStore";
 import { UserManager } from "@/managers/user/UserManager";
 import { IGettingProductionDocument } from "@/managers/getting/interfaces";
 import { IDocument } from "@/interfaces/IDocument";
+import { DB2Manager, IBarcode } from "./DB2Manager";
+import { IInfoList } from "@/interfaces/IInfoList";
+import { ISohDocument } from "@/managers/soh/interfaces";
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 
 export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
   static keys = {
-    torgovieSeti:'torgovieSeti',
-    barcodes:'barcodes',
-    mainStore:'mainStore',
-    user:'user',
-    userDocument:'userDocument',
-    infoSheets:'infoSheets',
-    orders:"orders",
-    containers:"containers"
+    torgovieSeti: 'torgovieSeti',
+    barcodes: 'barcodes',
+    mainStore: 'mainStore',
+    user: 'user',
+    userDocument: 'userDocument',
+    infoSheets: 'infoSheets',
+    orders: "orders",
+    containers: "containers",
+    sohOrders:"sohOrders"
   }
 
-  public local={
-    torgovieSeti:async ():Promise<any | null>=>{
-      return DBManager.getData(MainManager.keys.torgovieSeti)
+  public local = {
+    torgovieSeti: async (): Promise<any | null> => {
+      //return DBManager.getData(MainManager.keys.torgovieSeti)
+      return await DB2Manager.instance.torgovieSeti!.getAll()
     },
-    mainStore:async ():Promise<any | null>=>{
-      return DBManager.getData(MainManager.keys.mainStore)
+    mainStore: async (): Promise<any | null> => {
+      //return DBManager.getData(MainManager.keys.mainStore)
+      return await DB2Manager.instance.local!.get<IDocument>(MainManager.keys.mainStore)
     },
-    shipmentDocs:async ():Promise<IShipmentDocument[]>=>{
-      return UserManager.instance.getShipmentDocuments()
+    shipmentDocs: async (): Promise<IShipmentDocument[]> => {
+      return await UserManager.instance.getShipmentDocuments()
     },
-    gettingDocs:async ():Promise<IGettingProductionDocument[]>=>{
-      return UserManager.instance.getGettingProdDocuments()
+    sohGettingDocs: async (): Promise<ISohDocument[]> => {
+      return await SohGettingManager.instance.getSavedDocuments()
     },
-    allUserDocs:async():Promise<IDocument[] | null>=>{
-      return UserManager.instance.getUserDocuments()
+    sohShipmentDocs: async (): Promise<ISohDocument[]> => {
+      return await SohShipmentManager.instance.getSavedDocuments()
     },
-    infoSheets:async():Promise<IDBDataRecord[]|null>=>{
-      return DBManager.getFilesAsync(MainManager.keys.infoSheets)
+    gettingDocs: async (): Promise<IGettingProductionDocument[]> => {
+      return await UserManager.instance.getGettingProdDocuments()
     },
-    infoSheet:async(id:string):Promise<IDBDataRecord|null>=>{
+    allUserDocs: async (): Promise<IDocument[] | null> => {
+      //return UserManager.instance.getUserDocuments()
       
-      return DBManager.getFileAsync(id,MainManager.keys.infoSheets)
+      return await DB2Manager.instance.userDocuments!.getAll()
     },
-    orders:async():Promise<any>=>{
-      return DBManager.getData(MainManager.keys.orders)
+    infoSheets: async (): Promise<IInfoList[] | null> => {
+      //return DBManager.getFilesAsync(MainManager.keys.infoSheets)
+      return await DB2Manager.instance.infoSheets!.getAll()
     },
-    containers:async():Promise<any>=>{
-      return DBManager.getData(MainManager.keys.containers)
+    infoSheet: async (id: string): Promise<IInfoList|null> => {
+      return await DB2Manager.instance.infoSheets!.get(id)
+    },
+    orders: async (): Promise<IDocument[]> => {
+      return await DB2Manager.instance.orders!.getAll()
+    },
+    containers: async (): Promise<IContainer[]> => {
+      return await DB2Manager.instance.containers!.getAll()
     }
 
 
   }
 
-  
+
   //public currentUser: any = null; /// Текущий пользователь 
   //public scanings: any[] = []; /// Сканирования 
 
@@ -71,13 +87,20 @@ export class MainManager extends BaseManager implements ILoadableManager {
   }
 
   static init(): void {
-    (String.prototype as any).delSpaces = function() {
+    (String.prototype as any).delSpaces = function () {
       return this.replace(/\s/g, "");
     };
     new MainManager();
+
+
   }
 
-  
+  static load: () => Promise<void> = async () => {
+    /// сюда надо добавить код для загрузки
+
+  }
+
+
 
 
 
@@ -91,45 +114,47 @@ export class MainManager extends BaseManager implements ILoadableManager {
   }
 
   /// Загружаем штрихкоды с сервера
-  async uploadBarcodes():Promise<void>{
-    this.emit('uploadBarcodes:start')
+  async uploadBarcodes(): Promise<void> {
+
     const t1 = Date.now();
     const params = { "get_barcods": "true" }
     const response = await HttpManager.get('/execute', params)
-    if(response.success){
-        const t2 = ((Date.now() - t1) / 1000) / 60;
-        console.log(`база загружена за ${t2.toFixed(2)} мин.`);
-        NotificationManager.info(`База обновлена за ${t2.toFixed(2)} мин.`);
-        const data:IDBDataRecord[] = response.data.map((x:any)=>{
-          return {id:x.Наименование.delSpaces(),data:x}
-        })
-        await DBManager.deleteDatabase(MainManager.keys.barcodes)
-        await DBManager.WriteDataInDB(MainManager.keys.barcodes, data);
+    if (response.success) {
+      const t2 = ((Date.now() - t1) / 1000) / 60;
+      console.log(`база загружена за ${t2.toFixed(2)} мин.`);
+      NotificationManager.info(`База обновлена за ${t2.toFixed(2)} мин.`);
+      await DB2Manager.instance.barcodes!.setAll(response.data)
+      // const data:IDBDataRecord[] = response.data.map((x:any)=>{
+      //   return {id:x.Наименование.delSpaces(), data:x}
+      // })
+
+      // await DBManager.WriteDataInDB(MainManager.keys.barcodes, data);
+
     }
-    this.emit('uploadBarcodes:end')
+
   }
 
-    
+
 
   /// Вызывается при старте страницы
   load(): void {
     this.loadAsync()
   }
 
-  async loadAsync(){
-    const mainStoreTmp = await DBManager.getData(MainManager.keys.mainStore)
-    
-    if(mainStoreTmp){
+  async loadAsync() {
+    const mainStoreTmp = await DB2Manager.instance.local!.get<IStore>(MainManager.keys.mainStore)
+
+    if (mainStoreTmp) {
       this.mainStore.value = mainStoreTmp
     }
-    
-    
+
+
     //this.currentUser = LocalStorageManager.get("current_user", true);
-    this.initContainers();
+    //this.initContainers();
     //this.scanings = LocalStorageManager.get("scaning_response", true) ?? [];
     //ShipmentManager.instance.load();
 
-    
+
   }
 
   /// Скачиваем все установленные к выбору Торговые сети (необходимо для создания информационного листа)
@@ -139,8 +164,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
     };
     const response = await HttpManager.get("/execute", params);
     if (response.success) {
-      
-      await DBManager.setData(MainManager.keys.torgovieSeti, response.data)
+      await DB2Manager.instance.torgovieSeti!.setAll(response.data)
+      //await DBManager.setData(MainManager.keys.torgovieSeti, response.data)
       // DBManager.setFile(
       //   { id: Date.now().toString(), data: resposne.data },
       //   "torgovie_seti",
@@ -148,14 +173,14 @@ export class MainManager extends BaseManager implements ILoadableManager {
       // );
 
       //setFile({ id: Date.now(), data: response.data }, 'torgovie_seti', 'torgovie_seti')
-      NotificationManager.swal(`Информация по торговым сетям загружена`);
+      NotificationManager.success(`Информация по торговым сетям загружена`);
       this.emit("SetTorgovieSeti", [response.data]);
       // check_doc_free.torgovie_seti = response.data
       // torgovie_seti = response.data
       // check_doc_free.torgovie_seti = torgovie_seti
     } else {
       console.log("SetTorgovieSeti ", response.error);
-      NotificationManager.swal("Ошибка при загрузке торговых сетей");
+      NotificationManager.error("Ошибка при загрузке торговых сетей");
     }
     // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })
     //   .then((response) => {
@@ -174,52 +199,52 @@ export class MainManager extends BaseManager implements ILoadableManager {
     //   })
   }
 
-  setMainStore(val:IStore){
+  setMainStore(val: IStore) {
     this.mainStore.value = val
-    DBManager.setData(MainManager.keys.mainStore, val) 
-    this.emit('setmainStore',[this.mainStore])
+    DB2Manager.instance.local!.set(MainManager.keys.mainStore, val)
+    this.emit('setmainStore', [this.mainStore])
   }
 
-  async uploadMainStore(){
-    
-        const params={
-          execute_text:"ТекстРезультат=РФИТ_Функции.рсСериализацияСсылкиВСтруктуруПростойОбъект(РФИТ_Функции.ПолучитьСсылкуОсновногоСкладаНаСервере());"
-        }
-        // В строке выше мы передаем закодированный метод на языке 1С который возвращает нам основной склад птицефабрики
-        //ТекстРезультат=РФИТ_Функции.рсСериализацияСсылкиВСтруктуруПростойОбъект(РФИТ_Функции.ПолучитьСсылкуОсновногоСкладаНаСервере());
-        const response = await HttpManager.get('/execute', params)
-        if(response.success){
-            this.setMainStore(response.data)
-            
-            // ОсновнойСклад = response.data.Наименование
-            // check_doc_free.selected_sklad = ОсновнойСклад
-            // check_doc_free.sklad[0]       = ОсновнойСклад
-            // load_doc.add_orders.Склад     = ОсновнойСклад
-        }else{
-            console.log(response.error)
-            NotificationManager.error("Произошла ошибка в методе uploadMainStore в классе MainManager")
-        }
-        // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })
-        // .then((response) =>{
-        //   SetData("main_order",response.data) 
-        //   ОсновнойСклад = response.data.Наименование
-        //   check_doc_free.selected_sklad = ОсновнойСклад
-        //   check_doc_free.sklad[0]       = ОсновнойСклад
-        //   load_doc.add_orders.Склад     = ОсновнойСклад
-      
-        // })
-        // .catch(error=>{
-        //   console.log(error)
-        //   swal("Произошла ошибка в методе SetMainOrder")
-        // })
-      
+  async uploadMainStore() {
+
+    const params = {
+      execute_text: "ТекстРезультат=РФИТ_Функции.рсСериализацияСсылкиВСтруктуруПростойОбъект(РФИТ_Функции.ПолучитьСсылкуОсновногоСкладаНаСервере());"
+    }
+    // В строке выше мы передаем закодированный метод на языке 1С который возвращает нам основной склад птицефабрики
+    //ТекстРезультат=РФИТ_Функции.рсСериализацияСсылкиВСтруктуруПростойОбъект(РФИТ_Функции.ПолучитьСсылкуОсновногоСкладаНаСервере());
+    const response = await HttpManager.get('/execute', params)
+    if (response.success) {
+      this.setMainStore(response.data)
+
+      // ОсновнойСклад = response.data.Наименование
+      // check_doc_free.selected_sklad = ОсновнойСклад
+      // check_doc_free.sklad[0]       = ОсновнойСклад
+      // load_doc.add_orders.Склад     = ОсновнойСклад
+    } else {
+      console.log(response.error)
+      NotificationManager.error("Произошла ошибка в методе uploadMainStore в классе MainManager")
+    }
+    // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })
+    // .then((response) =>{
+    //   SetData("main_order",response.data) 
+    //   ОсновнойСклад = response.data.Наименование
+    //   check_doc_free.selected_sklad = ОсновнойСклад
+    //   check_doc_free.sklad[0]       = ОсновнойСклад
+    //   load_doc.add_orders.Склад     = ОсновнойСклад
+
+    // })
+    // .catch(error=>{
+    //   console.log(error)
+    //   swal("Произошла ошибка в методе SetMainOrder")
+    // })
+
   }
 
 
-  
+
   /// Получаем инфо листы с сервера за период и склад
-  async getInfoList(ДатаНачала:number, ДатаОкончания:number, Склад:string) {
-  
+  async getInfoList(ДатаНачала: number, ДатаОкончания: number, Склад: string) {
+
     //indexedDB.deleteDatabase('info_lists')
     const params = {
       get_info_list: true,
@@ -228,11 +253,11 @@ export class MainManager extends BaseManager implements ILoadableManager {
       Склад: Склад
     }
     const response = await HttpManager.get('/execute', params)
-    if(response.success){
+    if (response.success) {
       return response.data
     }
     return null;
-      
+
   }
 }
 

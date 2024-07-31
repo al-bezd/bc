@@ -17,6 +17,7 @@ export interface IScaning{
     ШтрихкодПродукции:string,
     bc: string,
     free:boolean
+    itPalet:boolean
 }
 
 export interface IScaningGroup extends IScaning{

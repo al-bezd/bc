@@ -21,6 +21,16 @@
       >
         Прием продукции
       </button>
+      <button
+        @click="
+          () => {
+            sohMenuSeen = true;
+          }
+        "
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+      >
+        СОХ
+      </button>
     </div>
     <div class="space"></div>
     <button @click="exit" class="btn btn-warning btn-block text-uppercase mt-3">
@@ -28,6 +38,44 @@
     </button>
   </div>
   <!-- Главное меню-->
+  <BootstrapModalWindow :seen="sohMenuSeen">
+    <h3 class="text-center">СОХ</h3>
+    <div class="d-grid gap-2">
+      <button
+        @click="
+          () => {
+            sohMenuSeen = false;
+            RoutingManager.instance.pushName(RoutingManager.route.sohGettingLoad);
+          }
+        "
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+      >
+        Приемка
+      </button>
+      <button
+        @click="
+          () => {
+            sohMenuSeen = false;
+            RoutingManager.instance.pushName(RoutingManager.route.sohShipmentLoad);
+          }
+        "
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+      >
+        Отгрузка
+      </button>
+    </div>
+    <div class="space"></div>
+    <button
+      @click="
+        () => {
+          sohMenuSeen = false;
+        }
+      "
+      class="btn btn-warning btn-block text-uppercase mt-3"
+    >
+      <b>ВЫЙТИ</b>
+    </button>
+  </BootstrapModalWindow>
 </template>
 
 <script setup lang="ts">
@@ -35,9 +83,12 @@ import { ref } from "vue";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { NotificationManager } from "@/classes/NotificationManager";
+import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 
 const seen = ref(false);
 RoutingManager.instance.registry(RoutingManager.route.mainMenu, show, close);
+const sohMenuSeen = ref(false);
+
 function close() {
   seen.value = false;
 }

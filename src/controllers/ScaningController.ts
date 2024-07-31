@@ -1,15 +1,16 @@
-import { BaseManager } from "@/classes/BaseManager";
-import { DBManager } from "@/classes/DBManager";
+
+import { DB2Manager } from "@/classes/DB2Manager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
-import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { Date1C } from "@/functions/Date1C";
 import { FindGM } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
-import { IProperty, IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
+import { IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
+import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { UserManager } from "@/managers/user/UserManager";
 
 
@@ -21,7 +22,7 @@ interface IBarcodeStructure {
 }
 
 export class ScaningController {
-    constructor(manager: ShipmentManager | GettingManager, isFree = false) {
+    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager| SohGettingManager, isFree = false) {
         
         this.isFree = isFree
         this.manager = manager
@@ -29,7 +30,7 @@ export class ScaningController {
 
     /// параметр отвечающий за привязку к документу
     public isFree = false
-    public manager: ShipmentManager | GettingManager
+    public manager: ShipmentManager | GettingManager | SohShipmentManager | SohGettingManager
 
 
     /// Получаем разобранную структура штрих кода
@@ -47,7 +48,7 @@ export class ScaningController {
     }
 
     /// получаем новое сканирование по переданному штрихкоду
-    async getScaning(barcode: string, itPalet = false): Promise<IScaning | null> {
+    async getScaning(barcode: string, itPalet:boolean): Promise<IScaning | null> {
         const barcodeValue = barcode;
         const barcodeStruct: IBarcodeStructure = this.getBarcodeStructure(barcode)
 
@@ -55,10 +56,8 @@ export class ScaningController {
 
 
         if (UserManager.instance.useLocalDb.value) {
-            const barcodeFromDB = await DBManager.getFileAsync(
-                barcodeStruct.Штрихкод,
-                MainManager.keys.barcodes,
-                MainManager.keys.barcodes
+            const barcodeFromDB = await DB2Manager.instance.barcodes!.get(
+                barcodeStruct.Штрихкод
             );
             if (!barcodeFromDB) {
                 return null
@@ -66,9 +65,9 @@ export class ScaningController {
             return this.createScaning(
                 barcodeValue,
                 barcodeStruct.Штрихкод,
-                barcodeFromDB.data.Номенклатура,
-                barcodeFromDB.data.Характеристика,
-                barcodeFromDB.data.ПЛУ,
+                barcodeFromDB.Ссылка.Номенклатура,
+                barcodeFromDB.Ссылка.Характеристика,
+                barcodeFromDB.Ссылка.ПЛУ,
                 barcodeStruct.Количество,
                 barcodeStruct.ДатаПроизводства,
                 barcodeStruct.ГоденДо,
@@ -125,7 +124,8 @@ export class ScaningController {
             ГоденДо:ГоденДо
         };
 
-        if (itPalet == true) {
+        
+        if (itPalet) {
             Грузоместа = FindGM(ПолныйШК);
             Палетная = "alert alert-warning";
 
@@ -159,14 +159,17 @@ export class ScaningController {
             ШтрихкодПродукции: ШтрихкодПродукции,
             bc: ПолныйШК,
             free: this.isFree,
+            itPalet:itPalet
         };
         return response;
     }
 
     /// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
     isValidScaning(scaning: IScaning, scanings: IScaning[]) {
+        console.log('isValidScaning scanings.length:', scanings.length)
         if (scanings.length > 1) {
             if (scanings[1].bc === scaning.bc) {
+                console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc,scanings[1].bc, scaning.bc)
                 NotificationManager.instance.playRepeatArial();
                 return;
             }

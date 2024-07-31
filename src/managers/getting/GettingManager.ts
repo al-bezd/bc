@@ -1,13 +1,13 @@
 
-import { BaseManager } from "../../classes/BaseManager";
-import { DBManager } from "../../classes/DBManager";
-import { UserManager } from "../user/UserManager";
+import { BaseManager } from "@/classes/BaseManager";
+
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { Ref, ref, toRaw } from "vue";
 import { IGettingProductionDocument } from "./interfaces";
 import { IScaning } from "@/interfaces/IScaning";
-import { MainManager } from "@/classes/MainManager";
+import { DB2Manager } from "@/classes/DB2Manager";
+import { IDocument } from "@/interfaces/IDocument";
 
 export class GettingManager extends BaseManager {
   constructor() {
@@ -20,7 +20,7 @@ export class GettingManager extends BaseManager {
   protected currentDocumentKey = "GettingManager__currentDocument"
   protected currentScaningsKey = "GettingManager__currentScanings"
 
-  public documents: any[] = [];
+  //public documents: any[] = [];
   public currentScanings: Ref<IScaning[]> = ref([])
   public currentDocument: Ref<IGettingProductionDocument | null> = ref(null)
 
@@ -42,9 +42,8 @@ export class GettingManager extends BaseManager {
   }
 
   async asyncLoad() {
-    this.currentDocument.value = await DBManager.getData(this.currentDocumentKey) ?? null
-    this.currentScanings.value = await DBManager.getData(this.currentScaningsKey) ?? []
-    //console.log('this.currentDocument.value ', this.currentDocument.value)
+    this.currentDocument.value = await DB2Manager.getData<IGettingProductionDocument>(this.currentDocumentKey) ?? null
+    this.currentScanings.value = await DB2Manager.instance.getting!.getScanings()??[]
   }
 
 
@@ -53,11 +52,11 @@ export class GettingManager extends BaseManager {
     const key = this.currentDocumentKey
     if(val==null){
       this.currentDocument.value = null
-      DBManager.removeData(key)
+      DB2Manager.removeData(key)
       return
     }
     this.currentDocument.value = val
-    DBManager.setData(key, toRaw(val))
+    DB2Manager.setData(key, toRaw(val))
     this.emit('setCurrentDocument', [val])
   }
 
@@ -65,32 +64,31 @@ export class GettingManager extends BaseManager {
     const key = this.currentScaningsKey
     if(val==null){
       this.currentScanings.value = []
-      DBManager.removeData(key)
+      DB2Manager.removeData(key)
       return
     }
     this.currentScanings.value = val
-    DBManager.setData(key, val.map(x=>toRaw(x)))
+    DB2Manager.instance.getting!.setScanings(val.map(x=>toRaw(x)))
     this.emit('setCurrentScanings', [val])
   }
 
   addScaning(data:IScaning){
-    const key = this.currentScaningsKey
     this.currentScanings.value.unshift(data)
-    DBManager.setData(key, toRaw(this.currentScanings.value) )
-    this.emit('addScaning', [this.currentScanings.value, data])
+    DB2Manager.instance.getting?.addScaning(data)
+    //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
+    const tmp = [this.currentScanings.value, data]
+    this.emit('addScaning', tmp)
+    //console.log('addScaning', tmp)
   }
 
   deleteScaning(data:IScaning) {
-    const key = this.currentScaningsKey
-
     for (const i of this.currentScanings.value) {
       if(i.IDSec === data.IDSec) {
         this.currentScanings.value.splice(this.currentScanings.value.indexOf(i), 1)
         break
       }
     }
-    
-    DBManager.setData(key, toRaw(this.currentScanings.value) )
+    DB2Manager.instance.getting!.deleteScaning(data)
     this.emit('deleteScaning', [this.currentScanings.value, data])
   }
 
@@ -127,18 +125,12 @@ export class GettingManager extends BaseManager {
 
   //Удаляем документ из списка документов пользователя
   async deleteDocumentById(id: string): Promise<boolean> {
-    const baseName = MainManager.keys.userDocument
-    const currentUser = UserManager.instance.user.value!.Ссылка.Ссылка;
-    const files = await DBManager.getFileAsync(currentUser, baseName, baseName)
-    if (files) {
-      for (const i of files.data.docs) {
-        if (i.Ссылка.Ссылка === id) {
-          files.data.docs.splice(files.data.docs.indexOf(i), 1)
-          DBManager.setFileAsync(files, baseName, baseName)
-          return true;
-        }
-      }
-    }
-    return false
+    //await DB2Manager.instance.userDocuments!.delete(id)
+    return true
+  }
+
+  async deleteDocument(doc:IDocument): Promise<boolean> {
+    await DB2Manager.instance.userDocuments!.delete(doc)
+    return true
   }
 }

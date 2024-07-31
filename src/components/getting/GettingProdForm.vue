@@ -36,14 +36,13 @@
         "
       />
     </div>
-    <div class="navbar-fixed-bottom">
+    <div class="row">
+      <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
+      <div class="col-6">Вес(ФАКТ): {{ weightScans }}</div>
+    </div>
+    <div class="row">
       <div class="col-12">
-        <button
-          class="btn btn-info btn-block text-uppercase w-100 mb-3"
-          @click="addManualScaning"
-        >
-          +
-        </button>
+        <AddManualScaningButton @tap="addManualScaning" />
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -74,6 +73,7 @@
   <FilteredByArticulScreen :controller="filteredByArticulController" />
 </template>
 <script setup lang="ts">
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
 import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
@@ -88,6 +88,7 @@ import { computed, ref } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ScaningController } from "@/controllers/ScaningController";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
+import { IРеквизит } from "@/interfaces/IDocument";
 
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
 const scaningController: ScaningController = new ScaningController(
@@ -102,7 +103,10 @@ const seen = ref(false);
 const barcode = ref("");
 
 const itPalet = ref(false);
-const countScaning = computed(() => GettingManager.instance.currentScanings.value.length);
+const weightInDoc = ref(0);
+const weightScans = computed(() => {
+  return GetCount(GettingManager.instance.currentScanings.value, "Количество");
+});
 const docName = computed(() => {
   if (GettingManager.instance.currentDocument.value) {
     return GettingManager.instance.currentDocument.value!.Наименование;
@@ -148,6 +152,16 @@ function close() {
 
 function show() {
   seen.value = true;
+  setTimeout(afterShow, 500);
+}
+
+function afterShow() {
+  if (GettingManager.instance.currentDocument.value) {
+    weightInDoc.value = GetCount(
+      GettingManager.instance.currentDocument.value?.Товары,
+      "Количество"
+    );
+  }
 }
 
 function goCheck() {
@@ -159,13 +173,18 @@ function onEnter() {
   barcode.value = "";
 }
 
-const validators = [isValidScaning];
+const validators = [
+  isValidScaning,
+  isWeightMoreWeightInChar,
+  isWeightMoreWeightInDoc,
+  isLentaTanderRule,
+];
 
 async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (!scaning) {
     return false;
   }
@@ -177,11 +196,62 @@ async function onScan(barcodeStr: string) {
     }
   }
 
+  if (itPalet.value) {
+    itPalet.value = false;
+  }
+
   await GettingManager.instance.addScaning(scaning);
   scaningController.isValidScaning(
     scaning,
     GettingManager.instance.currentScanings.value
   );
+  return true;
+}
+
+/// Запрещаем добавлять сканирование если его добавление превысит вес сканирований по дкументу
+function isWeightMoreWeightInDoc(scan: IScaning): boolean {
+  if (scan.Количество + weightScans.value > weightInDoc.value) {
+    NotificationManager.swal(
+      `Вес приемки не должен превышать вес по документу ${weightInDoc.value}`
+    );
+    NotificationManager.instance.playError();
+    return false;
+  }
+  return true;
+}
+
+/// уведомляем пользователя если вес в сканировании больше веса в характеристике
+function isWeightMoreWeightInChar(scan: IScaning): boolean {
+  const res = scan.Характеристика.ДополнительныеРеквизиты.filter(
+    (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
+  );
+  for (const i of res) {
+    if (scan.Количество > i.Значение) {
+      NotificationManager.swal(
+        `Вес в характеристике ${scan.Характеристика.Наименование}\n${i.Значение} больше чем вес в сканировании ${scan.Количество}`
+      );
+      NotificationManager.instance.playError();
+      return false;
+    }
+  }
+  return true;
+}
+
+function isLentaTanderRule(scan: IScaning): boolean {
+  const con1 =
+    scan.Характеристика.Наименование.includes("(Лента)") ||
+    scan.Характеристика.Наименование.includes("(Тандер)");
+
+  const con2 = scan.Характеристика.ДополнительныеРеквизиты.filter(
+    (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
+  );
+  if (con1 && con2.length && scan.Количество > con2[0].Значение) {
+    NotificationManager.swal(
+      `Вес в сканировании больше чем доступно в характеристике ${scan.Характеристика.Наименование} ${con2[0].Значение}\nвес в сканировании ${scan.Количество}`
+    );
+    NotificationManager.instance.playError();
+    return false;
+  }
   return true;
 }
 
@@ -218,6 +288,7 @@ function isValidScaning(scan: IScaning): boolean {
     NotificationManager.instance.playError();
     return false;
   }
+
   return true;
 }
 

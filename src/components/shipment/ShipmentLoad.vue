@@ -1,7 +1,7 @@
 <template>
   <!-- Окно загрузки документа-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>Отсканируйте ШК с листа сборки в поле</h4>
+    <h6>Отсканируйте ШК с листа сборки в поле</h6>
     <input
       type="text"
       class="form-control bc_input mb-3"
@@ -24,6 +24,13 @@
         @click="goToCreateInfoSheet()"
       >
         <b>СОЗДАНИЕ ИНФ. ЛИСТА</b>
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary btn-lg btn-block text-uppercase"
+        @click="goToAddInfoSheets()"
+      >
+        <b>Добавление ИНФ. ЛИСТОВ</b>
       </button>
       <button
         type="button"
@@ -66,7 +73,6 @@ import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { Ref, ref } from "vue";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { DBManager } from "@/classes/DBManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { MainManager } from "@/classes/MainManager";
 import { IScaning } from "@/interfaces/IScaning";
@@ -146,6 +152,10 @@ function goToCreateInfoSheet() {
   //eval(`form_doc_free.show('ИнфоЛист');form_doc_free.ClearScaning()`)
 }
 
+function goToAddInfoSheets() {
+  RoutingManager.instance.pushName(RoutingManager.route.shipmentUploadInfoListByBarcode);
+}
+
 function showLoadOrders() {
   //ShipmentManager.instance.emit("showLoadOrders");
   modalSeen.value = true;
@@ -166,9 +176,7 @@ async function onDeleteDocument(document: IShipmentDocument) {
     `Вы действительно хотиет удалить документ\n${document.Наименование}`
   );
   if (resultQuest) {
-    const response = await ShipmentManager.instance.deleteDocumentById(
-      document.Ссылка.Ссылка
-    );
+    const response = await ShipmentManager.instance.deleteDocument(document);
     console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();

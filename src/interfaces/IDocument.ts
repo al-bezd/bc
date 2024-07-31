@@ -1,5 +1,5 @@
 import { IScaning } from "./IScaning"
-import { IТара } from "./IStore"
+import { IContainer } from "./IStore"
 
 // минимальная единица 
  export interface IProperty{
@@ -16,9 +16,12 @@ export interface ILinkedObject{
 
 // Документ заказ клиента заказ на перемещение
 export interface IDocument{
+    РезультатПроверки:boolean
     Ссылка:IСсылка
     Наименование:string
     scanings:IScaning[]
+    ШК:string
+    completed:boolean|undefined
 }
 
 export interface IСсылка extends IProperty{
@@ -30,7 +33,7 @@ export interface IСсылка extends IProperty{
 export interface IUser extends IDocument{
     
     ФИО:string
-    containers:IТара[]
+    containers:IContainer[]
   }
 
   export interface IНоменклатура extends ILinkedObject {

@@ -3,7 +3,7 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
       <div class="col-8">
-        <h4 class="text-muted fs-6">{{ docName }}: Проверка</h4>
+        <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
       </div>
       <div class="col-4">
         <button
@@ -36,7 +36,7 @@
       </ScaningGroupItem>
     </div>
 
-    <div class="col-12">
+    <div class="">
       <h5>
         <b>Итог {{ boxCount }} Кор.</b>
       </h5>
@@ -45,11 +45,11 @@
       </h5>
     </div>
 
-    <div class="row">
+    <div class="">
       <div class="btn-group w-100" role="group">
         <button
           type="button"
-          class="btn btn-warning  text-uppercase"
+          class="btn btn-warning text-uppercase"
           @click="closeWithQuest"
         >
           <b>НАЗАД</b>
@@ -74,7 +74,7 @@
         >
       </template> -->
     </FilteredByArticulScreen>
-    
+
     <!-- Окно с тарой НАЧАЛО -->
     <ContainersWidget v-model:seen="taraSeen" />
     <!-- Окно с тарой КОНЕЦ -->
@@ -97,7 +97,6 @@ import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
 import { MainManager } from "@/classes/MainManager";
 import { IDocument } from "@/interfaces/IDocument";
-import BootstrapModalWindow from "../widgets/BootstrapModalWindow.vue";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ScaningController } from "@/controllers/ScaningController";
 import ContainersWidget from "@/components/shipment/containers/ContainersWidget.vue";
@@ -222,7 +221,7 @@ async function addManual(item: IScaning) {
     return;
   }
   //const newScaning = await ShipmentManager.instance.getScaning(res, itPalet.value);
-  const newScaning = await scaningController.getScaning(res);
+  const newScaning = await scaningController.getScaning(res, false);
 
   if (!newScaning) {
     return;
@@ -300,7 +299,7 @@ async function saveDocument(documents: IDocument[]) {
 async function send(mode: any) {
   if (mode.Режим == "запись") {
     //$('#ok_button_id').hide()
-    NotificationManager.info("<b>Ожидайте записи документа!!!</b>");
+    NotificationManager.info("Ожидайте записи документа!!!");
     //qw.question_window_text = 'Ожидайте записи документа!!!'
   }
   if (sendIsStart.value) {
@@ -384,8 +383,10 @@ function fillCurrentResult(
       const tableRowKey = getRowKey(tableRow, mode);
 
       if (tableRowKey === scanKey) {
-        tableRow.ТекущееКоличество += scan.Количество;
-        tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
+        /// Заменяем серию из сканирований потому что нам нужна ссылка из сканирования а не из строки табличной части
+        tableRow.Серия = scan.Серия;
+        //tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
         ///
         if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {

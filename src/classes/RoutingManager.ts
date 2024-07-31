@@ -14,9 +14,19 @@ interface IRoutingMap {
 
     shipmentCreateInfoListForm:string
     shipmentCreateInfoListCheck:string
+    shipmentUploadInfoListByBarcode:string
 
     shipmentReflectionStoreForm:string
     shipmentReflectionStoreCheck:string
+    
+    sohShipmentLoad:string
+    sohShipmentForm:string
+    sohShipmentCheck:string
+
+    sohGettingLoad:string
+    sohGettingForm:string
+    sohGettingCheck:string
+    
 }
 
 export class RoutingManager extends BaseManager implements ILoadableManager {
@@ -35,8 +45,18 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
 
         shipmentCreateInfoListForm:"shipment__Create_InfoList__Form",
         shipmentCreateInfoListCheck:"shipment__Create_InfoList__Check",
+        shipmentUploadInfoListByBarcode:"shipment__Upload_InfoList__ByBarcode",
+
         shipmentReflectionStoreForm:"shipment__ReflectionStore__Form",
-        shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check"
+        shipmentReflectionStoreCheck:"shipment__ReflectionStore__Check",
+
+        sohShipmentLoad:"sohShipmentLoad",
+        sohShipmentForm:"sohShipmentForm",
+        sohShipmentCheck:"sohShipmentCheck",
+
+        sohGettingLoad:"sohGettingLoad",
+        sohGettingForm:"sohGettingForm",
+        sohGettingCheck:"sohGettingCheck"
 
     }
 
@@ -59,9 +79,11 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
 
     load() {
         this.currentScreen = LocalStorageManager.get("currentScreen");
+        this.afterReload()
     }
 
     pushName(key: string) {
+        
         //this.emit("go", [this.currentScreen]);
         this.emit('pushName', [key])
     }

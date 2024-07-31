@@ -27,12 +27,25 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     this.initSounds()
   }
 
-  async initSounds(){
-    this.path.good = (await import('@/assets/sounds/GOOD.mp3')).default
-    this.path.error = (await import('@/assets/sounds/ERROR.mp3')).default
-    this.path.scan = (await import('@/assets/sounds/SCAN.mp3')).default
-    this.path.repeat = (await import('@/assets/sounds/REPEAT.mp3')).default
-    this.path.repeat_arial = (await import('@/assets/sounds/REPEAT_ARIAL.mp3')).default
+  async initSounds() {
+    console.log('initSounds start')
+    try{
+      this.path.good = (await import('@/assets/sounds/GOOD.mp3')).default
+      this.path.error = (await import('@/assets/sounds/ERROR.mp3')).default
+      this.path.scan = (await import('@/assets/sounds/SCAN.mp3')).default
+      this.path.repeat = (await import('@/assets/sounds/REPEAT.mp3')).default
+      this.path.repeat_arial = (await import('@/assets/sounds/REPEAT_ARIAL.mp3')).default
+      console.log('initSounds this.path.good',this.path.good)
+      console.log('initSounds this.path.error',this.path.error)
+      console.log('initSounds this.path.scan',this.path.scan)
+      console.log('initSounds this.path.repeat',this.path.repeat)
+      console.log('initSounds this.path.repeat_arial',this.path.repeat_arial)
+    }catch(e){
+      console.error('initSounds error',e)
+    }
+    
+    
+    console.log('initSounds finish')
   }
 
   public static swal(message: string, mode:AlertMode='warning') {
@@ -110,8 +123,10 @@ export class NotificationManager extends BaseManager implements ILoadableManager
   }
 
   public playRepeatArial() {
+    console.log('playRepeatArial start')
     this.audio.src = this.path.repeat_arial
     this.play()
+    console.log('playRepeatArial finish')
   }
 
 

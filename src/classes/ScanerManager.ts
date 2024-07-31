@@ -5,6 +5,7 @@ import { NotificationManager } from "./NotificationManager";
 import { BaseManager, ILoadableManager } from "./BaseManager";
 import { StringToBool } from "@/functions/StringToBoolean";
 import { IScaning } from "@/interfaces/IScaning";
+import { LogManager } from "./LogManager";
 
 
 
@@ -22,8 +23,13 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
     ScanerManager.instance = this;
   }
 
-  static init(){
+  static init() {
     new ScanerManager()
+  }
+
+  load() {
+    this.scanKey.value = LocalStorageManager.get('scanKey') ?? "F13"
+    this.useClipBoard.value = StringToBool(LocalStorageManager.get('useClipBoard')) ?? true
   }
 
   // static async showAddManualScaningForm():Promise<string>{
@@ -44,39 +50,36 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
   // }
 
   /// Показываем форму добавления сканирования в ручном режиме, возвращает штрихкод
-  static async showAddManualScaning(scaning:IScaning|null=null):Promise<string>{
-    return new Promise((resolve,reject)=>{
-      try{
-        const callback = (result:string)=>{
-          if(result){
+  static async showAddManualScaning(scaning: IScaning | null = null): Promise<string> {
+    return new Promise((resolve, reject) => {
+      try {
+        const callback = (result: string) => {
+          if (result) {
             resolve(result)
           }
         }
-        if(scaning){
+        if (scaning) {
           NotificationManager.instance.emit('showAddManualScaningForm:object', [callback, scaning])
-        }else{
+        } else {
           NotificationManager.instance.emit('showAddManualScaningForm', [callback])
         }
-        
-      }catch(e){
-          reject(e)
-      } 
+
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
-  load(){
-    this.scanKey.value = LocalStorageManager.get('scanKey')??"F13"
-    this.useClipBoard.value = StringToBool(LocalStorageManager.get('useClipBoard'))??true
-  }
 
-  
 
-  setScanKey(value:string){
+
+
+  setScanKey(value: string) {
     this.scanKey.value = value
     LocalStorageManager.set('scanKey', value)
   }
 
-  setUseClipBoard(value:boolean){
+  setUseClipBoard(value: boolean) {
     this.useClipBoard.value = value
     LocalStorageManager.set('useClipBoard', value)
   }
@@ -95,19 +98,29 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
   }
 
   afterScan(event: KeyboardEvent) {
-    if (event.key === this.scanKey.value) {
+    console.log(
+      "onScan до сервисной кнопки",
+      event.key, this.scanKey.value,
+      Boolean(MainManager.instance.cordova),
+      JSON.stringify({ key: event.key, code: event.code, charCode: event.charCode, keyCode: event.keyCode })
+    )
+    if (event.key === this.scanKey.value || event.code === this.scanKey.value) {
       const cordova = MainManager.instance.cordova;
       cordova.plugins.clipboard.paste((text: string) => {
+        console.log("onScan сервисная кнопка нажата", this.scanKey.value, text)
         if (text !== "") {
-          this.emit("onScan",[this.barcodeWrapper(text)])
+          //console.log("onScan",text)
+          //console.log("onScan после сервисной кнопки")
+          this.emit("onScan", [this.barcodeWrapper(text)])
         }
         cordova.plugins.clipboard.clear();
       });
     }
+    console.log("onScan после сервисной кнопки")
   }
 
-  onScan(callback:(text:string)=>void){
-    this.connect('onScan',(data)=>{callback(data[0])})
+  onScan(callback: (text: string) => void) {
+    this.connect('onScan', (data) => { callback(data[0]) })
   }
 }
 

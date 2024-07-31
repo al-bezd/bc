@@ -1,10 +1,10 @@
 <template>
   <BootstrapModalWindow :seen="seen">
-    <h4 v-if="!much">Введите штрихкод продукции</h4>
+    <h6 v-if="!much">Введите штрихкод продукции</h6>
 
-    <h4 v-else style="font-weight: bold">
+    <h6 v-else style="font-weight: bold">
       {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
-    </h4>
+    </h6>
 
     <input
       v-if="!much"
@@ -106,7 +106,7 @@
   </BootstrapModalWindow>
 </template>
 <script setup lang="ts">
-import { DBManager } from "@/classes/DBManager";
+//import { DBManager } from "@/classes/DBManager";
 import { MainManager } from "@/classes/MainManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { ScanerManager } from "@/classes/ScanerManager";
@@ -114,19 +114,23 @@ import { IScaning } from "@/interfaces/IScaning";
 import { Ref, ref } from "vue";
 import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue";
 import DatePicker from "@/components/widgets/DatePicker.vue";
+import { getCurrentDateByDatePickerFormat } from "@/functions/GetCurrentDateByDatePickerFormat";
+import { DB2Manager, IBarcode } from "@/classes/DB2Manager";
 
 const seen = ref(false);
 const much = ref(false);
 const ШК = ref("");
 const ШтрихкодПродукции = ref("");
 
+const currentDate = getCurrentDateByDatePickerFormat();
+
 const Номенклатура = ref("");
 const Характеристика = ref("");
 const Артикул = ref("");
 const ПЛУ = ref("");
 
-const ДатаПроизводства = ref("");
-const ГоденДо = ref("");
+const ДатаПроизводства = ref(currentDate);
+const ГоденДо = ref(currentDate);
 const Количество = ref(0);
 const ЕдиницаИзмерения = ref("шт");
 const КоличествоВЕдиницахИзмерения = ref("0");
@@ -176,10 +180,8 @@ function close() {
 async function onEnter() {
   //barcodeHasEntered.value = true;
   ШтрихкодПродукции.value = ШК.value.slice(2, 16);
-  const dbResponse = await DBManager.getFileAsync(
-    ШтрихкодПродукции.value,
-    MainManager.keys.barcodes,
-    MainManager.keys.barcodes
+  const dbResponse: IBarcode | undefined = await DB2Manager.instance.barcodes!.get(
+    ШтрихкодПродукции.value
   );
   if (!dbResponse) {
     NotificationManager.swal("Продукция с таким штрих кодом не найдена");
@@ -188,12 +190,11 @@ async function onEnter() {
   }
   //СтруктураШК.value = dbResponse.data;
   much.value = true; // Если true то скрывает элементы на форме
-  Номенклатура.value = dbResponse.data.Ссылка.Номенклатура.Наименование;
-  Характеристика.value = dbResponse.data.Ссылка.Характеристика.Наименование;
-  Артикул.value = dbResponse.data.Ссылка.Номенклатура.Артикул;
-  ЕдиницаИзмерения.value =
-    dbResponse.data.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
-  ПЛУ.value = dbResponse.data.Ссылка.ПЛУ;
+  Номенклатура.value = dbResponse.Ссылка.Номенклатура.Наименование;
+  Характеристика.value = dbResponse.Ссылка.Характеристика.Наименование;
+  Артикул.value = dbResponse.Ссылка.Номенклатура.Артикул;
+  ЕдиницаИзмерения.value = dbResponse.Ссылка.Номенклатура.ЕдиницаИзмерения.Наименование;
+  ПЛУ.value = dbResponse.Ссылка.ПЛУ;
   //Объект.value = dbResponse.data.Ссылка;
 }
 
@@ -206,8 +207,8 @@ function clear() {
   ПЛУ.value = "";
   //Объект.value           = ""
   ШК.value = "";
-  ДатаПроизводства.value = "";
-  ГоденДо.value = "";
+  ДатаПроизводства.value = currentDate;
+  ГоденДо.value = currentDate;
   Количество.value = 0;
   КоличествоВЕдиницахИзмерения.value = "";
   Грузоместа.value = 0;
@@ -220,6 +221,12 @@ function cancel() {
 }
 
 function accept() {
+  if (Количество.value <= 0) {
+    NotificationManager.error("Вес не может быть равен 0 или меньше");
+    return;
+  } else if (КоличествоВЕдиницахИзмерения.value === "") {
+    NotificationManager.error("КоличествоВЕдиницахИзмерения должно быть заполнено");
+  }
   //ДатаПроизводства.value = ДатаПроизводства.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
   //ГоденДо.value = ГоденДо.value.replace(/-/gi, "").slice(2, 8); // Подгоняем дату под формат ШК
 
@@ -258,3 +265,5 @@ function accept() {
   //   }
 }
 </script>
+import { getCurrentDateByDatePickerFormat } from
+"@/functions/GetCurrentDateByDatePickerFormat";

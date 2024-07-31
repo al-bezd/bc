@@ -2,7 +2,7 @@
   <!-- Выбор пользователя-->
   <div class="p-3" id="form_select_user" v-show="seen">
     <div class="jumbotron">
-      <h4>Отсканируйте ШК сотрудника</h4>
+      <h6>Отсканируйте ШК сотрудника</h6>
 
       <div class="form-group form-group-lg">
         <div class="">
@@ -46,6 +46,10 @@ function show() {
 // },10000)
 
 ScanerManager.instance.onScan((value) => {
+  if (!seen.value){
+    return
+  }
+  console.log("Выбор пользователя сканирование ", value);
   barcode.value = value;
   getUser();
 });

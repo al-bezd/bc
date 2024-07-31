@@ -1,4 +1,17 @@
 <style scope>
+/* body {
+  font-size: 0.5rem !important;
+}
+.btn {
+  font-size: 0.5rem !important;
+} */
+.d-flex-direction-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-d-column {
+  flex-direction: column;
+}
 .reft_screen_form {
   height: 100vh;
   display: flex;
@@ -15,6 +28,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
+  overflow-y: scroll;
 }
 
 .close_btn {
@@ -25,6 +39,7 @@
 .space {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .btn {
@@ -40,6 +55,12 @@
 .fs-9 {
   font-size: 0.25rem !important;
 }
+
+.alert-orange {
+  color: #573815;
+  background-color: #f9a653;
+  border-color: #e6d6c3;
+}
 </style>
 <template>
   <div>
@@ -52,6 +73,7 @@
 
     <InfoListForm />
     <InfoListCheck />
+    <InfoListUploadByBarcode />
 
     <ReflectionStoreForm />
     <ReflectionStoreCheck />
@@ -59,6 +81,14 @@
     <GettingProdLoad />
     <GettingProdForm />
     <GettingProdCheck />
+
+    <SohShipingLoad />
+    <SohShipingForm />
+    <SohShipingCheck />
+
+    <SohGettingLoad />
+    <SohGettingForm />
+    <SohGettingCheck />
 
     <SettingsButton />
     <SettingsScreen />
@@ -79,8 +109,9 @@ import SettingsButton from "./widgets/SettingsButton.vue";
 import SettingsScreen from "./SettingsScreen.vue";
 import ConfirmScreen from "@/components/modals/ConfirmScreen.vue";
 import AddManualFormScreen from "@/components/modals/AddManualFormScreen.vue";
-import { onMounted } from "vue";
-import { RoutingManager } from "@/classes/RoutingManager";
+import InfoListUploadByBarcode from "@/components/shipment/info_list/InfoListUploadByBarcode.vue";
+// import { onMounted } from "vue";
+// import { RoutingManager } from "@/classes/RoutingManager";
 import NotificationListener from "@/components/widgets/NotificationListener.vue";
 import ShipmentLoad from "./shipment/ShipmentLoad.vue";
 import ShipmentForm from "./shipment/ShipmentForm.vue";
@@ -91,7 +122,15 @@ import InfoListCheck from "./shipment/info_list/InfoListCheck.vue";
 import ReflectionStoreForm from "./shipment/reflection_store/ReflectionStoreForm.vue";
 import ReflectionStoreCheck from "./shipment/reflection_store/ReflectionStoreCheck.vue";
 
-onMounted(() => {
-  RoutingManager.instance.afterReload();
-});
+import SohShipingLoad from "@/components/soh/shiping/SohShipingLoad.vue";
+import SohShipingForm from "@/components/soh/shiping/SohShipingForm.vue";
+import SohShipingCheck from "@/components/soh/shiping/SohShipingCheck.vue";
+
+import SohGettingLoad from "@/components/soh/getting/SohGettingLoad.vue";
+import SohGettingForm from "@/components/soh/getting/SohGettingForm.vue";
+import SohGettingCheck from "@/components/soh/getting/SohGettingCheck.vue";
+
+// onMounted(() => {
+//   RoutingManager.instance.afterReload();
+// });
 </script>

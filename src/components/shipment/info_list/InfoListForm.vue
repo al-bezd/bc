@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>{{ pageTitle }}</h4>
+    <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
       type="text"
@@ -30,23 +30,19 @@
 
     <div class="row">
       <div class="col-12">
-        <button
-          class="btn btn-info btn-lg btn-block mb-3 w-100"
-          @click="addManualScaning"
-        >
-          +
-        </button>
+        <AddManualScaningButton @tap="addManualScaning" />
+
         <div class="btn-group w-100" role="group">
           <button
             type="button"
-            class="btn btn-warning  text-uppercase fs-6"
+            class="btn btn-warning text-uppercase fs-6"
             @click="closeWithQuest()"
           >
             <b>ЗАКРЫТЬ</b>
           </button>
           <button
             type="button"
-            class="btn btn-primary  text-uppercase fs-6"
+            class="btn btn-primary text-uppercase fs-6"
             @click="clearWithQuest()"
           >
             <b>ОЧИСТИТЬ</b>
@@ -54,7 +50,7 @@
 
           <button
             type="button"
-            class="btn btn-success  text-uppercase fs-6"
+            class="btn btn-success text-uppercase fs-6"
             attr="check"
             @click="goToCheck()"
           >
@@ -81,12 +77,21 @@ import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
+import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListForm,
   show,
   close
 );
+ScanerManager.instance.onScan((value) => {
+  if (!seen.value) {
+    return;
+  }
+  barcode.value = value;
+  onEnter();
+  barcode.value = "";
+});
 const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance,
   true
@@ -102,6 +107,9 @@ const seen = ref(false);
 const itPalet = ref(false);
 const barcode = ref("");
 const items = ShipmentManager.instance.currentScanings;
+
+/// Валидаторы сканирования
+const validators: ((scan: IScaning) => boolean)[] = [isPaletScan];
 
 const boxCount = computed(() => {
   return ShipmentManager.instance.currentScanings.value.reduce(
@@ -129,17 +137,38 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
-  const scaning = await scaningController.getScaning(barcodeStr);
-  if (scaning) {
-    scaning.free = true;
-    await ShipmentManager.instance.addScaning(scaning);
-    scaningController.isValidScaning(
-      scaning,
-      ShipmentManager.instance.currentScanings.value
-    );
-    return true;
+  const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
+  if (!scaning) {
+    return false;
   }
-  return false;
+  /// Проверяем сканирование на бизнес условие
+  for (const validator of validators) {
+    const condition = await validator(scaning);
+    if (!condition) {
+      return false;
+    }
+  }
+
+  if (itPalet.value) {
+    itPalet.value = false;
+  }
+  await ShipmentManager.instance.addScaning(scaning);
+  scaningController.isValidScaning(
+    scaning,
+    ShipmentManager.instance.currentScanings.value
+  );
+  return true;
+}
+
+/// уведомляем пользователя если он случайно отсканировал палетную этикетку
+function isPaletScan(scan: IScaning): boolean {
+  if (!itPalet.value && scan.itPalet) {
+    NotificationManager.swal(
+      `Данное сканирование является сканированием палетной этикетки`
+    );
+    NotificationManager.instance.playError();
+  }
+  return true;
 }
 
 function goToCheck() {
