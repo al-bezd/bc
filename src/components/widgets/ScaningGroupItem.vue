@@ -41,9 +41,12 @@
         </div>
       </div>
       <div class="col-2">
-        <div v-if="showProcent && isGroup">
+        <div v-if="showProcent">
           <b>{{ data.ВПроцСоотношении }}%</b>
         </div>
+        <!-- <div v-if="showProcent && isGroup">
+          <b>{{ data.ВПроцСоотношении }}%</b>
+        </div> -->
         <slot name="addButton"></slot>
       </div>
     </div>
@@ -82,7 +85,10 @@ function isIScaningGroup(obj: any): obj is IScaningGroup {
 }
 
 function getClass() {
-  if (isGroup.value) {
+  // if (isGroup.value) {
+  //   return (props.data as IScaningGroup).cls;
+  // }
+  if (props.showProcent) {
     return (props.data as IScaningGroup).cls;
   }
   return "alert alert-info";

@@ -74,7 +74,7 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { GetCount } from "@/functions/GetCount";
-import { computed, Ref, ref, toRaw } from "vue";
+import { computed, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";

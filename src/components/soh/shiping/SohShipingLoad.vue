@@ -1,7 +1,7 @@
 <template>
   <!-- Окно загрузки документа СОХ-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>Отсканируйте ШК с листа сборки в поле</h4>
+    <h6>СОХ Отгрузка: Отсканируйте ШК в поле: Загрузка</h6>
     <input
       type="text"
       class="form-control bc_input mb-3"

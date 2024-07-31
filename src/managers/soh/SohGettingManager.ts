@@ -16,6 +16,8 @@ export class SohGettingManager extends BaseManager {
   protected currentScaningsKey = "SohGettingManager__currentScanings"
   protected storesKey = "SohGettingManager__stores"
 
+  protected ВидДокумента = "ПриемкаТоваровНаХранение"
+
   //public documents: any[] = [];
   public currentScanings: Ref<IScaning[]> = ref([])
   public currentDocument: Ref<ISohDocument | null> = ref(null)
@@ -119,7 +121,10 @@ export class SohGettingManager extends BaseManager {
 
   async getDocumentFromServerByBarcode(barcode: string): Promise<ISohDocument | null> {
     const result = await HttpManager.get('/get_order', {
-      "ID": barcode
+      "ID": barcode,
+      "Тип": "Документы",
+      "Вид": this.ВидДокумента,
+
     })
 
     if (result.success) {
@@ -180,7 +185,7 @@ export class SohGettingManager extends BaseManager {
     if(res){
       const dosc:IDocument[]=res
       for(const doc of dosc){
-        if(doc.Ссылка.Вид==="ПриемкаТоваровНаХранение"){
+        if(doc.Ссылка.Вид===this.ВидДокумента){
           documents.unshift(doc as ISohDocument)
         }
       }

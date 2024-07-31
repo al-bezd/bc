@@ -16,6 +16,8 @@ export class SohShipmentManager extends BaseManager {
   protected currentScaningsKey = "SohShipmentManager__currentScanings"
   protected storesKey = "SohShipmentManager__stores"
 
+  protected ВидДокумента = "ОтгрузкаТоваровСХранения"
+
   //public documents: any[] = [];
   public currentScanings: Ref<IScaning[]> = ref([])
   public currentDocument: Ref<ISohDocument | null> = ref(null)
@@ -118,7 +120,9 @@ export class SohShipmentManager extends BaseManager {
 
   async getDocumentFromServerByBarcode(barcode: string): Promise<ISohDocument | null> {
     const result = await HttpManager.get('/get_order', {
-      "ID": barcode
+      "ID": barcode,
+      "Тип":"Документы",
+      "Вид":this.ВидДокумента
     })
 
     if (result.success) {
@@ -179,7 +183,7 @@ export class SohShipmentManager extends BaseManager {
     if(res){
       const dosc:IDocument[]=res
       for(const doc of dosc){
-        if(doc.Ссылка.Вид==="ОтгрузкаТоваровСХранения"){
+        if(doc.Ссылка.Вид===this.ВидДокумента){
           documents.unshift(doc as ISohDocument)
         }
       }

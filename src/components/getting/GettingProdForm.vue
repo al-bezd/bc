@@ -231,7 +231,7 @@ function isWeightMoreWeightInChar(scan: IScaning): boolean {
         `Вес в характеристике ${scan.Характеристика.Наименование}\n${i.Значение} больше чем вес в сканировании ${scan.Количество}`
       );
       NotificationManager.instance.playError();
-      break;
+      return false;
     }
   }
   return true;
@@ -241,6 +241,7 @@ function isLentaTanderRule(scan: IScaning): boolean {
   const con1 =
     scan.Характеристика.Наименование.includes("(Лента)") ||
     scan.Характеристика.Наименование.includes("(Тандер)");
+
   const con2 = scan.Характеристика.ДополнительныеРеквизиты.filter(
     (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
   );
@@ -287,6 +288,7 @@ function isValidScaning(scan: IScaning): boolean {
     NotificationManager.instance.playError();
     return false;
   }
+
   return true;
 }
 

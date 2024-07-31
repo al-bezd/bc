@@ -104,7 +104,7 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
       Boolean(MainManager.instance.cordova),
       JSON.stringify({ key: event.key, code: event.code, charCode: event.charCode, keyCode: event.keyCode })
     )
-    if (event.key === this.scanKey.value) {
+    if (event.key === this.scanKey.value || event.code === this.scanKey.value) {
       const cordova = MainManager.instance.cordova;
       cordova.plugins.clipboard.paste((text: string) => {
         console.log("onScan сервисная кнопка нажата", this.scanKey.value, text)

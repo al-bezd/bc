@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования (без документа)-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h4>{{ pageTitle }}</h4>
+    <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
       type="text"
@@ -84,6 +84,14 @@ RoutingManager.instance.registry(
   show,
   close
 );
+ScanerManager.instance.onScan((value) => {
+  if (!seen.value) {
+    return;
+  }
+  barcode.value = value;
+  onEnter();
+  barcode.value = "";
+});
 const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance,
   true

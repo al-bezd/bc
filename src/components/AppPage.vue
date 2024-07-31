@@ -1,4 +1,10 @@
 <style scope>
+/* body {
+  font-size: 0.5rem !important;
+}
+.btn {
+  font-size: 0.5rem !important;
+} */
 .d-flex-direction-column {
   display: flex;
   flex-direction: column;
@@ -22,6 +28,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
+  overflow-y: scroll;
 }
 
 .close_btn {

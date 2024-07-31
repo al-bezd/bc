@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования для приемки-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h5 class="text-muted">{{ docName }}</h5>
+    <h6 class="text-muted">СОХ Приемка: {{ docName }}: Форма</h6>
 
     <!-- <div class="row">
       <div class="col">
@@ -81,10 +81,11 @@ import { MainManager } from "@/classes/MainManager";
 import { ScaningController } from "@/controllers/ScaningController";
 import { RowKeyMode } from "@/functions/GetGroupScans";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
-import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
+
 import { ISohDocument } from "@/managers/soh/interfaces";
-const currentManager = computed(() => SohShipmentManager.instance);
-RoutingManager.instance.registry(RoutingManager.route.sohForm, show, close);
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
+const currentManager = computed(() => SohGettingManager.instance);
+RoutingManager.instance.registry(RoutingManager.route.sohGettingForm, show, close);
 
 const scaningController: ScaningController = new ScaningController(currentManager.value);
 
@@ -118,7 +119,7 @@ async function closeWithConfirm() {
   );
   if (response) {
     currentManager.value.clear();
-    RoutingManager.instance.pushName(RoutingManager.route.sohLoad);
+    RoutingManager.instance.pushName(RoutingManager.route.sohGettingLoad);
   }
 }
 
@@ -152,7 +153,7 @@ function show() {
 }
 
 function goCheck() {
-  RoutingManager.instance.pushName(RoutingManager.route.sohCheck);
+  RoutingManager.instance.pushName(RoutingManager.route.sohGettingCheck);
 }
 
 function onEnter() {

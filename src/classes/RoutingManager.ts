@@ -83,7 +83,7 @@ export class RoutingManager extends BaseManager implements ILoadableManager {
     }
 
     pushName(key: string) {
-        //debugger
+        
         //this.emit("go", [this.currentScreen]);
         this.emit('pushName', [key])
     }

@@ -1,7 +1,7 @@
 <template>
   <!-- Окно загрузки документа СОХ-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h6>Отсканируйте ШК в поле</h6>
+    <h6>СОХ Приемка: Отсканируйте ШК в поле: Загрузка</h6>
     <input
       type="text"
       class="form-control bc_input mb-3"
@@ -54,6 +54,7 @@ import { MainManager } from "@/classes/MainManager";
 import { IScaning } from "@/interfaces/IScaning";
 import { IDocument } from "@/interfaces/IDocument";
 import { ISohDocument } from "@/managers/soh/interfaces";
+
 const currentManager = computed(() => SohGettingManager.instance);
 const barcode = ref("");
 const savedSohDocs: Ref<ISohDocument[]> = ref([]);
@@ -123,20 +124,21 @@ async function closeWithQuest() {
 }
 
 async function getDocumentByBarcode(barcode: string) {
-  //get_document_order
   ///ищем по ШК сначала в документах пользователя
-  const userDocs = await MainManager.instance.local.allUserDocs();
-  if (userDocs) {
-    for (const doc of userDocs) {
-      if (doc.Ссылка.Ссылка === barcode) {
-        setCurrentDocument(doc, doc.scanings ?? []);
-        return;
-      }
-    }
-  }
+  /// для приемки сох пока не предусмотрен поиск по локальной базе
+  // const userDocs = await MainManager.instance.local.allUserDocs();
+  // if (userDocs) {
+  //   for (const doc of userDocs) {
+  //     if (doc.Ссылка.Ссылка === barcode) {
+  //       setCurrentDocument(doc, doc.scanings ?? []);
+  //       return;
+  //     }
+  //   }
+  // }
   /// если не нашли документ в документах пользователя то получаем его с сервера или из списка ранее загруженных заказов
   let document: ISohDocument | null = null;
-  if (UserManager.instance.useLocalOrders.value) {
+  const con = UserManager.instance.useLocalOrders.value;
+  if (con) {
     document = await currentManager.value.getDocumentFromLocalDBByBarcode(barcode);
   } else {
     document = await currentManager.value.getDocumentFromServerByBarcode(barcode);

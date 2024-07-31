@@ -1,6 +1,6 @@
 <template>
   <div class="reft_modal" v-if="seen">
-    <h3>Панель администратора</h3>
+    <h6>Панель администратора</h6>
     <div class="">
       <div class="alert alert-info" role="alert">
         HOST:<b>{{ host }}</b>
@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3">
+    <ul class="nav nav-tabs mb-3" style="min-height: 6rem">
       <li class="nav-item">
         <a :class="getNavClass('nav-barcode')" @click="setTab('nav-barcode')">ШК</a>
       </li>
@@ -47,7 +47,7 @@
       </li>
     </ul>
 
-    <div class="tab-content space">
+    <div class="tab-content">
       <div :class="getTabClass('nav-barcode')">
         <div class="">
           <div class="alert alert-info" role="alert">
@@ -315,6 +315,8 @@
         </div>
       </div>
     </div>
+
+    <div class="space"></div>
 
     <button class="btn btn-warning btn-block close_btn mb-0" @click="close">
       <b>ЗАКРЫТЬ</b>

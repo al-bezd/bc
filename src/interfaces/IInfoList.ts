@@ -5,8 +5,8 @@ import { ITorgovieSeti } from "./ITorgovieSeti"
 export interface IInfoList{
     ШК:string
     data:IScaning[],
-    ВесПоддона:number,
-    НомерПоддона:string,
-    Сеть:ITorgovieSeti,
-    Склад:IStore
+    ВесПоддона:number|undefined,
+    НомерПоддона:string|undefined,
+    Сеть:ITorgovieSeti|undefined,
+    Склад:IStore|undefined
 }

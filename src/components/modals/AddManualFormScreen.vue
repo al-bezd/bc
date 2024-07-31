@@ -1,10 +1,10 @@
 <template>
   <BootstrapModalWindow :seen="seen">
-    <h4 v-if="!much">Введите штрихкод продукции</h4>
+    <h6 v-if="!much">Введите штрихкод продукции</h6>
 
-    <h4 v-else style="font-weight: bold">
+    <h6 v-else style="font-weight: bold">
       {{ Артикул }} {{ Номенклатура }} {{ Характеристика }} ПЛУ: {{ ПЛУ }}
-    </h4>
+    </h6>
 
     <input
       v-if="!much"

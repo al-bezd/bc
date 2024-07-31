@@ -21,6 +21,7 @@ export function GetGroupScans(
     scanings: IScaning[], mode:RowKeyMode="НомХарСер"
   ): IScaningGroup[] {
     const list: any = {};
+    
     for (const item of scanings) {
       const key = getRowKey(item, mode);
       
@@ -41,6 +42,7 @@ export function GetGroupScans(
         list[key].ТекущееКоличествоГрузомест = 0
         list[key].Количество = 0;
         list[key].КоличествоКоробок = 0;
+        list[key].КоличествоУпаковок = 0;
   
         //continue;
       }
@@ -53,6 +55,7 @@ export function GetGroupScans(
       list[key].Количество += item.Количество??0;
       
       list[key].КоличествоКоробок += item.Грузоместа??0;
+      list[key].КоличествоУпаковок += (item as any).КоличествоУпаковок??0
       // ВПроцСоотношении = Math.round(
       //   (100 / i.КоличествоУпаковок) * i.ТекущееКоличествоВЕдиницахИзмерения
       // );

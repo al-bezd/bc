@@ -3,7 +3,7 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
       <div class="col-8">
-        <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
+        <h6 class="text-muted fs-6">СОХ Отгрузка: {{ docName }}: Проверка</h6>
       </div>
       <div class="col-4">
         <button
@@ -382,8 +382,9 @@ function fillCurrentResult(
       const tableRowKey = getRowKey(tableRow, mode);
 
       if (tableRowKey === scanKey) {
-        tableRow.ТекущееКоличество += scan.Количество;
-        tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
+        tableRow.Серия = scan.Серия;
+        //tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
         ///
         if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {

@@ -3,7 +3,7 @@
   <div class="reft_screen_form p-3" v-show="seen">
     <div class="row">
       <div class="col-8">
-        <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
+        <h6 class="text-muted fs-6">СОХ Приемка: {{ docName }}: Проверка</h6>
       </div>
       <div class="col-4">
         <button
@@ -101,10 +101,11 @@ import { ScaningController } from "@/controllers/ScaningController";
 import ContainersWidget from "@/components/soh/modals/ContainersWidget.vue";
 import FilteredByArticulScreen from "@/components/modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
-import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
-import { ISohDocument } from "@/managers/soh/interfaces";
 
-const currentManager = computed(() => SohShipmentManager.instance);
+import { ISohDocument } from "@/managers/soh/interfaces";
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
+
+const currentManager = computed(() => SohGettingManager.instance);
 RoutingManager.instance.registry(RoutingManager.route.sohGettingCheck, show, close);
 /// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
 const scaningController: ScaningController = new ScaningController(currentManager.value);
@@ -342,7 +343,7 @@ async function send(mode: any) {
           Вид: doc.Ссылка.Вид,
           Ссылка: doc.Ссылка.Ссылка,
           Товары: scaningsForSavingInOrder,
-          set_scaning_in_shiping_soh: true, //set_scaning_in_order
+          set_scaning_in_getting_soh: true, //set_scaning_in_order
         };
         /// Сохраняем сканирования в заказ
         const saveScaningInOrderRes = await HttpManager.post("/execute", params);
@@ -382,8 +383,9 @@ function fillCurrentResult(
       const tableRowKey = getRowKey(tableRow, mode);
 
       if (tableRowKey === scanKey) {
-        tableRow.ТекущееКоличество += scan.Количество;
-        tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
+        tableRow.Серия = scan.Серия;
+        //tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
         ///
         if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {

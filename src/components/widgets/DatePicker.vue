@@ -1,7 +1,7 @@
 <template>
   <input type="text" @click="showMenu" :value="valueStr" class="form-control" readonly />
   <BootstrapModalWindow v-model:seen="seen">
-    <h4 class="text-center">Выберите дату</h4>
+    <h6 class="text-center">Выберите дату</h6>
     <div class="alert alert-info">{{ valueStr }}</div>
     <div class="d-grid gap-2 space">
       <button @click="selectDay" class="btn btn-primary btn-lg btn-block text-uppercase">
@@ -27,7 +27,7 @@
     </div>
   </BootstrapModalWindow>
   <BootstrapModalWindow v-model:seen="daySeen">
-    <h4 class="text-center">Выберите день</h4>
+    <h6 class="text-center">Выберите день</h6>
     <div class="space mb-3">
       <button
         type="button"
@@ -59,7 +59,7 @@
     </button>
   </BootstrapModalWindow>
   <BootstrapModalWindow v-model:seen="monthSeen"
-    ><h4 class="text-center">Выберите месяц</h4>
+    ><h6 class="text-center">Выберите месяц</h6>
 
     <div class="space mb-3">
       <button
@@ -92,7 +92,7 @@
     </button>
   </BootstrapModalWindow>
   <BootstrapModalWindow v-model:seen="yearSeen"
-    ><h4 class="text-center">Выберите год</h4>
+    ><h6 class="text-center">Выберите год</h6>
     <div class="space mb-3">
       <button
         type="button"

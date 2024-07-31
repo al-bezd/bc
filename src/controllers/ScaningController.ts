@@ -9,6 +9,7 @@ import { IНоменклатура, IСерия, IХарактеристика }
 import { IScaning } from "@/interfaces/IScaning";
 import { GettingManager } from "@/managers/getting/GettingManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
+import { SohGettingManager } from "@/managers/soh/SohGettingManager";
 import { SohShipmentManager } from "@/managers/soh/SohShipmentManager";
 import { UserManager } from "@/managers/user/UserManager";
 
@@ -21,7 +22,7 @@ interface IBarcodeStructure {
 }
 
 export class ScaningController {
-    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager, isFree = false) {
+    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager| SohGettingManager, isFree = false) {
         
         this.isFree = isFree
         this.manager = manager
@@ -29,7 +30,7 @@ export class ScaningController {
 
     /// параметр отвечающий за привязку к документу
     public isFree = false
-    public manager: ShipmentManager | GettingManager | SohShipmentManager
+    public manager: ShipmentManager | GettingManager | SohShipmentManager | SohGettingManager
 
 
     /// Получаем разобранную структура штрих кода
@@ -165,8 +166,10 @@ export class ScaningController {
 
     /// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
     isValidScaning(scaning: IScaning, scanings: IScaning[]) {
+        console.log('isValidScaning scanings.length:', scanings.length)
         if (scanings.length > 1) {
             if (scanings[1].bc === scaning.bc) {
+                console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc,scanings[1].bc, scaning.bc)
                 NotificationManager.instance.playRepeatArial();
                 return;
             }

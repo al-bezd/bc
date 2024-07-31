@@ -17,8 +17,8 @@
             <div>
               ИД: <b>{{ item.ШК }}</b>
             </div>
-            <div>Сеть: {{ item.Сеть.Наименование }}</div>
-            <div>Склад: {{ item.Склад.Наименование }}</div>
+            <div>Сеть: {{ item.Сеть?.Наименование }}</div>
+            <div>Склад: {{ item.Склад?.Наименование }}</div>
             <div>НомерПоддона: {{ item.НомерПоддона }}</div>
             <div>ВесПоддона: {{ item.ВесПоддона }}</div>
             <div>Количество сканов: {{ item.data.length }}</div>
@@ -70,11 +70,20 @@ import { IInfoList } from "@/interfaces/IInfoList";
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { DB2Manager } from "@/classes/DB2Manager";
+import { ScanerManager } from "@/classes/ScanerManager";
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentUploadInfoListByBarcode,
   show,
   close
 );
+ScanerManager.instance.onScan((value) => {
+  if (!seen.value) {
+    return;
+  }
+  barcode.value = value;
+  onEnter();
+  barcode.value = "";
+});
 const seen = ref(false);
 const pageTitle = ref("Добавление Инфо. листов через сканирование");
 const barcode = ref("");

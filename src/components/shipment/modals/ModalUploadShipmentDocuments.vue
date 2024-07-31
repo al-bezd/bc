@@ -2,7 +2,7 @@
   <BootstrapModalWindow :seen="seen">
     <template v-slot:header>
       <div class="modal-header">
-        <h4 class="modal-title text-center">{{ addOrders.Заголовок }}</h4>
+        <h6 class="modal-title text-center">{{ addOrders.Заголовок }}</h6>
       </div>
     </template>
 

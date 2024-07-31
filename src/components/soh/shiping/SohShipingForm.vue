@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования для приемки-->
   <div class="reft_screen_form p-3" v-show="seen">
-    <h5 class="text-muted">{{ docName }}</h5>
+    <h6 class="text-muted">СОХ Отгрузка: {{ docName }}: Форма</h6>
 
     <!-- <div class="row">
       <div class="col">
