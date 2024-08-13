@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
@@ -16,7 +16,7 @@
     <div class="space">
       <ScaningItem
         v-for="item in items"
-        :key="item.ID"
+        :key="item.IDSec"
         :data="item"
         @delete="itemDelete"
         @tap="
@@ -109,7 +109,7 @@ const barcode = ref("");
 const items = ShipmentManager.instance.currentScanings;
 
 /// Валидаторы сканирования
-const validators: ((scan: IScaning) => boolean)[] = [isPaletScan];
+const validators: ((scan: IScaning) => boolean)[] = [];
 
 const boxCount = computed(() => {
   return ShipmentManager.instance.currentScanings.value.reduce(
@@ -137,6 +137,7 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
+  scaningController.itPalet = itPalet.value;
   const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (!scaning) {
     return false;
@@ -148,28 +149,19 @@ async function onScan(barcodeStr: string) {
       return false;
     }
   }
-
-  if (itPalet.value) {
-    itPalet.value = false;
-  }
   await ShipmentManager.instance.addScaning(scaning);
   scaningController.isValidScaning(
     scaning,
     ShipmentManager.instance.currentScanings.value
   );
-  return true;
-}
-
-/// уведомляем пользователя если он случайно отсканировал палетную этикетку
-function isPaletScan(scan: IScaning): boolean {
-  if (!itPalet.value && scan.itPalet) {
-    NotificationManager.swal(
-      `Данное сканирование является сканированием палетной этикетки`
-    );
-    NotificationManager.instance.playError();
+  scaningController.isWrongPaletScan(scaning,itPalet.value)
+  if (itPalet.value) {
+    itPalet.value = false;
   }
   return true;
 }
+
+
 
 function goToCheck() {
   //check_doc_free.show(GetData('no_order_mode'))

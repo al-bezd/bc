@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <div class="row">
       <div class="col-12">
         <h5 class="text-muted">{{ docName }}</h5>
@@ -22,19 +22,20 @@
     <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
 
     <div class="space">
-      <!--<div id="getting_prod_list"></div>-->
-      <ScaningItem
-        v-for="item in items"
-        :key="item.ID"
-        :data="item"
-        @delete="itemDelete"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
-      />
+      <RecycleScroller class="scroller" :items="items" :item-size="280" key-field="IDSec">
+        <template #default="{ item }"
+          ><ScaningItem
+            :data="item"
+            :key="item.IDSec"
+            @delete="itemDelete"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+        /></template>
+      </RecycleScroller>
     </div>
     <div class="row">
       <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
@@ -184,6 +185,7 @@ async function onScan(barcodeStr: string) {
   if (barcodeStr === "") {
     return false;
   }
+  scaningController.itPalet = itPalet.value;
   const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (!scaning) {
     return false;
@@ -196,42 +198,61 @@ async function onScan(barcodeStr: string) {
     }
   }
 
-  if (itPalet.value) {
-    itPalet.value = false;
-  }
-
   await GettingManager.instance.addScaning(scaning);
   scaningController.isValidScaning(
     scaning,
     GettingManager.instance.currentScanings.value
   );
-  return true;
-}
-
-/// Запрещаем добавлять сканирование если его добавление превысит вес сканирований по дкументу
-function isWeightMoreWeightInDoc(scan: IScaning): boolean {
-  if (scan.Количество + weightScans.value > weightInDoc.value) {
-    NotificationManager.swal(
-      `Вес приемки не должен превышать вес по документу ${weightInDoc.value}`
-    );
-    NotificationManager.instance.playError();
-    return false;
+  scaningController.isWrongPaletScan(scaning, itPalet.value);
+  if (itPalet.value) {
+    itPalet.value = false;
   }
   return true;
 }
 
-/// уведомляем пользователя если вес в сканировании больше веса в характеристике
-function isWeightMoreWeightInChar(scan: IScaning): boolean {
+/// Запрещаем добавлять сканирование если его добавление превысит вес сканирований по дкументу
+async function isWeightMoreWeightInDoc(scan: IScaning): Promise<boolean> {
+  if (scan.Количество + weightScans.value > weightInDoc.value * 1.2) {
+    // NotificationManager.swal(
+    //   `Вес приемки не должен превышать вес по документу ${weightInDoc.value}`
+    // );
+    NotificationManager.instance.playError();
+    var answer = await NotificationManager.showConfirm(`Вес приемки не должен превышать вес по документу ${
+      weightInDoc.value
+    },\n
+    Вы действительно хотите принять эту продукцию (текущий вес ${
+      scan.Количество + weightScans.value
+    } максимально возможный ${weightInDoc.value * 1.2})`);
+    return answer;
+  }
+  return true;
+}
+
+/// уведомляем пользователя и блокируем сканирование если вес в сканировании больше веса в характеристике
+async function isWeightMoreWeightInChar(scan: IScaning): Promise<boolean> {
   const res = scan.Характеристика.ДополнительныеРеквизиты.filter(
     (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
   );
   for (const i of res) {
-    if (scan.Количество > i.Значение) {
-      NotificationManager.swal(
-        `Вес в характеристике ${scan.Характеристика.Наименование}\n${i.Значение} больше чем вес в сканировании ${scan.Количество}`
-      );
+    if (scan.Количество > i.Значение * 1.2) {
       NotificationManager.instance.playError();
-      return false;
+      var answer = await NotificationManager.showConfirm(
+        `Вес в характеристике ${scan.Характеристика.Наименование}\n${
+          i.Значение
+        }(максимально доступный вес ${i.Значение * 1.2}) больше чем вес в сканировании ${
+          scan.Количество
+        } Вы действительно хотите принять продукцию?`
+      );
+
+      // NotificationManager.swal(
+      //   `Вес в характеристике ${scan.Характеристика.Наименование}\n${
+      //     i.Значение
+      //   }(максимально доступный вес ${i.Значение * 1.2}) больше чем вес в сканировании ${
+      //     scan.Количество
+      //   }`
+      // );
+
+      return answer;
     }
   }
   return true;

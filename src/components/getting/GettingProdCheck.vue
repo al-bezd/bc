@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <div>
       <h5 class="text-muted">{{ docName }}: Проверка</h5>
       <span>Поддон № {{ оитНомерПалета }}</span>

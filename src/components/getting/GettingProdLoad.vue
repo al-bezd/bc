@@ -1,6 +1,6 @@
 <template>
   <!-- Окно загрузки документа для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6>Отсканируйте ШК с сопроводительной накладной в поле</h6>
     <input
       type="text"
@@ -9,7 +9,7 @@
       v-model="barcode"
       @keyup.enter="
         () => {
-          barcode = barcode.delSpaces();
+          barcode = ScanerManager.instance.barcodeWrapper(barcode);
           onEnter();
         }
       "

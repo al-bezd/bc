@@ -14,7 +14,7 @@ export class HttpManager extends BaseManager implements ILoadableManager {
     }
   }
   static instance:HttpManager
-  static host= ref("http://lyra.reftp.ru");
+  static host = ref("http://lyra.reftp.ru");
   static pathToServer = ref("/barcode2020/hs/barcode/");
 
   static init() {
@@ -49,8 +49,10 @@ export class HttpManager extends BaseManager implements ILoadableManager {
       headers: this.getHeaders(),
     };
     try {
+      HttpManager.instance.emit("requestStart")
       const response = await fetch(url, opt);
       const json = await response.json();
+      HttpManager.instance.emit("requestEnd")
       return { success: true, data: json } as IResponse;
     } catch (error) {
       if (error instanceof Error) {
@@ -58,6 +60,7 @@ export class HttpManager extends BaseManager implements ILoadableManager {
       } else {
         console.error("Caught an unknown error:", error);
       }
+      HttpManager.instance.emit("requestEnd")
       throw error
       //return { success: false, data: null, error: e } as IResponse;
     }
@@ -72,11 +75,13 @@ export class HttpManager extends BaseManager implements ILoadableManager {
       headers: this.getHeaders(),
     };
     try {
+      HttpManager.instance.emit("requestStart")
       const response = await fetch(
         url,
         opt
       );
       const json = await response.json();
+      HttpManager.instance.emit("requestEnd")
       return { success: true, data: json } as IResponse;
     } catch (error) {
       //return { success: false, data: null, error: e } as IResponse;
@@ -85,6 +90,7 @@ export class HttpManager extends BaseManager implements ILoadableManager {
       } else {
         console.error("Caught an unknown error:", error);
       }
+      HttpManager.instance.emit("requestEnd")
       throw error
     }
   }

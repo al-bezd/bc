@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <div class="row">
       <div class="col-8">
         <h6 class="text-muted fs-6">СОХ Отгрузка: {{ docName }}: Проверка</h6>

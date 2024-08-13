@@ -1,6 +1,6 @@
 <template>
   <!-- Окно загрузки документа-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6>Отсканируйте ШК с листа сборки в поле</h6>
     <input
       type="text"

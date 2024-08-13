@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <div class="row">
       <div class="col-8">
         <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
@@ -301,6 +301,23 @@ async function send(mode: any) {
     //$('#ok_button_id').hide()
     NotificationManager.info("Ожидайте записи документа!!!");
     //qw.question_window_text = 'Ожидайте записи документа!!!'
+  } else {
+    var answer = false;
+    if (КвантыНеСоблюдены.value) {
+      answer = await NotificationManager.showConfirm(
+        "Вы уверенны что хотите записать заказ С НАРУШЕНИЕМ КВАНТОВ??? "
+      );
+      if (!answer) {
+        return;
+      }
+    } else {
+      answer = await NotificationManager.showConfirm(
+        "Вы уверенны что хотите записать заказ? "
+      );
+      if (!answer) {
+        return;
+      }
+    }
   }
   if (sendIsStart.value) {
     NotificationManager.info("Операция записи документа еще выполняется");
@@ -350,6 +367,7 @@ async function send(mode: any) {
         if (saveScaningInOrderRes.success) {
           console.log(saveScaningInOrderRes.data.Текст);
         }
+        RoutingManager.instance.pushName(RoutingManager.route.shipmentLoad);
       }
     }
   }

@@ -84,9 +84,14 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
     LocalStorageManager.set('useClipBoard', value)
   }
 
+   extractNumbers(str:string) {
+    return str.replace(/\D/g, ''); // \D соответствует нецифровым символам
+  }
+
   /// Предварительная обработка шк
   barcodeWrapper(barcode: string) {
-    barcode = barcode.replace(/ /gi, "");
+    //barcode = barcode.replace(/ /gi, "");
+    barcode = this.extractNumbers(barcode);
     //self.barcode=""
     if (barcode.indexOf("-") >= 0) {
       const text_error = `В штрихкоде "${barcode}" присутствует недопустимый символ "-" `;

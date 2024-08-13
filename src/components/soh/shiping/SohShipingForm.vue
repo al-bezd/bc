@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6 class="text-muted">СОХ Отгрузка: {{ docName }}: Форма</h6>
 
     <!-- <div class="row">
@@ -25,7 +25,7 @@
     <div class="space">
       <ScaningItem
         v-for="item in items"
-        :key="item.ID"
+        :key="item.IDSec"
         :data="item"
         @delete="itemDelete"
         @tap="filterByArticul(item)"
@@ -187,13 +187,14 @@ async function onScan(barcode: string) {
       }
     }
 
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
+    
 
     currentManager.value.addScaning(scan);
     scaningController.isValidScaning(scan, currentManager.value.currentScanings.value);
-
+    scaningController.isWrongPaletScan(scan,itPalet.value)
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
     return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");

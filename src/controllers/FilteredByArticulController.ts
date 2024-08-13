@@ -10,7 +10,7 @@ export class FilteredByArticulController {
     }
     public seen = ref(false);
     public originalItems: Ref<IScaning[] | IScaningGroup[]> = ref([]);
-    public items: Ref<IScaningGroup[]> = ref([]);
+    public items: Ref<IScaning[] | IScaningGroup[]> = ref([]);
     public scaning: IScaning | null = null
     public mode: Ref<RowKeyMode> = ref("НомХарСер")
     public showProcent = ref(false)
@@ -48,11 +48,12 @@ export class FilteredByArticulController {
             );
 
         }
-
-        this.items.value = GetGroupScans(
-            items, mode
-        )
-        //console.log('this.items.value ', this.items.value)
+        
+        //this.items.value = items;
+         this.items.value = GetGroupScans(
+             items, mode
+         )
+        
     }
 
     setMode(value: RowKeyMode) {

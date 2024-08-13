@@ -13,7 +13,7 @@
     <!--  -->
     <div class="space">
       <div>
-        <ScaningGroupItem
+        <ScaningItem
           v-for="item in controller.items.value"
           :key="item.IDSec"
           :data="item"
@@ -57,7 +57,8 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
+//import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
+import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { IScaning } from "@/interfaces/IScaning";
 
 import ModelWidget from "@/components/widgets/ModeWidget.vue";

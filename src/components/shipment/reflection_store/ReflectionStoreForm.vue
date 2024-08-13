@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
     <input
@@ -11,7 +11,7 @@
       @keyup.enter="onEnter()"
       id="form_doc_bc_free"
     />
-    <SortWidget :box-count="boxCount" :scan-count="items.length" @tap="onSort" />
+    <SortWidget :box-count="boxCount" :scan-count="listForRender.length" @tap="onSort" />
     <!-- <div class="btn-group w-100 mb-3" role="group">
       <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
         по Артикулу
@@ -24,7 +24,27 @@
       </button>
     </div> -->
     <div class="space">
-      <ScaningItem
+      <DynamicScroller
+        :key="listForRender.length"
+        class="scroller"
+        :items="listForRender"
+        :min-item-size="240"
+        key-field="IDSec"
+      >
+        <template #default="{ item }"
+          ><ScaningItem
+            :key="item.IDSec"
+            :data="item"
+            @delete="itemDelete"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+        /></template>
+      </DynamicScroller>
+      <!-- <ScaningItem
         v-for="item in items"
         :key="item.ID"
         :data="item"
@@ -35,7 +55,7 @@
             filteredByArticulController.show();
           }
         "
-      />
+      /> -->
     </div>
 
     <div class="row">
@@ -86,13 +106,15 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { computed, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
+
+//import { v4 } from "uuid";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentReflectionStoreForm,
@@ -119,16 +141,17 @@ const pageTitle = ref("Отражение остатков");
 const seen = ref(false);
 const itPalet = ref(false);
 const barcode = ref("");
-const items = ShipmentManager.instance.currentScanings;
+//const items = ShipmentManager.instance.currentScanings;
 const boxCount = computed(() => {
-  return ShipmentManager.instance.currentScanings.value.reduce(
-    (sum, scan) => sum + scan.Грузоместа,
-    0
-  );
+  return listForRender.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
 });
+
+///Костыль для обновления скрола по нормальному список элементов не обновляется увы
+//const scrollUpdater = ref(v4());
 
 function show() {
   seen.value = true;
+  startRenderList();
 }
 
 function close() {
@@ -151,14 +174,18 @@ async function onScan(barcodeStr: string) {
   if (scaning) {
     scaning.free = true;
 
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
     await ShipmentManager.instance.addScaning(scaning);
+    //$refs.scroller.refresh()
+    //scrollUpdater.value = v4();
     scaningController.isValidScaning(
       scaning,
       ShipmentManager.instance.currentScanings.value
     );
+    scaningController.isWrongPaletScan(scaning, itPalet.value);
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
+    startRenderList();
     return true;
   }
   return false;
@@ -172,6 +199,7 @@ function goToCheck() {
 function clear() {
   ShipmentManager.instance.clear();
   ShipmentManager.instance.emit("ReflectionStoreClear");
+  startRenderList();
 }
 
 async function clearWithQuest() {
@@ -215,7 +243,20 @@ async function itemDelete(item: IScaning) {
       ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
   const answerIsTrue = await NotificationManager.showConfirm(text);
   if (answerIsTrue) {
-    ShipmentManager.instance.deleteScaning(item);
+    ShipmentManager.instance.deleteScaning(item).then(() => {
+      //scrollUpdater.value = v4();
+      startRenderList();
+    });
   }
+}
+
+let timerId = -1;
+let scaningSpeed = 500;
+const listForRender: Ref<IScaning[]> = ref([]);
+function startRenderList() {
+  clearTimeout(timerId);
+  timerId = setTimeout(() => {
+    listForRender.value = [...ShipmentManager.instance.currentScanings.value];
+  }, scaningSpeed);
 }
 </script>

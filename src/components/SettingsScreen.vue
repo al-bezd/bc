@@ -3,16 +3,16 @@
     <h6>Панель администратора</h6>
     <div class="">
       <div class="alert alert-info" role="alert">
-        HOST:<b>{{ host }}</b>
-      </div>
-    </div>
-    <div v-if="UserManager.instance.user.value" class="">
-      <div class="alert alert-success" role="alert">
-        <b>{{ UserManager.instance.user.value.ФИО }}</b>
+        <span
+          >HOST:<b>{{ host }}</b></span
+        ><br />
+        <span v-if="UserManager.instance.user.value"
+          >USER:<b>{{ UserManager.instance.user.value.ФИО }}</b></span
+        >
       </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3" style="min-height: 6rem">
+    <ul class="nav nav-tabs mb-3" style="min-height: 8rem">
       <li class="nav-item">
         <a :class="getNavClass('nav-barcode')" @click="setTab('nav-barcode')">ШК</a>
       </li>
@@ -301,6 +301,20 @@
         </div>
       </div>
       <div :class="getTabClass('nav-log')">
+        <div class="">
+          <div class="alert alert-info" role="alert">
+            <button
+              class="btn btn-danger text-uppercase w-100"
+              @click="
+                () => {
+                  LogManager.instance.clear();
+                }
+              "
+            >
+              Очистить логи
+            </button>
+          </div>
+        </div>
         <div id="log-application" style="max-height: 400px; overflow: scroll">
           <div v-for="i in log" v-bind:key="i.key" class="fs-8">
             <div class="d-flex-direction-column">

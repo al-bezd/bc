@@ -9,7 +9,11 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     NotificationManager.instance = this
   }
 
-  public audio: HTMLAudioElement = new Audio(); 
+  public audioGood: HTMLAudioElement = new Audio(); 
+  public audioError: HTMLAudioElement = new Audio(); 
+  public audioScan: HTMLAudioElement = new Audio(); 
+  public audioRepeat: HTMLAudioElement = new Audio(); 
+  public audioRepeatArial: HTMLAudioElement = new Audio(); 
 
   public path={
     good:"",
@@ -27,26 +31,24 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     this.initSounds()
   }
 
-  async initSounds() {
-    console.log('initSounds start')
+  async initSounds(){
     try{
-      this.path.good = (await import('@/assets/sounds/GOOD.mp3')).default
-      this.path.error = (await import('@/assets/sounds/ERROR.mp3')).default
-      this.path.scan = (await import('@/assets/sounds/SCAN.mp3')).default
-      this.path.repeat = (await import('@/assets/sounds/REPEAT.mp3')).default
-      this.path.repeat_arial = (await import('@/assets/sounds/REPEAT_ARIAL.mp3')).default
-      console.log('initSounds this.path.good',this.path.good)
-      console.log('initSounds this.path.error',this.path.error)
-      console.log('initSounds this.path.scan',this.path.scan)
-      console.log('initSounds this.path.repeat',this.path.repeat)
-      console.log('initSounds this.path.repeat_arial',this.path.repeat_arial)
+      this.path.good='assets/sounds/GOOD.mp3'
+      this.path.error='assets/sounds/ERROR.mp3'
+      this.path.scan='assets/sounds/SCAN.mp3'
+      this.path.repeat='assets/sounds/REPEAT.mp3'
+      this.path.repeat_arial='assets/sounds/REPEAT_ARIAL.mp3'
+      this.audioGood.src = this.path.good
+      this.audioError.src = this.path.error
+      this.audioScan.src = this.path.scan
+      this.audioRepeat.src = this.path.repeat
+      this.audioRepeatArial.src = this.path.repeat_arial
+
     }catch(e){
-      console.error('initSounds error',e)
+      //
     }
-    
-    
-    console.log('initSounds finish')
   }
+
 
   public static swal(message: string, mode:AlertMode='warning') {
     //alert(message);
@@ -81,52 +83,46 @@ export class NotificationManager extends BaseManager implements ILoadableManager
   // public static soundScan = new Audio('../../../assets/sounds/SCAN.mp3')
   // public static soundRepeat = new Audio('../../../assets/sounds/REPEAT.mp3')
   // public static soundRepeatArial = new Audio('../../../assets/sounds/REPEAT_ARIAL.mp3')
-  
 
-  public static soundClick(path: string) {
-    const audio = new Audio();
-    audio.autoplay = true;
 
-    audio.src = path; // Указываем путь к звуку "клика"
-    // Автоматически запускаем
-    audio.play();
-  }
-
-  private play(){
-    this.audio.autoplay = true;
-    try{
-      this.audio.play()
-    }catch(e){
-      console.error(e)
-    }
+  // private play(){
+  //   //this.audio.autoplay = true;
+  //   try{
+  //     this.audio.play()
+  //   }catch(e){
+  //     //console.error(e)
+  //   }
     
-  }
+  // }
 
   public playGood() {
-    this.audio.src = this.path.good
-    this.play()
+    // this.audio.src = this.path.good
+    // this.play()
+    this.audioGood.play()
   }
 
   public playError() {
-    this.audio.src = this.path.error
-    this.play()
+    // this.audio.src = this.path.error
+    // this.play()
+    this.audioError.play()
   }
 
   public playScan() {
-    this.audio.src = this.path.scan
-    this.play()
+    // this.audio.src = this.path.scan
+    // this.play()
+    this.audioScan.play()
   }
 
   public playRepeat() {
-    this.audio.src = this.path.repeat
-    this.play()
+    // this.audio.src = this.path.repeat
+    // this.play()
+    this.audioRepeat.play()
   }
 
   public playRepeatArial() {
-    console.log('playRepeatArial start')
-    this.audio.src = this.path.repeat_arial
-    this.play()
-    console.log('playRepeatArial finish')
+    // this.audio.src = this.path.repeat_arial
+    // this.play()
+    this.audioRepeatArial.play()
   }
 
 

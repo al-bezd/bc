@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6 class="text-center">Создание Инфо. листа: Проверка</h6>
 
     <!-- <ModeWidget :mode="currentMode" @tap="showWithMode" /> -->
@@ -164,6 +164,7 @@ import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { DB2Manager } from "@/classes/DB2Manager";
+import { GetCount } from "@/functions/GetCount";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListCheck,
@@ -203,7 +204,7 @@ const groupedScans: Ref<IScaningGroup[]> = ref([]);
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return groupedScans.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
+  return groupedScans.value.reduce((sum, scan) => sum + scan.КоличествоКоробок, 0);
 });
 
 const ifSettingsFilled = computed(() => {

@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h5 class="text-muted">{{ docName }}</h5>
 
     <div class="row">
@@ -20,16 +20,24 @@
       @keyup.enter="onEnter"
       id="form_bc"
     />
-    <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
+    <SortWidget @tap="onSort" :scan-count="listForRender.length" :box-count="boxCount" />
 
     <div class="space">
-      <ScaningItem
-        v-for="item in items"
-        :key="item.ID"
-        :data="item"
-        @delete="itemDelete"
-        @tap="filterByArticul(item)"
-      />
+      <DynamicScroller
+        :key="listForRender.length"
+        class="scroller"
+        :min-item-size="240"
+        :items="listForRender"
+        key-field="IDSec"
+      >
+        <template #default="{ item }"
+          ><ScaningItem
+            :key="item.IDSec"
+            :data="item"
+            @delete="itemDelete"
+            @tap="filterByArticul(item)"
+        /></template>
+      </DynamicScroller>
     </div>
     <div class="row">
       <div class="col-12">
@@ -74,7 +82,7 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { GetCount } from "@/functions/GetCount";
-import { computed, ref, toRaw } from "vue";
+import { computed, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
@@ -112,9 +120,7 @@ const docName = computed(() => {
   return "Документ не найден";
 });
 
-const boxCount = computed(() =>
-  GetCount(ShipmentManager.instance.currentScanings.value, "Грузоместа")
-);
+const boxCount = computed(() => GetCount(listForRender.value, "Грузоместа"));
 
 async function closeWithConfirm() {
   const response = await NotificationManager.showConfirm(
@@ -153,6 +159,7 @@ function close() {
 
 function show() {
   seen.value = true;
+  startRenderList();
 }
 
 function goCheck() {
@@ -193,16 +200,16 @@ async function onScan(barcode: string) {
       }
     }
 
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
-
     ShipmentManager.instance.addScaning(scan);
+    startRenderList();
     scaningController.isValidScaning(
       scan,
       ShipmentManager.instance.currentScanings.value
     );
-
+    scaningController.isWrongPaletScan(scan, itPalet.value);
+    if (itPalet.value) {
+      itPalet.value = false;
+    }
     return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");
@@ -297,6 +304,7 @@ async function clearCurrentScanings() {
   );
   if (result) {
     ShipmentManager.instance.clearCurrentScanings();
+    startRenderList();
   }
 }
 
@@ -315,6 +323,18 @@ async function itemDelete(item: IScaning) {
   const answerIsTrue = await NotificationManager.showConfirm(text);
   if (answerIsTrue) {
     ShipmentManager.instance.deleteScaning(item);
+    startRenderList();
   }
 }
+
+let timerId = -1;
+let scaningSpeed = 500;
+const listForRender: Ref<IScaning[]> = ref([]);
+function startRenderList() {
+  clearTimeout(timerId);
+  timerId = setTimeout(() => {
+    listForRender.value = [...ShipmentManager.instance.currentScanings.value];
+  }, scaningSpeed);
+}
+startRenderList();
 </script>

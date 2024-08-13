@@ -23,14 +23,17 @@
           <b>ПЛУ : {{ data.ПЛУ }}</b>
         </div>
         <div>
-          <b>{{ data.Количество }}</b> <b>кг.</b>
+          <b>{{ data.Количество }}</b> <b>кг</b>
         </div>
         <div>
-          <b>{{ data.КоличествоВЕдиницахИзмерения }} </b>
-          <b>{{ data.ЕдиницаИзмерения }}.</b>
+          <b
+            ><span
+              >{{ data.КоличествоВЕдиницахИзмерения }} {{ data.ЕдиницаИзмерения }}</span
+            ></b
+          >
         </div>
         <div>
-          <b>{{ data.Грузоместа }}</b> <b>кор.</b>
+          <b>{{ data.Грузоместа }}</b> <b>кор</b>
         </div>
       </div>
       <div class="col-2">
@@ -58,5 +61,4 @@ interface IProps {
 }
 defineProps<IProps>();
 const emit = defineEmits(["delete", "tap"]);
-//delete_scaning_quest_jquery({"id":String(${response.IDSec}),"free":${response.free}})
 </script>

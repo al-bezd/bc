@@ -1,6 +1,6 @@
 <template>
   <!-- Выбор пользователя-->
-  <div class="p-3" id="form_select_user" v-show="seen">
+  <div class="p-3" id="form_select_user" v-if="seen">
     <div class="jumbotron">
       <h6>Отсканируйте ШК сотрудника</h6>
 
@@ -12,7 +12,7 @@
             class="form-control bc_input"
             placeholder="Введите штрихкод"
             v-model="barcode"
-            @keyup.enter="getUser"
+            @keyup.enter="onEnter"
             id="barcode_user"
           />
         </div>
@@ -45,9 +45,14 @@ function show() {
 //   ScanerManager.instance.emit("onScan",[ScanerManager.instance.barcodeWrapper("155903682678532144829659545771503172989")])
 // },10000)
 
+function onEnter(){
+  barcode.value = ScanerManager.instance.barcodeWrapper(barcode.value)
+  getUser()
+}
+
 ScanerManager.instance.onScan((value) => {
-  if (!seen.value){
-    return
+  if (!seen.value) {
+    return;
   }
   console.log("Выбор пользователя сканирование ", value);
   barcode.value = value;
@@ -60,7 +65,7 @@ async function getUser() {
     return;
   }
   scaningIsStart.value = true;
-  const res = await UserManager.instance.uploadUser(barcode.value.delSpaces());
+  const res = await UserManager.instance.uploadUser(barcode.value);
   scaningIsStart.value = false;
   barcode.value = "";
   if (res) {

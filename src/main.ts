@@ -22,15 +22,16 @@ import { FileManager } from './classes/FileManager';
 import { DB2Manager } from './classes/DB2Manager';
 import { SohShipmentManager } from './managers/soh/SohShipmentManager';
 import { SohGettingManager } from './managers/soh/SohGettingManager';
-
-
-
-
-
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
+import VueVirtualScroller from 'vue-virtual-scroller';
+import { RecycleScroller,DynamicScroller } from 'vue-virtual-scroller';
 
 
 const app = createApp(App);
+app.component('RecycleScroller', RecycleScroller)
+app.component('DynamicScroller', DynamicScroller)
 app.use(Vue3Toasity)
+app.use(VueVirtualScroller)
 //const pinia = createPinia();
 DB2Manager.init()
 

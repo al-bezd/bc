@@ -1,5 +1,5 @@
 <template>
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-3" v-if="seen">
     <h6>{{ pageTitle }}</h6>
 
     <input
@@ -161,7 +161,7 @@ async function closeWithQuest() {
 }
 
 async function onEnter() {
-  barcode.value = barcode.value.delSpaces();
+  barcode.value = ScanerManager.instance.barcodeWrapper(barcode.value);
   if (items.value.findIndex((x) => x.ШК == barcode.value) != -1) {
     NotificationManager.swal("Данный ШК уже есть в списке");
     return;
