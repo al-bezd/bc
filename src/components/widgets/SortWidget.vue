@@ -8,7 +8,7 @@
         }
       "
     >
-      по Артикулу
+      АРТ
     </button>
     <button
       class="btn btn-primary btn-sm text-uppercase"
@@ -18,7 +18,7 @@
         }
       "
     >
-      по Истории
+      ИСТ
     </button>
     <button disabled class="btn btn-primary btn-sm text-uppercase">
       Кол.кор {{ boxCount }}

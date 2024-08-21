@@ -4,5 +4,9 @@ export function GetCount(Таблица: any[], Параметр: string, Кол
   for (const i of Таблица) {
     Количество = Количество + Number(i[Параметр])
   }
-  return Number(Количество.toFixed(КоличествоЗнаковПослеЗапятой))
+  return Round(Количество, КоличествоЗнаковПослеЗапятой)
+}
+
+export function Round(value:number, countDigits=3) {
+  return Number((value??0).toFixed(countDigits))
 }

@@ -72,7 +72,7 @@ async function closeWithConfirm() {
 }
 
 function onEnter() {
-  getDocumentOrder(barcode.value);
+  getDocumentOrder(ScanerManager.instance.barcodeWrapper(barcode.value));
 }
 
 /// Получить документ заказа

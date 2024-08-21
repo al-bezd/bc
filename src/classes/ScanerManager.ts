@@ -96,23 +96,23 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
     if (barcode.indexOf("-") >= 0) {
       const text_error = `В штрихкоде "${barcode}" присутствует недопустимый символ "-" `;
       NotificationManager.swal(text_error);
-      console.log(text_error);
+      //console.log(text_error);
       throw text_error;
     }
     return barcode.replace(/-/gi, "0");
   }
 
   afterScan(event: KeyboardEvent) {
-    console.log(
-      "onScan до сервисной кнопки",
-      event.key, this.scanKey.value,
-      Boolean(MainManager.instance.cordova),
-      JSON.stringify({ key: event.key, code: event.code, charCode: event.charCode, keyCode: event.keyCode })
-    )
+    // console.log(
+    //   "onScan до сервисной кнопки",
+    //   event.key, this.scanKey.value,
+    //   Boolean(MainManager.instance.cordova),
+    //   JSON.stringify({ key: event.key, code: event.code, charCode: event.charCode, keyCode: event.keyCode })
+    // )
     if (event.key === this.scanKey.value || event.code === this.scanKey.value) {
       const cordova = MainManager.instance.cordova;
       cordova.plugins.clipboard.paste((text: string) => {
-        console.log("onScan сервисная кнопка нажата", this.scanKey.value, text)
+        //console.log("onScan сервисная кнопка нажата", this.scanKey.value, text)
         if (text !== "") {
           //console.log("onScan",text)
           //console.log("onScan после сервисной кнопки")
@@ -121,7 +121,7 @@ export class ScanerManager extends BaseManager implements ILoadableManager {
         cordova.plugins.clipboard.clear();
       });
     }
-    console.log("onScan после сервисной кнопки")
+    //console.log("onScan после сервисной кнопки")
   }
 
   onScan(callback: (text: string) => void) {

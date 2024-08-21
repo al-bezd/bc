@@ -59,6 +59,7 @@
     </button>
 
     <ModalUploadShipmentDocuments v-model:seen="modalSeen" />
+
     <!-- /.modal -->
   </div>
   <!-- Окно загрузки документа-->
@@ -95,7 +96,7 @@ ScanerManager.instance.onScan((value) => {
 });
 
 async function onEnter() {
-  await getDocumentByBarcode(barcode.value);
+  await getDocumentByBarcode(ScanerManager.instance.barcodeWrapper(barcode.value));
   barcode.value = "";
   initSavedDocuments();
 }
@@ -177,7 +178,7 @@ async function onDeleteDocument(document: IShipmentDocument) {
   );
   if (resultQuest) {
     const response = await ShipmentManager.instance.deleteDocument(document);
-    console.log(document, document.Ссылка.Ссылка);
+    //console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();
       return;

@@ -64,6 +64,7 @@ interface IContainerStoreController {
 export interface IScaningStoreController {
     store: EntityTable<IScaning, 'IDSec'>,
     addScaning(scaning: IScaning): Promise<number>,
+    putScanings(scaning: IScaning[]): Promise<void>,
     setScanings(scanings: IScaning[]): Promise<number>,
     deleteScaning(scaning: IScaning): Promise<void>,
     getScanings(): Promise<IScaning[]>,
@@ -194,6 +195,11 @@ export class DB2Manager extends BaseManager {
                 await this.store.clear()
                 return await this.store.bulkAdd(scanings)
             },
+            async putScanings(scanings: IScaning[]) {
+                //const store = (DB2Manager.instance.db! as Dexie & IShipmentScaningStore).shipmentCurrentScanings
+                //await this.store.clear()
+                await this.store.bulkPut(scanings)
+            },
             async deleteScaning(scaning: IScaning) {
                 return await this.store.delete(scaning.IDSec)
             },
@@ -213,6 +219,10 @@ export class DB2Manager extends BaseManager {
             async setScanings(scanings: IScaning[]) {
                 await this.store.clear()
                 return await this.store.bulkAdd(scanings)
+            },
+            async putScanings(scanings: IScaning[]) {
+               
+                 await this.store.bulkPut(scanings)
             },
             async deleteScaning(scaning: IScaning) {
                 return await this.store.delete(scaning.IDSec)
@@ -236,6 +246,10 @@ export class DB2Manager extends BaseManager {
                 await this.store.clear()
                 return await this.store.bulkAdd(scanings)
             },
+            async putScanings(scanings: IScaning[]) {
+               
+                await this.store.bulkPut(scanings)
+           },
             async deleteScaning(scaning: IScaning) {
                 return await this.store.delete(scaning.IDSec)
             },
@@ -252,6 +266,10 @@ export class DB2Manager extends BaseManager {
             async addScaning(scaning: IScaning) {
                 return await this.store.add(scaning)
             },
+            async putScanings(scanings: IScaning[]) {
+               
+                await this.store.bulkPut(scanings)
+           },
             async setScanings(scanings: IScaning[]) {
 
                 await this.store.clear()

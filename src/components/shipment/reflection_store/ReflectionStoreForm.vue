@@ -24,15 +24,9 @@
       </button>
     </div> -->
     <div class="space">
-      <DynamicScroller
-        :key="listForRender.length"
-        class="scroller"
-        :items="listForRender"
-        :min-item-size="240"
-        key-field="IDSec"
-      >
-        <template #default="{ item }"
-          ><ScaningItem
+      <ListWidget key-field="IDSec" :list="listForRender">
+        <template #default="{ item }">
+          <ScaningItem
             :key="item.IDSec"
             :data="item"
             @delete="itemDelete"
@@ -42,8 +36,9 @@
                 filteredByArticulController.show();
               }
             "
-        /></template>
-      </DynamicScroller>
+          />
+        </template>
+      </ListWidget>
       <!-- <ScaningItem
         v-for="item in items"
         :key="item.ID"
@@ -73,7 +68,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithQuest()"
           >
-            <b>ЗАКРЫТЬ</b>
+            <b>ЗАКР</b>
           </button>
           <button
             type="button"
@@ -89,13 +84,16 @@
             attr="check"
             @click="goToCheck()"
           >
-            <b>ПРОВЕРИТЬ</b>
+            <b>ПРОВ</b>
           </button>
         </div>
       </div>
     </div>
   </div>
-  <FilteredByArticulScreen :controller="filteredByArticulController" />
+  <FilteredByArticulScreen
+    :controller="filteredByArticulController"
+    @delete="itemDelete"
+  />
   <!-- Форма сканирования (без документа)-->
 </template>
 <script setup lang="ts">
@@ -106,14 +104,16 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { computed, Ref, ref } from "vue";
+import { computed, Ref, ref, toRaw } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
-
+import { GetCount } from "@/functions/GetCount";
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { DB2Manager } from "@/classes/DB2Manager";
 //import { v4 } from "uuid";
 
 RoutingManager.instance.registry(
@@ -133,17 +133,22 @@ const scaningController: ScaningController = new ScaningController(
   ShipmentManager.instance,
   true
 );
+
+let timerId = -1;
+let scaningSpeed = 1000;
+const listForRender: Ref<IScaning[]> = ref([]);
+
 const filteredByArticulController = new FilteredByArticulController(
-  ShipmentManager.instance.currentScanings,
+  listForRender,
   ref("НомХар")
 );
 const pageTitle = ref("Отражение остатков");
 const seen = ref(false);
 const itPalet = ref(false);
 const barcode = ref("");
-//const items = ShipmentManager.instance.currentScanings;
+
 const boxCount = computed(() => {
-  return listForRender.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
+  return GetCount(listForRender.value, "Грузоместа");
 });
 
 ///Костыль для обновления скрола по нормальному список элементов не обновляется увы
@@ -159,7 +164,8 @@ function close() {
 }
 
 async function onEnter() {
-  const resScan = await onScan(barcode.value);
+  const resScan = await onScan(ScanerManager.instance.barcodeWrapper(barcode.value));
+  startRenderList();
   if (resScan) {
     barcode.value = "";
   }
@@ -185,7 +191,7 @@ async function onScan(barcodeStr: string) {
     if (itPalet.value) {
       itPalet.value = false;
     }
-    startRenderList();
+
     return true;
   }
   return false;
@@ -212,10 +218,7 @@ async function clearWithQuest() {
 }
 
 function onSort(mode: OrderByType) {
-  ShipmentManager.instance.currentScanings.value = GetListSortBy(
-    ShipmentManager.instance.currentScanings.value,
-    mode
-  );
+  listForRender.value = GetListSortBy(listForRender.value, mode);
 }
 
 async function closeWithQuest() {
@@ -234,7 +237,7 @@ async function addManualScaning() {
   const result = await ScanerManager.showAddManualScaning();
 
   if (result) {
-    onScan(result);
+    onScan(result).then(() => startRenderList());
   }
 }
 
@@ -245,18 +248,21 @@ async function itemDelete(item: IScaning) {
   if (answerIsTrue) {
     ShipmentManager.instance.deleteScaning(item).then(() => {
       //scrollUpdater.value = v4();
-      startRenderList();
+      startRenderList(() => {
+        filteredByArticulController.emit("afterDelete");
+      });
     });
   }
 }
 
-let timerId = -1;
-let scaningSpeed = 500;
-const listForRender: Ref<IScaning[]> = ref([]);
-function startRenderList() {
+function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
   clearTimeout(timerId);
   timerId = setTimeout(() => {
     listForRender.value = [...ShipmentManager.instance.currentScanings.value];
+    DB2Manager.instance.shiping!.putScanings(listForRender.value.map((x) => toRaw(x)));
+    if (afterUpdateCallBack) {
+      afterUpdateCallBack();
+    }
   }, scaningSpeed);
 }
 </script>

@@ -7,8 +7,10 @@
           >HOST:<b>{{ host }}</b></span
         ><br />
         <span v-if="UserManager.instance.user.value"
-          >USER:<b>{{ UserManager.instance.user.value.ФИО }}</b></span
-        >
+          >USER:<b>{{ UserManager.instance.user.value.ФИО }}</b>
+        </span>
+        <br />
+        <span>VERSION: 3</span>
       </div>
     </div>
 

@@ -41,7 +41,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
-            <b>ЗАКРЫТЬ<br />ДОКУМЕНТ</b>
+            <b>ЗАКР<br />ДОК</b>
           </button>
           <button
             type="button"
@@ -55,7 +55,7 @@
             class="btn btn-success text-uppercase fs-6"
             @click="goCheck()"
           >
-            <b>ПРОВЕРИТЬ</b>
+            <b>ПРОВ</b>
           </button>
         </div>
       </div>
@@ -187,11 +187,9 @@ async function onScan(barcode: string) {
       }
     }
 
-    
-
     currentManager.value.addScaning(scan);
     scaningController.isValidScaning(scan, currentManager.value.currentScanings.value);
-    scaningController.isWrongPaletScan(scan,itPalet.value)
+    scaningController.isWrongPaletScan(scan, itPalet.value);
     if (itPalet.value) {
       itPalet.value = false;
     }

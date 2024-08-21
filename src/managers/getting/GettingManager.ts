@@ -64,6 +64,7 @@ export class GettingManager extends BaseManager {
     const key = this.currentScaningsKey
     if(val==null){
       this.currentScanings.value = []
+      DB2Manager.instance.getting?.clearScanings()
       DB2Manager.removeData(key)
       return
     }
@@ -74,21 +75,21 @@ export class GettingManager extends BaseManager {
 
   addScaning(data:IScaning){
     this.currentScanings.value.unshift(data)
-    DB2Manager.instance.getting?.addScaning(data)
+    //DB2Manager.instance.getting?.addScaning(data)
     //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
-    const tmp = [this.currentScanings.value, data]
-    this.emit('addScaning', tmp)
+    //const tmp = [this.currentScanings.value, data]
+    //this.emit('addScaning', tmp)
     //console.log('addScaning', tmp)
   }
 
-  deleteScaning(data:IScaning) {
+  async deleteScaning(data:IScaning) {
     for (const i of this.currentScanings.value) {
       if(i.IDSec === data.IDSec) {
         this.currentScanings.value.splice(this.currentScanings.value.indexOf(i), 1)
         break
       }
     }
-    DB2Manager.instance.getting!.deleteScaning(data)
+    await DB2Manager.instance.getting!.deleteScaning(data)
     this.emit('deleteScaning', [this.currentScanings.value, data])
   }
 

@@ -1,13 +1,9 @@
 export interface ILoadableManager{
     load:()=>void /// Метод загрузки объекта, вызывается когда страница была перезагружена
 }
-export class BaseManager {
 
-    
 
-    
-    
-
+export class Observable{
     emit(state:string,data:any[]=[]){
         document.dispatchEvent(new CustomEvent(state,{detail:data}))
     }
@@ -26,4 +22,8 @@ export class BaseManager {
         }
         document.removeEventListener(state, eventWrapper)
     }
+}
+
+export class BaseManager extends Observable{
+  
 }

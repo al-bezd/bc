@@ -27,20 +27,20 @@
         </div>
         <div>
           <b
-            >тек {{ data.ТекущееКоличество }} кг / зак
-            {{ data.имКоличествоВПересчетеНаКг }} кг</b
+            >тек {{ Round(data.ТекущееКоличество, 3) }} кг / зак
+            {{ Round(data.имКоличествоВПересчетеНаКг, 3) }} кг</b
           >
         </div>
         <div>
           <b
-            >тек {{ data.ТекущееКоличествоВЕдиницахИзмерения }}
+            >тек {{ Round(data.ТекущееКоличествоВЕдиницахИзмерения, 3) }}
             {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }} / зак
-            {{ data.КоличествоУпаковок }}
+            {{ Round(data.КоличествоУпаковок, 3) }}
             {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }}</b
           >
         </div>
       </div>
-      <div class="col-2">
+      <div class="col-2" style="padding-left: 0px">
         <div v-if="showProcent">
           <b>{{ data.ВПроцСоотношении }}%</b>
         </div>
@@ -54,8 +54,9 @@
 </template>
 <script setup lang="ts">
 import { RowKeyMode } from "@/functions/GetGroupScans";
-import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
+import { IScaningGroup } from "@/interfaces/IScaning";
 import { computed } from "vue";
+import { Round } from "@/functions/GetCount";
 
 interface Props {
   data: IScaningGroup;

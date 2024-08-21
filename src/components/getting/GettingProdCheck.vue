@@ -6,18 +6,21 @@
       <span>Поддон № {{ оитНомерПалета }}</span>
     </div>
     <div class="space">
-      <ScaningGroupItem
-        v-for="item in allItem"
-        :key="item.рсУИД"
-        :data="item"
-        :show-procent="true"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
-      />
+      <ListWidget key-field="key" :list="allItem">
+        <template #default="{ item }">
+          <ScaningGroupItem
+            :key="item.key"
+            :data="item"
+            :show-procent="true"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+          />
+        </template>
+      </ListWidget>
     </div>
 
     <div class="">
@@ -45,7 +48,10 @@
       </button>
     </div>
 
-    <FilteredByArticulScreen :controller="filteredByArticulController" />
+    <FilteredByArticulScreen
+      :controller="filteredByArticulController"
+      @delete="itemDelete"
+    />
   </div>
   <!--Форма проверки для приемки-->
 </template>
@@ -70,7 +76,7 @@ import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { MainManager } from "@/classes/MainManager";
-
+import ListWidget from "@/components/widgets/ListWidget.vue";
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
   show,
@@ -127,12 +133,12 @@ function close() {
 
 function show() {
   seen.value = true;
-  setTimeout(initGroupScaning, 500);
+  setTimeout(initAllItem, 500);
 
   //console.log("allItem ", toRaw(allItem.value));
 }
 
-function initGroupScaning() {
+function initAllItem() {
   tableTotal.value = GetGroupScans(
     currentDoc.value?.Товары ?? []
   ) as IGettingProductionProductTotalItem[];
@@ -320,5 +326,17 @@ function fillCurrentResult(
     //this.weight_count+=i.ТекущееКоличество
   }
   return tableTotal;
+}
+
+async function itemDelete(item: IScaning) {
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+      ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
+  const answerIsTrue = await NotificationManager.showConfirm(text);
+  if (answerIsTrue) {
+    GettingManager.instance.deleteScaning(item).then(() => {
+      initAllItem();
+      filteredByArticulController.emit("afterDelete");
+    });
+  }
 }
 </script>

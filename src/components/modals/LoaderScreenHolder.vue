@@ -11,6 +11,7 @@
       align-items: center; /* Центрирование по вертикали */
       height: 100vh; /* Высота в 100% от видимой части экрана */
       margin: 0;
+      z-index: 3000;
     "
   >
     <div class="spacer">

@@ -348,7 +348,7 @@ async function send(mode: any) {
         /// Сохраняем сканирования в заказ
         const saveScaningInOrderRes = await HttpManager.post("/execute", params);
         if (saveScaningInOrderRes.success) {
-          console.log(saveScaningInOrderRes.data.Текст);
+          //console.log(saveScaningInOrderRes.data.Текст);
         }
       }
     }

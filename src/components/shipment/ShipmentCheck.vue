@@ -22,18 +22,21 @@
     <!-- <span>Поддон № {{ оитНомерПалета }}</span> -->
 
     <div class="space">
-      <ScaningGroupItem
-        v-for="item in allItem"
-        :key="item.key"
-        :data="item"
-        @tap="openArticulScreen"
-        :show-procent="true"
-        :mode="currentViewMode"
-      >
-        <template v-slot:addButton>
-          <button class="btn btn-info" @click="addManual(item)">+</button>
+      <ListWidget key-field="key" :list="allItem">
+        <template #default="{ item }">
+          <ScaningGroupItem
+            :key="item.key"
+            :data="item"
+            @tap="openArticulScreen"
+            :show-procent="true"
+            :mode="currentViewMode"
+          >
+            <template v-slot:addButton>
+              <button class="btn btn-info" @click="addManual(item)">+</button>
+            </template>
+          </ScaningGroupItem>
         </template>
-      </ScaningGroupItem>
+      </ListWidget>
     </div>
 
     <div class="">
@@ -67,7 +70,10 @@
       </div>
     </div>
     <!-- Отфильтрованные по Номенклатура.Наименование НАЧАЛО -->
-    <FilteredByArticulScreen :controller="filteredByArticulController">
+    <FilteredByArticulScreen
+      :controller="filteredByArticulController"
+      @delete="itemDelete"
+    >
       <!-- <template v-slot:footer>
         <span class="mb-3"
           >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
@@ -88,8 +94,7 @@ import { Ref, computed, ref, toRaw } from "vue";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { GetCount } from "@/functions/GetCount";
-import { rounded } from "@/functions/rounded";
+import { GetCount, Round } from "@/functions/GetCount";
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
@@ -102,7 +107,7 @@ import { ScaningController } from "@/controllers/ScaningController";
 import ContainersWidget from "@/components/shipment/containers/ContainersWidget.vue";
 import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
-
+import ListWidget from "@/components/widgets/ListWidget.vue";
 RoutingManager.instance.registry(RoutingManager.route.shipmentCheck, show, close);
 /// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
 const scaningController: ScaningController = new ScaningController(
@@ -114,7 +119,7 @@ const seen = ref(false);
 const taraSeen = ref(false);
 
 const allItem: Ref<IScaningGroup[]> = ref([]); // группированные сканирования
-const tableTotal: Ref<IScaningGroup[]> = ref([]); // товары из документа
+//const tableTotal: Ref<IScaningGroup[]> = ref([]); // товары из документа
 
 const filteredByArticulController = new FilteredByArticulController(
   ShipmentManager.instance.currentScanings,
@@ -170,20 +175,40 @@ function close() {
 function show() {
   seen.value = true;
 
-  setTimeout(initAllItem, 500);
+  setTimeout(afterShow, 500);
+}
+
+function afterShow() {
+  initAllItem();
 }
 
 function initAllItem() {
-  tableTotal.value = GetGroupScans(
+  // tableTotal.value = GetGroupScans(
+  //   ShipmentManager.instance.currentDocument.value?.Товары ?? [],
+  //   currentViewMode.value
+  // );
+
+  // allItem.value = fillCurrentResult(
+  //   tableTotal.value,
+  //   ShipmentManager.instance.currentScanings.value,
+  //   currentViewMode.value
+  // );
+  allItem.value = GetDataForSending(currentViewMode.value);
+  /// сортировка по артикулу
+  allItem.value.sort((a, b) =>
+    (a.Артикул ?? a.Номенклатура.Артикул).localeCompare(
+      b.Артикул ?? b.Номенклатура.Артикул
+    )
+  );
+}
+
+function GetDataForSending(key: RowKeyMode) {
+  var t = GetGroupScans(
     ShipmentManager.instance.currentDocument.value?.Товары ?? [],
-    currentViewMode.value
+    key
   );
 
-  allItem.value = fillCurrentResult(
-    tableTotal.value,
-    ShipmentManager.instance.currentScanings.value,
-    currentViewMode.value
-  );
+  return fillCurrentResult(t, ShipmentManager.instance.currentScanings.value, key);
 }
 
 /// закрываем окно с подтверждением
@@ -325,7 +350,10 @@ async function send(mode: any) {
   }
   sendIsStart.value = true;
   const doc = ShipmentManager.instance.currentDocument.value!;
-  const itemsForSendToServer = allItem.value.map((x: IScaningGroup) => toRaw(x));
+
+  const itemsForSendToServer = GetDataForSending("НомХарСер").map((x: IScaningGroup) =>
+    toRaw(x)
+  );
 
   //doc = GetData("current_doc", "j");
   let params = {
@@ -365,11 +393,15 @@ async function send(mode: any) {
         /// Сохраняем сканирования в заказ
         const saveScaningInOrderRes = await HttpManager.post("/execute", params);
         if (saveScaningInOrderRes.success) {
-          console.log(saveScaningInOrderRes.data.Текст);
+          //console.log(saveScaningInOrderRes.data.Текст);
         }
         RoutingManager.instance.pushName(RoutingManager.route.shipmentLoad);
       }
+    } else {
+      NotificationManager.error(res.data.Текст);
     }
+  } else {
+    NotificationManager.error(res.error);
   }
 }
 
@@ -393,6 +425,7 @@ function fillCurrentResult(
     tableRow.КоличествоКоробок = 0;
     tableRow.ТекущееКоличествоГрузомест = 0;
     tableRow.Количество = 0;
+    (tableRow as any).ЕдиницаИзмерения = tableRow.Номенклатура.ЕдиницаИзмерения;
   }
   /// заполняем таблицу насканированным
   for (const scan of scanings) {
@@ -406,25 +439,30 @@ function fillCurrentResult(
         //tableRow.ТекущееКоличество += scan.Количество;
         //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+        tableRow.Количество += scan.Количество;
+        tableRow.ТекущееКоличество += scan.Количество;
         ///
         if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+          tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
             tableRow.ТекущееКоличествоВЕдиницахИзмерения,
             0
           );
         } else {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+          tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
             tableRow.ТекущееКоличествоВЕдиницахИзмерения
           );
         }
         ///
         tableRow.КоличествоВЕдиницахИзмерения =
-          tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
-        tableRow.КоличествоВЕдиницахИзмерения = rounded(
+          tableRow.Количество / Round(scan.Номенклатура.ВесЧислитель);
+        tableRow.КоличествоВЕдиницахИзмерения = Round(
           tableRow.КоличествоВЕдиницахИзмерения
         );
         tableRow.КоличествоКоробок += scan.Грузоместа;
         tableRow.ТекущееКоличествоГрузомест += scan.Грузоместа;
+
+        tableRow.Количество = Round(tableRow.Количество, 3);
+        tableRow.ТекущееКоличество = Round(tableRow.ТекущееКоличество, 3);
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;
       }
@@ -432,9 +470,9 @@ function fillCurrentResult(
   }
 
   // Сортировка
-  tableTotal.sort((a: IScaningGroup, b: IScaningGroup) => {
-    return Number(a.Номенклатура.Артикул) - Number(b.Номенклатура.Артикул);
-  });
+  // tableTotal.sort((a: IScaningGroup, b: IScaningGroup) => {
+  //   return Number(a.Номенклатура.Артикул) - Number(b.Номенклатура.Артикул);
+  // });
 
   for (const tableTotalRow of tableTotal) {
     let ВПроцСоотношении = Math.round(
@@ -464,5 +502,17 @@ function fillCurrentResult(
     //this.weight_count+=i.ТекущееКоличество
   }
   return tableTotal;
+}
+
+async function itemDelete(item: IScaning) {
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+      ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
+  const answerIsTrue = await NotificationManager.showConfirm(text);
+  if (answerIsTrue) {
+    ShipmentManager.instance.deleteScaning(item).then(() => {
+      initAllItem();
+      filteredByArticulController.emit("afterDelete");
+    });
+  }
 }
 </script>

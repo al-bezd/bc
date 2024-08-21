@@ -19,12 +19,12 @@
       @keyup.enter="onEnter"
       id="getting_prod_form_bc"
     />
-    <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
+    <SortWidget @tap="onSort" :scan-count="listForRender.length" :box-count="boxCount" />
 
     <div class="space">
-      <RecycleScroller class="scroller" :items="items" :item-size="280" key-field="IDSec">
-        <template #default="{ item }"
-          ><ScaningItem
+      <ListWidget key-field="IDSec" :list="listForRender">
+        <template #default="{ item }">
+          <ScaningItem
             :data="item"
             :key="item.IDSec"
             @delete="itemDelete"
@@ -34,8 +34,9 @@
                 filteredByArticulController.show();
               }
             "
-        /></template>
-      </RecycleScroller>
+          />
+        </template>
+      </ListWidget>
     </div>
     <div class="row">
       <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
@@ -50,7 +51,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
-            <b>ЗАКРЫТЬ<br />ДОКУМЕНТ</b>
+            <b>ЗАКР<br />ДОК</b>
           </button>
           <button
             type="button"
@@ -64,14 +65,17 @@
             class="btn btn-success text-uppercase fs-6"
             @click="goCheck()"
           >
-            <b>ПРОВЕРИТЬ</b>
+            <b>ДАЛЕЕ</b>
           </button>
         </div>
       </div>
     </div>
   </div>
   <!-- Форма сканирования для приемки-->
-  <FilteredByArticulScreen :controller="filteredByArticulController" />
+  <FilteredByArticulScreen
+    :controller="filteredByArticulController"
+    @delete="itemDelete"
+  />
 </template>
 <script setup lang="ts">
 import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
@@ -85,18 +89,24 @@ import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { GetCount } from "@/functions/GetCount";
 import { GettingManager } from "@/managers/getting/GettingManager";
-import { computed, ref } from "vue";
+import { computed, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { ScaningController } from "@/controllers/ScaningController";
 import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import { IРеквизит } from "@/interfaces/IDocument";
-
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { DB2Manager } from "@/classes/DB2Manager";
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
 const scaningController: ScaningController = new ScaningController(
   GettingManager.instance
 );
+
+let timerId = -1;
+let scaningSpeed = 500 * 2;
+const listForRender: Ref<IScaning[]> = ref([]);
+
 const filteredByArticulController = new FilteredByArticulController(
-  GettingManager.instance.currentScanings,
+  listForRender,
   ref("НомХар")
 );
 
@@ -105,22 +115,14 @@ const barcode = ref("");
 
 const itPalet = ref(false);
 const weightInDoc = ref(0);
-const weightScans = computed(() => {
-  return GetCount(GettingManager.instance.currentScanings.value, "Количество");
-});
+const weightScans = computed(() => GetCount(listForRender.value, "Количество"));
+const boxCount = computed(() => GetCount(listForRender.value, "Грузоместа"));
 const docName = computed(() => {
   if (GettingManager.instance.currentDocument.value) {
     return GettingManager.instance.currentDocument.value!.Наименование;
   }
   return "Документ не найден";
 });
-const items = computed(() => {
-  return GettingManager.instance.currentScanings.value;
-});
-
-const boxCount = computed(() =>
-  GetCount(GettingManager.instance.currentScanings.value, "Грузоместа")
-);
 
 async function closeWithConfirm() {
   const response = await NotificationManager.showConfirm(
@@ -128,6 +130,7 @@ async function closeWithConfirm() {
   );
   if (response) {
     GettingManager.instance.clear();
+    startRenderList();
     RoutingManager.instance.pushName(RoutingManager.route.gettingProductionLoad);
   }
 }
@@ -136,15 +139,12 @@ async function addManualScaning() {
   // HandAddItem.Show('prod_list')
   const result = await ScanerManager.showAddManualScaning();
   if (result) {
-    onScan(result);
+    onScan(result).then(() => startRenderList());
   }
 }
 
 function onSort(mode: OrderByType) {
-  GettingManager.instance.currentScanings.value = GetListSortBy(
-    GettingManager.instance.currentScanings.value,
-    mode
-  );
+  listForRender.value = GetListSortBy(listForRender.value, mode);
 }
 
 function close() {
@@ -163,6 +163,7 @@ function afterShow() {
       "Количество"
     );
   }
+  startRenderList();
 }
 
 function goCheck() {
@@ -170,7 +171,9 @@ function goCheck() {
 }
 
 function onEnter() {
-  onScan(ScanerManager.instance.barcodeWrapper(barcode.value));
+  onScan(ScanerManager.instance.barcodeWrapper(barcode.value)).then(() =>
+    startRenderList()
+  );
   barcode.value = "";
 }
 
@@ -199,6 +202,7 @@ async function onScan(barcodeStr: string) {
   }
 
   await GettingManager.instance.addScaning(scaning);
+
   scaningController.isValidScaning(
     scaning,
     GettingManager.instance.currentScanings.value
@@ -319,6 +323,7 @@ async function clearCurrentScanings() {
   );
   if (result) {
     GettingManager.instance.clearCurrentScanings();
+    startRenderList();
   }
 }
 
@@ -327,7 +332,7 @@ ScanerManager.instance.onScan((value) => {
     return;
   }
   barcode.value = value;
-  onScan(barcode.value);
+  onScan(barcode.value).then(() => startRenderList());
   barcode.value = "";
 });
 
@@ -337,6 +342,20 @@ async function itemDelete(item: IScaning) {
   const answerIsTrue = await NotificationManager.showConfirm(text);
   if (answerIsTrue) {
     GettingManager.instance.deleteScaning(item);
+    startRenderList(() => {
+      filteredByArticulController.emit("afterDelete");
+    });
   }
+}
+
+function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
+  clearTimeout(timerId);
+  timerId = setTimeout(() => {
+    listForRender.value = [...GettingManager.instance.currentScanings.value];
+    DB2Manager.instance.getting!.putScanings(listForRender.value.map((x) => toRaw(x)));
+    if (afterUpdateCallBack) {
+      afterUpdateCallBack();
+    }
+  }, scaningSpeed);
 }
 </script>

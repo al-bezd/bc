@@ -2,20 +2,12 @@
   <BootstrapModalWindow :seen="seen">
     <h3 class="text-center">Внимание</h3>
     <span class="space">{{ message }}</span>
-    <div class="btn-group" role="group">
-      <button
-        type="button"
-        class="btn btn-warning  text-uppercase fs-6"
-        @click="cancel"
-      >
+    <div class="btn-group" role="group" style="min-height: 2.5rem">
+      <button type="button" class="btn btn-warning text-uppercase fs-6" @click="cancel">
         <b>Отмена</b>
       </button>
-      <button
-        type="button"
-        class="btn btn-primary  text-uppercase fs-6"
-        @click="accept"
-      >
-        <b>Подтвердить</b>
+      <button type="button" class="btn btn-primary text-uppercase fs-6" @click="accept">
+        <b>ОК</b>
       </button>
     </div>
   </BootstrapModalWindow>

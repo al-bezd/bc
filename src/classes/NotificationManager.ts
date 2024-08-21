@@ -1,6 +1,7 @@
 import { BaseManager, ILoadableManager } from "./BaseManager";
 
 export declare type AlertMode = 'warning' | 'error' | 'success' | 'info';
+export declare type AudioType = "good"|"error"|"scan"|"repeat"|"repeat_arial"
 
 export class NotificationManager extends BaseManager implements ILoadableManager {
   static  instance:NotificationManager
@@ -9,18 +10,31 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     NotificationManager.instance = this
   }
 
-  public audioGood: HTMLAudioElement = new Audio(); 
+  //public audioGood: HTMLAudioElement = new Audio(); 
   public audioError: HTMLAudioElement = new Audio(); 
   public audioScan: HTMLAudioElement = new Audio(); 
   public audioRepeat: HTMLAudioElement = new Audio(); 
   public audioRepeatArial: HTMLAudioElement = new Audio(); 
+  public goodAudios:HTMLAudioElement[]=[]
+  public erroAudios:HTMLAudioElement[]=[]
+  public scanAudios:HTMLAudioElement[]=[]
+  public repeatAudios:HTMLAudioElement[]=[]
+  public repeat_arialAudios:HTMLAudioElement[]=[]
 
-  public path={
-    good:"",
-    error:"",
-    scan:"",
-    repeat:"",
-    repeat_arial:""
+  public path = {
+    "good":"assets/sounds/GOOD.mp3",
+    "error":"assets/sounds/ERROR.mp3",
+    "scan":"assets/sounds/SCAN.mp3",
+    "repeat":"assets/sounds/REPEAT.mp3",
+    "repeat_arial":"assets/sounds/REPEAT_ARIAL.mp3"
+  }
+
+  public pools = {
+    "good":[] as HTMLAudioElement[],
+    "error":[] as HTMLAudioElement[],
+    "scan":[] as HTMLAudioElement[],
+    "repeat":[] as HTMLAudioElement[],
+    "repeat_arial":[] as HTMLAudioElement[]
   }
 
   static init(){
@@ -33,20 +47,32 @@ export class NotificationManager extends BaseManager implements ILoadableManager
 
   async initSounds(){
     try{
-      this.path.good='assets/sounds/GOOD.mp3'
-      this.path.error='assets/sounds/ERROR.mp3'
-      this.path.scan='assets/sounds/SCAN.mp3'
-      this.path.repeat='assets/sounds/REPEAT.mp3'
-      this.path.repeat_arial='assets/sounds/REPEAT_ARIAL.mp3'
-      this.audioGood.src = this.path.good
+      
+      //this.audioGood.src = this.path.good
       this.audioError.src = this.path.error
       this.audioScan.src = this.path.scan
       this.audioRepeat.src = this.path.repeat
       this.audioRepeatArial.src = this.path.repeat_arial
+      
 
     }catch(e){
       //
     }
+  }
+
+  public createAudio(audioType:AudioType) {
+    let items:HTMLAudioElement[] = this.pools[audioType]
+    items = items.filter(x=>x.ended)
+    
+    if(items.length > 0 ){
+      const  currentSound = items[0]
+      return currentSound
+    }
+    
+    const newAudio = new Audio()
+    newAudio.src = this.path[audioType]
+    this.pools[audioType].push(newAudio)
+    return newAudio
   }
 
 
@@ -95,34 +121,60 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     
   // }
 
+
+
+  addListener(audio:HTMLAudioElement, audioType:AudioType){
+    this.afterPlaying(audio)
+  }
+
+  public afterPlaying(audio:HTMLAudioElement){
+    //console.log("afterPlaying", audio, NotificationManager.instance)
+  }
+
   public playGood() {
     // this.audio.src = this.path.good
     // this.play()
-    this.audioGood.play()
+    const item = this.createAudio('good')
+    item.play()
+    this.addListener(item, "good")
+
+    //this.audioGood.play()
   }
 
   public playError() {
     // this.audio.src = this.path.error
     // this.play()
-    this.audioError.play()
+    //this.audioError.play()
+    const item = this.createAudio("error")
+    item.play()
+    this.addListener(item,"error")
   }
 
   public playScan() {
     // this.audio.src = this.path.scan
     // this.play()
-    this.audioScan.play()
+    //this.audioScan.play()
+    const item = this.createAudio("scan")
+    item.play()
+    this.addListener(item,"scan")
   }
 
   public playRepeat() {
     // this.audio.src = this.path.repeat
     // this.play()
-    this.audioRepeat.play()
+    //this.audioRepeat.play()
+    const item = this.createAudio("repeat")
+    item.play()
+    this.addListener(item, "repeat")
   }
 
   public playRepeatArial() {
     // this.audio.src = this.path.repeat_arial
     // this.play()
-    this.audioRepeatArial.play()
+    //this.audioRepeatArial.play()
+    const item = this.createAudio("repeat_arial")
+    item.play()
+    this.addListener(item,"repeat_arial")
   }
 
 

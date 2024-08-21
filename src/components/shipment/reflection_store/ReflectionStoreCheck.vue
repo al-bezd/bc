@@ -49,7 +49,7 @@
     </div>
 
     <div class="space">
-      <ScaningGroupItem
+      <!-- <ScaningGroupItem
         v-for="item in groupedScans"
         :data="item"
         :key="item.Номенклатура.Ссылка.Ссылка"
@@ -61,7 +61,23 @@
             filteredByArticulController.show();
           }
         "
-      />
+      /> -->
+      <ListWidget key-field="key" :list="groupedScans">
+        <template #default="{ item }">
+          <ScaningGroupItem
+            :data="item"
+            :key="item.key"
+            :mode="currentMode"
+            :show-procent="false"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+          />
+        </template>
+      </ListWidget>
     </div>
 
     <div>
@@ -95,7 +111,10 @@
     </div>
   </div>
 
-  <FilteredByArticulScreen :controller="filteredByArticulController" />
+  <FilteredByArticulScreen
+    :controller="filteredByArticulController"
+    @delete="itemDelete"
+  />
   <!-- Форма проверки сканирования (без документа)-->
 </template>
 <script setup lang="ts">
@@ -117,6 +136,8 @@ import { MainManager } from "@/classes/MainManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
 import { DB2Manager } from "@/classes/DB2Manager";
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { GetCount } from "@/functions/GetCount";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentReflectionStoreCheck,
@@ -146,7 +167,7 @@ const filteredByArticulController = new FilteredByArticulController(
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return groupedScans.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
+  return GetCount(groupedScans.value, "Грузоместа");
 });
 
 const ifSettingsFilled = computed(() => {
@@ -154,10 +175,7 @@ const ifSettingsFilled = computed(() => {
 });
 
 const weightCount = computed(() => {
-  return groupedScans.value.reduce(
-    (sum, scan) => sum + scan.КоличествоВЕдиницахИзмерения,
-    0
-  );
+  return GetCount(groupedScans.value, "КоличествоВЕдиницахИзмерения");
 });
 
 async function afterShow() {
@@ -171,11 +189,14 @@ async function afterShow() {
     sklads.value = [mainStoreRes];
   }
 
-  const selectedSkladRes = await DB2Manager.getData<IDocument|null>(selectedSkladKey);
+  const selectedSkladRes = await DB2Manager.getData<IDocument | null>(selectedSkladKey);
   if (selectedSkladRes) {
     selectedSklad.value = selectedSkladRes;
   }
+  initAllItem();
+}
 
+function initAllItem() {
   groupedScans.value = GetGroupScans(
     ShipmentManager.instance.currentScanings.value,
     currentMode.value
@@ -233,7 +254,7 @@ async function saveIn1C() {
     return;
   }
   const error = (response as IResponse).error;
-  console.log(error);
+  //console.log(error);
   NotificationManager.error(error);
 }
 
@@ -250,4 +271,16 @@ function clear() {
 ShipmentManager.instance.connect("ReflectionStoreClear", () => {
   clear();
 });
+
+async function itemDelete(item: IScaningGroup) {
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+      ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
+  const answerIsTrue = await NotificationManager.showConfirm(text);
+  if (answerIsTrue) {
+    ShipmentManager.instance.deleteScaning(item).then(() => {
+      initAllItem();
+      filteredByArticulController.emit("afterDelete");
+    });
+  }
+}
 </script>
