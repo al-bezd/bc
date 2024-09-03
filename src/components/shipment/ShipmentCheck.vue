@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <div class="row">
       <div class="col-8">
         <h6 class="text-muted fs-6">{{ docName }}: Проверка</h6>
@@ -40,12 +40,12 @@
     </div>
 
     <div class="">
-      <h5>
+      <h6>
         <b>Итог {{ boxCount }} Кор.</b>
-      </h5>
-      <h5>
+      </h6>
+      <h6>
         <b>Итог {{ weightCount }} Кг.</b>
-      </h5>
+      </h6>
     </div>
 
     <div class="">
@@ -75,7 +75,7 @@
       @delete="itemDelete"
     >
       <!-- <template v-slot:footer>
-        <span class="mb-3"
+        <span class="mb-1"
           >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
         >
       </template> -->
@@ -183,17 +183,17 @@ function afterShow() {
 }
 
 function initAllItem() {
-  // tableTotal.value = GetGroupScans(
-  //   ShipmentManager.instance.currentDocument.value?.Товары ?? [],
-  //   currentViewMode.value
-  // );
+  let t = GetGroupScans(
+    ShipmentManager.instance.currentDocument.value?.Товары ?? [],
+    currentViewMode.value
+  );
 
-  // allItem.value = fillCurrentResult(
-  //   tableTotal.value,
-  //   ShipmentManager.instance.currentScanings.value,
-  //   currentViewMode.value
-  // );
-  allItem.value = GetDataForSending(currentViewMode.value);
+  allItem.value = fillCurrentResult(
+    t,
+    ShipmentManager.instance.currentScanings.value,
+    currentViewMode.value
+  );
+  //allItem.value = GetDataForSending(currentViewMode.value);
   /// сортировка по артикулу
   allItem.value.sort((a, b) =>
     (a.Артикул ?? a.Номенклатура.Артикул).localeCompare(
@@ -203,12 +203,10 @@ function initAllItem() {
 }
 
 function GetDataForSending(key: RowKeyMode) {
-  var t = GetGroupScans(
-    ShipmentManager.instance.currentDocument.value?.Товары ?? [],
-    key
-  );
+  let t = GetGroupScans(ShipmentManager.instance.currentScanings.value, key);
 
-  return fillCurrentResult(t, ShipmentManager.instance.currentScanings.value, key);
+  const res = fillCurrentResult(t, ShipmentManager.instance.currentScanings.value, key);
+  return res;
 }
 
 /// закрываем окно с подтверждением
@@ -425,6 +423,8 @@ function fillCurrentResult(
     tableRow.КоличествоКоробок = 0;
     tableRow.ТекущееКоличествоГрузомест = 0;
     tableRow.Количество = 0;
+    tableRow.Грузоместа = 0;
+    //(tableRow as any).рсГрузоместа = 0;
     (tableRow as any).ЕдиницаИзмерения = tableRow.Номенклатура.ЕдиницаИзмерения;
   }
   /// заполняем таблицу насканированным
@@ -463,6 +463,7 @@ function fillCurrentResult(
 
         tableRow.Количество = Round(tableRow.Количество, 3);
         tableRow.ТекущееКоличество = Round(tableRow.ТекущееКоличество, 3);
+        tableRow.Грузоместа += scan.Грузоместа;
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;
       }

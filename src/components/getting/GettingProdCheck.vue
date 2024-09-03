@@ -1,14 +1,15 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <div>
-      <h5 class="text-muted">{{ docName }}: Проверка</h5>
+      <h6 class="text-muted">{{ docName }}: Проверка</h6>
       <span>Поддон № {{ оитНомерПалета }}</span>
     </div>
     <div class="space">
       <ListWidget key-field="key" :list="allItem">
         <template #default="{ item }">
           <ScaningGroupItem
+            mode="НомХар"
             :key="item.key"
             :data="item"
             :show-procent="true"
@@ -24,12 +25,13 @@
     </div>
 
     <div class="">
-      <h5>
+      <h6>
         <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
-      </h5>
-      <h5>
-        <b>Итог {{ weightCount }} Кг. из {{ weightFromDocument }}</b>
-      </h5>
+      </h6>
+      <h6>
+        <b>Итог {{ weightCount }} Кг.</b>
+        <!-- <b>Итог {{ weightCount }} Кг. из {{ weightFromDocument }}</b> -->
+      </h6>
     </div>
 
     <div class="btn-group w-100" role="group">
@@ -70,7 +72,7 @@ import {
   IGettingProductionDocument,
   IGettingProductionProductTotalItem,
 } from "@/managers/getting/interfaces";
-import { rounded } from "@/functions/rounded";
+
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
@@ -211,12 +213,8 @@ async function send() {
     );
     return;
   }
-  const countKG = GetCount(
-    GettingManager.instance.currentScanings.value,
-    "Количество",
-    3
-  );
-  const countKGInDoc = GetCount(doc.Товары, "Количество", 3);
+  const countKG = GetCount(GettingManager.instance.currentScanings.value, "Количество");
+  const countKGInDoc = GetCount(doc.Товары, "Количество");
   if (countKG !== countKGInDoc) {
     NotificationManager.swal(
       `Количество в сопроводительной(${countKGInDoc} кг) отличается от количества в сканированиях (${countKG} кг)`
@@ -264,26 +262,27 @@ function fillCurrentResult(
       const tableRowKey = getRowKey(tableRow);
       if (tableRowKey == scanKey) {
         tableRow.Серия = scan.Серия;
-        //tableRow.ТекущееКоличество += scan.Количество;
+
+        tableRow.ТекущееКоличество += scan.Количество;
         //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
         tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
         ///
-        if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения,
-            0
-          );
-        } else {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения
-          );
-        }
+        // if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения,
+        //     0
+        //   );
+        // } else {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения
+        //   );
+        // }
         ///
-        tableRow.КоличествоВЕдиницахИзмерения =
-          tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
-        tableRow.КоличествоВЕдиницахИзмерения = rounded(
-          tableRow.КоличествоВЕдиницахИзмерения
-        );
+        // tableRow.КоличествоВЕдиницахИзмерения =
+        //   tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
+        // tableRow.КоличествоВЕдиницахИзмерения = rounded(
+        //   tableRow.КоличествоВЕдиницахИзмерения
+        // );
         tableRow.КоличествоКоробок += scan.Грузоместа;
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;

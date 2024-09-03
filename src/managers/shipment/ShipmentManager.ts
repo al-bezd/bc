@@ -4,10 +4,12 @@ import { UserManager } from "@/managers/user/UserManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { Ref, ref, toRaw } from "vue";
+import { markRaw, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { HttpManager } from "@/classes/HttpManager";
 import { DB2Manager } from "@/classes/DB2Manager";
+
+
 
 export class ShipmentManager extends BaseManager {
   static instance: ShipmentManager;
@@ -32,7 +34,8 @@ export class ShipmentManager extends BaseManager {
   //public mainOrderName = "Основной склад не назначен";
 
   public currentDocument: Ref<IShipmentDocument | null> = ref(null)
-  public currentScanings: Ref<IScaning[]> = ref([])
+  public currentScanings: Ref<IScaning[]> = ref(markRaw([]))
+ 
 
   load() {
     this.asyncLoad()

@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3" style="min-height: 8rem">
+    <ul class="nav nav-tabs mb-1" style="min-height: 8rem">
       <li class="nav-item">
         <a :class="getNavClass('nav-barcode')" @click="setTab('nav-barcode')">ШК</a>
       </li>
@@ -224,6 +224,23 @@
             </div>
           </div>
         </div>
+        <div class="">
+          <div class="alert alert-info" role="alert">
+            <p>Задержка перед рендером (в мс)</p>
+            <div class="form-group">
+              <input
+                v-model="MainManager.instance.scaningSpeed.value"
+                @change="
+                  MainManager.instance.setScaningSpeed(
+                    MainManager.instance.scaningSpeed.value
+                  )
+                "
+                type="text"
+                class="form-control"
+              />
+            </div>
+          </div>
+        </div>
       </div>
       <div :class="getTabClass('nav-other')">
         <div class="">
@@ -239,7 +256,7 @@
 
         <div class="">
           <div class="alert alert-info" role="alert">
-            <div class="form-floating mb-3">
+            <div class="form-floating mb-1">
               <label for="hostID">Адрес сервера</label>
               <input
                 class="form-control"
@@ -251,7 +268,7 @@
               />
             </div>
 
-            <div class="form-floating mb-3">
+            <div class="form-floating mb-1">
               <label for="routePathID">Путь на сервере</label>
               <input
                 id="routePathID"
@@ -264,7 +281,7 @@
             </div>
 
             <div
-              class="alert alert-warning alert-dismissible fade show text-start mb-3"
+              class="alert alert-warning alert-dismissible fade show text-start mb-1"
               role="alert"
             >
               <strong>Полный путь:</strong> {{ host }}{{ routePath }}/экшен
@@ -273,7 +290,7 @@
             <div
               :class="`alert alert-${
                 connectionStatus == 'УСПЕХ' ? 'success' : 'danger'
-              } alert-dismissible fade show text-start mb-3`"
+              } alert-dismissible fade show text-start mb-1`"
               role="alert"
               @click="testConnectionToServer()"
             >
@@ -290,7 +307,7 @@
 
         <div class="">
           <div class="alert alert-info" role="alert">
-            <div class="form-group mb-3">
+            <div class="form-group mb-1">
               <textarea class="form-control" rows="3" v-model="executeCommand"></textarea>
             </div>
             <div

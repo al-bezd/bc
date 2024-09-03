@@ -1,12 +1,12 @@
 <template>
-  <div class="btn-group w-100 mb-3" role="group">
+  <div class="btn-group w-100 mb-1" role="group">
     <button
       v-for="item in items"
       :key="item"
-      :class="`btn btn-primary text-uppercase ${mode == item ? 'disabled' : ''}`"
+      :class="`btn btn-primary px-1 text-uppercase ${mode == item ? 'disabled' : ''}`"
       @click="showWithMode(item)"
     >
-      <span>{{ GetLabel(item) }}</span>
+      <span style="font-size: 0.8rem">{{ GetLabel(item) }}</span>
     </button>
     <!-- <button
       :class="`btn btn-primary text-uppercase ${mode == 'Ном' ? 'disabled' : ''}`"

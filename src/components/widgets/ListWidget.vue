@@ -1,10 +1,12 @@
 <template>
+  <!---->
   <DynamicScroller
     :key="list.length"
     class="scroller"
-    :min-item-size="240"
     :items="list"
+    :min-item-size="240"
     :key-field="keyField"
+    page-mode
   >
     <template v-slot="{ item, index, active }">
       <DynamicScrollerItem
@@ -13,15 +15,19 @@
         :active="active"
         :data-index="index"
         ><slot :item="item"></slot>
-        <!-- <ScaningItem
-              :key="item.IDSec"
-              :data="item"
-              @delete="itemDelete"
-              @tap="filterByArticul(item)"
-            /> -->
-        <div style="min-height: 1px"></div>
+        <div style="min-height: 0.1rem"></div>
       </DynamicScrollerItem>
     </template>
+    <!-- <template v-slot="{ item, index, active }">
+      <DynamicScrollerItem
+        :key="item[keyField]"
+        :item="item"
+        :active="active"
+        :data-index="index"
+        ><slot :item="item"></slot>
+        <div style="min-height: 1px"></div>
+      </DynamicScrollerItem>
+    </template> -->
   </DynamicScroller>
 </template>
 <script setup lang="ts">

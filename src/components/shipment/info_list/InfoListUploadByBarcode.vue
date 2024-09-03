@@ -1,10 +1,10 @@
 <template>
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>{{ pageTitle }}</h6>
 
     <input
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="barcode"
       @keyup.enter="onEnter()"
@@ -135,8 +135,7 @@ async function deleteInfoSheet(item: IInfoList) {
 async function save() {
   await DB2Manager.instance.infoSheets?.addAll(items.value.map((x) => toRaw(x)));
   NotificationManager.success("Инфо листы сохранены");
-  //clear();
-  //back();
+  back();
 }
 
 async function clearWithQuest() {

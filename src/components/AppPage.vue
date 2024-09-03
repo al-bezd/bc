@@ -17,6 +17,7 @@
   display: flex;
   flex-direction: column;
   background-color: white;
+  overflow: hidden;
 }
 .reft_modal {
   height: 100vh;

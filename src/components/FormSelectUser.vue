@@ -1,6 +1,6 @@
 <template>
   <!-- Выбор пользователя-->
-  <div class="p-3" id="form_select_user" v-if="seen">
+  <div class="p-1" id="form_select_user" v-if="seen">
     <div class="jumbotron">
       <h6>Отсканируйте ШК сотрудника</h6>
 

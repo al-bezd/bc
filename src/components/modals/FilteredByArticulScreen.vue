@@ -2,7 +2,7 @@
   <BootstrapModalWindow :seen="controller.seen.value">
     <ModelWidget
       :mode="controller.mode.value"
-      :items="['Кор', 'Ном', 'НомХар', 'НомХарСер']"
+      :items="['Кор', 'НомХар', 'НомХарСер']"
       @tap="
         (value) => {
           controller.setMode(value);
@@ -40,18 +40,20 @@
       </div>
     </div>
     <slot name="footer">
-      <div class="row my-2">
-        <div class="col">
-          <span class="mb-3"
-            >Количество <b>{{ count }}</b> Шт.</span
-          >
-        </div>
-        <div class="col">
-          <span class="mb-3"
-            >Вес <b>{{ weight }}</b> Кг.</span
-          >
-        </div>
-      </div>
+      <table>
+        <tr>
+          <td>
+            <span class="mb"
+              >Количество <b>{{ count }}</b> Шт.</span
+            >
+          </td>
+          <td>
+            <span class="mb"
+              >Вес <b>{{ weight }}</b> Кг.</span
+            >
+          </td>
+        </tr>
+      </table>
     </slot>
     <div class="">
       <button

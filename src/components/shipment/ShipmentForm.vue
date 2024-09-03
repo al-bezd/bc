@@ -1,7 +1,7 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
-    <h5 class="text-muted">{{ docName }}</h5>
+  <div class="reft_screen_form p-1" :style="`height:${winHeight}px;`" v-if="seen">
+    <h6 class="text-muted">{{ docName }}</h6>
 
     <div class="row">
       <div class="col">
@@ -12,17 +12,24 @@
       </div>
     </div>
 
-    <input
-      type="text"
-      class="form-control bc_input mb-3"
-      placeholder="Введите штрихкод"
-      v-model="barcode"
-      @keyup.enter="onEnter"
-      id="form_bc"
-    />
+    <div class="input-group mb-2">
+      <input
+        type="text"
+        class="form-control bc_input mb-1"
+        placeholder="Введите штрихкод"
+        v-model="barcode"
+        @keyup.enter="onEnter"
+        id="form_bc"
+      />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
     <SortWidget @tap="onSort" :scan-count="listForRender.length" :box-count="boxCount" />
 
-    <div class="space">
+    <div v-if="isScaningAdded" class="space">
       <ListWidget key-field="IDSec" :list="listForRender">
         <template #default="{ item }">
           <ScaningItem
@@ -33,39 +40,13 @@
           />
         </template>
       </ListWidget>
-      <!-- <DynamicScroller
-        :key="listForRender.length"
-        class="scroller"
-        :min-item-size="240"
-        :items="listForRender"
-        key-field="IDSec"
-      >
-        <template v-slot="{ item, index, active }">
-          <DynamicScrollerItem
-            :key="item.IDSec"
-            :item="item"
-            :active="active"
-            :size-dependencies="[
-              item.Номенклатура.Наименование,
-              item.Характеристика.Наименование,
-              item.Серия.Наименование,
-            ]"
-            :data-index="index"
-          >
-            <ScaningItem
-              :key="item.IDSec"
-              :data="item"
-              @delete="itemDelete"
-              @tap="filterByArticul(item)"
-            />
-            <div style="min-height: 1px"></div>
-          </DynamicScrollerItem>
-        </template>
-      </DynamicScroller> -->
+    </div>
+    <div v-else class="space">
+      Данные обрабатываются для отображения, продолжайте скаинрование
     </div>
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
 
         <div class="btn-group w-100" role="group">
           <button
@@ -125,7 +106,8 @@ import { DB2Manager } from "@/classes/DB2Manager";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentForm, show, close);
 let timerId = -1;
-let scaningSpeed = 500;
+const winHeight = window.screen.height;
+const isScaningAdded = ref(false);
 const listForRender: Ref<IScaning[]> = ref([]);
 
 const scaningController: ScaningController = new ScaningController(
@@ -187,6 +169,7 @@ function close() {
 
 function show() {
   seen.value = true;
+  listForRender.value = [...ShipmentManager.instance.currentScanings.value];
   startRenderList();
 }
 
@@ -204,6 +187,7 @@ function onEnter() {
 const validators = [isValidScaning, isValidFutureProduct, isValidOstSrokGodnosti];
 
 async function onScan(barcode: string) {
+  isScaningAdded.value = false;
   if (itInfoList.value) {
     //itInfoList.value = false;
     const res = await MainManager.instance.local.infoSheet(barcode);
@@ -216,8 +200,20 @@ async function onScan(barcode: string) {
     const oldScanings = ShipmentManager.instance.currentScanings.value.map((x) =>
       toRaw(x)
     );
-    ShipmentManager.instance.setCurrentScanings([...res.data, ...oldScanings]);
+    const newIdsSet = new Set(res.data.map((x) => x.IDSec));
 
+    const hasIntersection = oldScanings
+      .map((x) => x.IDSec)
+      .some((id) => newIdsSet.has(id));
+    if (hasIntersection) {
+      NotificationManager.instance.playError();
+      await NotificationManager.showAlert(
+        "Вы уже ранее загружали этот инфо лист, в списке сканирований инфо листа найдены сканирования из текущего списка сканирований"
+      );
+      return;
+    }
+    ShipmentManager.instance.setCurrentScanings([...res.data, ...oldScanings]);
+    NotificationManager.instance.playGood();
     return;
   }
 
@@ -238,9 +234,9 @@ async function onScan(barcode: string) {
       ShipmentManager.instance.currentScanings.value
     );
     scaningController.isWrongPaletScan(scan, itPalet.value);
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
+    // if (itPalet.value) {
+    //   itPalet.value = false;
+    // }
     return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");
@@ -274,7 +270,8 @@ function isValidScaning(scan: IScaning): boolean {
     } else {
       text;
     }
-    NotificationManager.swal(text);
+    NotificationManager.showAlert(text);
+    //NotificationManager.swal(text);
     NotificationManager.instance.playError();
     return false;
   }
@@ -293,9 +290,12 @@ function isValidFutureProduct(scan: IScaning): boolean {
     if (bdate > date) {
       const future_date = bdate.toLocaleDateString();
       const current_date = date.toLocaleDateString();
-      NotificationManager.error(
-        `Текущая дата ${current_date},\n дата производства на коробке ${future_date} коробка из будущего \nСКАНИРОВАНИЕ НЕ ДОБАВЛЕНО`
-      );
+      const text = `Текущая дата ${current_date},\n дата производства на коробке ${future_date} коробка из будущего \nСКАНИРОВАНИЕ НЕ ДОБАВЛЕНО`;
+      // NotificationManager.error(
+      //   text
+      // );
+      NotificationManager.instance.playError();
+      NotificationManager.showAlert(text);
 
       return false;
     }
@@ -364,11 +364,12 @@ async function itemDelete(item: IScaning) {
 function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
   clearTimeout(timerId);
   timerId = setTimeout(() => {
+    isScaningAdded.value = true;
     listForRender.value = [...ShipmentManager.instance.currentScanings.value];
     DB2Manager.instance.shiping!.putScanings(listForRender.value.map((x) => toRaw(x)));
     if (afterUpdateCallBack) {
       afterUpdateCallBack();
     }
-  }, scaningSpeed);
+  }, MainManager.instance.scaningSpeed.value);
 }
 </script>

@@ -1,46 +1,47 @@
 <template>
   <!-- Окно загрузки документа-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>Отсканируйте ШК с листа сборки в поле</h6>
     <input
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="barcode"
       @keyup.enter="onEnter()"
       id="load_doc_bc"
     />
-    <div class="d-grid gap-2 mb-3">
-      <button
-        type="button"
-        class="btn btn-primary btn-lg btn-block text-uppercase"
-        @click="goToReflectionOfBalances()"
-      >
-        <b>ОТРАЖЕНИЕ ОСТАТКОВ</b>
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-lg btn-block text-uppercase"
-        @click="goToCreateInfoSheet()"
-      >
-        <b>СОЗДАНИЕ ИНФ. ЛИСТА</b>
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-lg btn-block text-uppercase"
-        @click="goToAddInfoSheets()"
-      >
-        <b>Добавление ИНФ. ЛИСТОВ</b>
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary btn-lg btn-block text-uppercase"
-        @click="showLoadOrders()"
-      >
-        <b>ЗАГРУЗИТЬ ЗАДАНИЯ</b>
-      </button>
-    </div>
+
     <div class="space">
+      <div class="d-grid gap-2 mb-1">
+        <button
+          type="button"
+          class="btn btn-primary btn-block text-uppercase"
+          @click="goToReflectionOfBalances()"
+        >
+          <b>ОТРАЖЕНИЕ ОСТАТКОВ</b>
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-block text-uppercase"
+          @click="goToCreateInfoSheet()"
+        >
+          <b>СОЗДАНИЕ ИНФ. ЛИСТА</b>
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-block text-uppercase"
+          @click="goToAddInfoSheets()"
+        >
+          <b>Добавление ИНФ. ЛИСТОВ</b>
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-block text-uppercase"
+          @click="showLoadOrders()"
+        >
+          <b>ЗАГРУЗИТЬ ЗАДАНИЯ</b>
+        </button>
+      </div>
       <ShipmentDocumentItem
         v-for="document in savedShipmentDocs"
         :document="document"
@@ -116,7 +117,7 @@ async function getDocumentByBarcode(barcode: string) {
   const userDocs = await MainManager.instance.local.allUserDocs();
   if (userDocs) {
     for (const doc of userDocs) {
-      if (doc.Ссылка.Ссылка === barcode) {
+      if (doc.ШК === barcode) {
         setCurrentDocument(doc, doc.scanings ?? []);
         return;
       }

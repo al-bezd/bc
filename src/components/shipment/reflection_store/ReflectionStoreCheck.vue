@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-center">Отражение остатков: Проверка</h6>
     <!-- <ModeWidget :mode="currentMode" @tap="showWithMode" /> -->
 
@@ -22,7 +22,7 @@
       </div>
       <div v-if="settingsIsShow">
         <div class="">
-          <div class="mb-3">
+          <div class="mb-1">
             <label for="Склад" class="form-label">Склад</label>
             <select
               class="form-control"
@@ -82,12 +82,12 @@
 
     <div>
       <div class="">
-        <h5>
+        <h6>
           <b>Итог {{ boxCount }} Коробок</b>
-        </h5>
-        <h5>
+        </h6>
+        <h6>
           <b>Итог {{ weightCount }} Кг. </b>
-        </h5>
+        </h6>
       </div>
 
       <div class="btn-group w-100" role="group">
@@ -167,7 +167,8 @@ const filteredByArticulController = new FilteredByArticulController(
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return GetCount(groupedScans.value, "Грузоместа");
+  //return GetCount(groupedScans.value, "Грузоместа");
+  return GetCount(groupedScans.value, "КоличествоКоробок");
 });
 
 const ifSettingsFilled = computed(() => {

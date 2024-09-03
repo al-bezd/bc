@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-center">Создание Инфо. листа: Проверка</h6>
 
     <!-- <ModeWidget :mode="currentMode" @tap="showWithMode" /> -->
@@ -22,7 +22,7 @@
       </div>
       <div v-if="settingsIsShow">
         <div class="">
-          <div class="mb-3">
+          <div class="mb-1">
             <label for="Склад" class="form-label">Склад</label>
             <select
               class="form-control"
@@ -47,7 +47,7 @@
         </div>
 
         <div class="">
-          <div class="mb-3">
+          <div class="mb-1">
             <label for="Сеть" class="form-label">Сеть</label>
             <select
               class="form-control"
@@ -74,7 +74,7 @@
           </div>
         </div>
 
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-1">
           <div class="col-6">
             <label for="НомерПоддона" class="form-label">Номер поддона</label>
             <input
@@ -118,12 +118,12 @@
 
     <div>
       <div class="">
-        <h5>
+        <h6>
           <b>Итог {{ boxCount }} Коробок</b>
-        </h5>
-        <h5>
+        </h6>
+        <h6>
           <b>Итог {{ weightCount }} Кг. </b>
-        </h5>
+        </h6>
       </div>
 
       <div class="btn-group w-100" role="group">
@@ -171,6 +171,7 @@ import { StringToBool } from "@/functions/StringToBoolean";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { DB2Manager } from "@/classes/DB2Manager";
 import ListWidget from "@/components/widgets/ListWidget.vue";
+import { GetCount } from "@/functions/GetCount";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListCheck,
@@ -210,7 +211,7 @@ const groupedScans: Ref<IScaningGroup[]> = ref([]);
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return groupedScans.value.reduce((sum, scan) => sum + scan.КоличествоКоробок, 0);
+  return GetCount(groupedScans.value, "КоличествоКоробок");
 });
 
 const ifSettingsFilled = computed(() => {
@@ -223,10 +224,7 @@ const ifSettingsFilled = computed(() => {
 });
 
 const weightCount = computed(() => {
-  return groupedScans.value.reduce(
-    (sum, scan) => sum + scan.КоличествоВЕдиницахИзмерения,
-    0
-  );
+  return GetCount(groupedScans.value, "КоличествоВЕдиницахИзмерения");
 });
 
 async function afterShow() {

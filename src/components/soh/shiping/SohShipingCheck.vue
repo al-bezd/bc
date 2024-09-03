@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <div class="row">
       <div class="col-8">
         <h6 class="text-muted fs-6">СОХ Отгрузка: {{ docName }}: Проверка</h6>
@@ -37,12 +37,12 @@
     </div>
 
     <div class="">
-      <h5>
+      <h6>
         <b>Итог {{ boxCount }} Кор.</b>
-      </h5>
-      <h5>
+      </h6>
+      <h6>
         <b>Итог {{ weightCount }} Кг.</b>
-      </h5>
+      </h6>
     </div>
 
     <div class="">
@@ -69,7 +69,7 @@
     <!-- Отфильтрованные по Номенклатура.Наименование НАЧАЛО -->
     <FilteredByArticulScreen :controller="filteredByArticulController">
       <!-- <template v-slot:footer>
-        <span class="mb-3"
+        <span class="mb-1"
           >Коробок <b>{{ filteredBoxCount }}</b> Шт.</span
         >
       </template> -->

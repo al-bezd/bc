@@ -20,6 +20,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
+  public scaningSpeed = ref(1000 * 1.7); /// время задержки перед рендерингом списка сканирований
+
   static keys = {
     torgovieSeti: 'torgovieSeti',
     barcodes: 'barcodes',
@@ -97,10 +99,18 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   static load: () => Promise<void> = async () => {
     /// сюда надо добавить код для загрузки
-
+    const t = LocalStorageManager.get('scaningSpeed')
+    if(t){
+      MainManager.instance.scaningSpeed.value = Number(t)
+    }else{
+      MainManager.instance.scaningSpeed.value = 1.7
+    }
   }
 
-
+  setScaningSpeed(value: number) {
+    this.scaningSpeed.value = value
+    LocalStorageManager.set('scaningSpeed', value)
+  }
 
 
 

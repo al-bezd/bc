@@ -186,9 +186,9 @@ export class ScaningController {
     /// уведомляем пользователя если он случайно отсканировал палетную этикетку
     isWrongPaletScan(scan: IScaning, isPalet: boolean): boolean {
         if (!isPalet && IsBarcodePalet(scan.bc)) {
-            NotificationManager.swal(
-                `Данное сканирование является сканированием палетной этикетки, но признак стоит что это обычная этикетка`
-            );
+            const text = `Данное сканирование является сканированием палетной этикетки, но признак стоит что это обычная этикетка`
+            //NotificationManager.swal( text );
+            NotificationManager.showAlert(text)
             NotificationManager.instance.playError();
         }
         return true;

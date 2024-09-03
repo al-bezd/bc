@@ -1,55 +1,61 @@
 <template>
   <div
-    :class="getClass() + ' bs-callout bs-callout-danger'"
+    :class="getClass() + ' bs-callout bs-callout-danger' + ' mb-1 p-1'"
     :name="'check' + data.Номенклатура.Наименование"
   >
-    <div class="row">
-      <div class="col-10">
-        <div
-          role="button"
-          @click="
-            () => {
-              emit('tap', data);
-            }
-          "
-        >
-          <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
-        </div>
-        <div v-if="mode == 'НомХар' || mode == 'НомХарСер'">
-          {{ data.Характеристика.Наименование }}
-        </div>
-        <div v-if="mode == 'НомХарСер'">{{ data.Серия.Наименование }}</div>
-        <div>
-          <b>ПЛУ : {{ data.ПЛУ }}</b>
-        </div>
-        <div>
-          <b>к/к. {{ data.КоличествоКоробок }}</b>
-        </div>
-        <div>
-          <b
-            >тек {{ Round(data.ТекущееКоличество, 3) }} кг / зак
-            {{ Round(data.имКоличествоВПересчетеНаКг, 3) }} кг</b
+    <table>
+      <tr>
+        <td>
+          <div
+            role="button"
+            @click="
+              () => {
+                emit('tap', data);
+              }
+            "
           >
-        </div>
-        <div>
-          <b
-            >тек {{ Round(data.ТекущееКоличествоВЕдиницахИзмерения, 3) }}
-            {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }} / зак
-            {{ Round(data.КоличествоУпаковок, 3) }}
-            {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }}</b
-          >
-        </div>
-      </div>
-      <div class="col-2" style="padding-left: 0px">
-        <div v-if="showProcent">
-          <b>{{ data.ВПроцСоотношении }}%</b>
-        </div>
-        <!-- <div v-if="showProcent && isGroup">
+            <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
+            <b style="white-space: nowrap">ПЛУ : {{ data.ПЛУ }}</b>
+            <hr class="mt-1 mb-1" />
+          </div>
+          <div v-if="mode == 'НомХар' || mode == 'НомХарСер'">
+            {{ data.Характеристика.Наименование }}
+          </div>
+          <div v-if="mode == 'НомХарСер'">{{ data.Серия.Наименование }}</div>
+          <!-- <div>
+            <b>ПЛУ : {{ data.ПЛУ }}</b>
+          </div> -->
+          <div>
+            <b>к/к. {{ data.КоличествоКоробок }}</b>
+          </div>
+          <div>
+            <b
+              ><span> тек {{ Round(data.ТекущееКоличество, 3) }} кг </span>
+              <span v-if="data.имКоличествоВПересчетеНаКг"
+                >/ зак {{ Round(data.имКоличествоВПересчетеНаКг, 3) }} кг</span
+              ></b
+            >
+          </div>
+          <div>
+            <b
+              >тек {{ Round(data.ТекущееКоличествоВЕдиницахИзмерения, 3) }}
+              {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }} / зак
+              {{ Round(data.КоличествоУпаковок, 3) }}
+              {{ data.Номенклатура.ЕдиницаИзмерения.Наименование }}</b
+            >
+          </div>
+        </td>
+        <td style="text-align: right; vertical-align: top">
+          <div v-if="showProcent">
+            <b>{{ data.ВПроцСоотношении }}%</b>
+          </div>
+          <!-- <div v-if="showProcent && isGroup">
           <b>{{ data.ВПроцСоотношении }}%</b>
         </div> -->
-        <slot name="addButton"></slot>
-      </div>
-    </div>
+          <slot name="addButton"></slot>
+        </td>
+      </tr>
+    </table>
   </div>
 </template>
 <script setup lang="ts">

@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-muted">СОХ Приемка: {{ docName }}: Форма</h6>
 
     <!-- <div class="row">
@@ -12,14 +12,22 @@
       </div>
     </div> -->
 
-    <input
+    
+    <div class="input-group mb-2">
+      <input
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="barcode"
       @keyup.enter="onEnter"
       id="form_bc"
     />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
     <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
 
     <div class="space">
@@ -33,7 +41,7 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
 
         <div class="btn-group w-100" role="group">
           <button

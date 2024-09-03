@@ -3,7 +3,7 @@ import { BaseManager } from "@/classes/BaseManager";
 
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { Ref, ref, toRaw } from "vue";
+import { markRaw, Ref, ref, toRaw } from "vue";
 import { IGettingProductionDocument } from "./interfaces";
 import { IScaning } from "@/interfaces/IScaning";
 import { DB2Manager } from "@/classes/DB2Manager";
@@ -21,7 +21,7 @@ export class GettingManager extends BaseManager {
   protected currentScaningsKey = "GettingManager__currentScanings"
 
   //public documents: any[] = [];
-  public currentScanings: Ref<IScaning[]> = ref([])
+  public currentScanings: Ref<IScaning[]> = ref(markRaw([]))
   public currentDocument: Ref<IGettingProductionDocument | null> = ref(null)
 
   static init() {

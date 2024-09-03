@@ -1,29 +1,27 @@
 <template>
   <!-- Форма сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
-    <input
-      type="text"
-      class="form-control bc_input mb-3"
-      placeholder="Введите штрихкод"
-      v-model="barcode"
-      @keyup.enter="onEnter()"
-      id="form_doc_bc_free"
-    />
+
+    <div class="input-group mb-2">
+      <input
+        type="text"
+        class="form-control bc_input mb-1"
+        placeholder="Введите штрихкод"
+        v-model="barcode"
+        @keyup.enter="onEnter()"
+        id="form_doc_bc_free"
+      />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
     <SortWidget :box-count="boxCount" :scan-count="listForRender.length" @tap="onSort" />
-    <!-- <div class="btn-group w-100 mb-3" role="group">
-      <button class="btn btn-primary text-uppercase" @click="OrderBy('Артикул')">
-        по Артикулу
-      </button>
-      <button class="btn btn-primary text-uppercase" @click="OrderBy('История')">
-        по Истории
-      </button>
-      <button disabled class="btn btn-primary text-uppercase">
-        Кол.кор {{ boxCount }}
-      </button>
-    </div> -->
-    <div class="space">
+
+    <div v-if="isScaningAdded" class="space">
       <ListWidget key-field="IDSec" :list="listForRender">
         <template #default="{ item }">
           <ScaningItem
@@ -39,29 +37,15 @@
           />
         </template>
       </ListWidget>
-      <!-- <ScaningItem
-        v-for="item in items"
-        :key="item.ID"
-        :data="item"
-        @delete="itemDelete"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
-      /> -->
+    </div>
+    <div v-else class="space">
+      Данные обрабатываются для отображения, продолжайте скаинрование
     </div>
 
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
-        <!-- <button
-          class="btn btn-info btn-lg btn-block mb-3 w-100"
-          @click="addManualScaning"
-        >
-          +
-        </button> -->
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
+
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -114,6 +98,7 @@ import { ScaningController } from "@/controllers/ScaningController";
 import { GetCount } from "@/functions/GetCount";
 import ListWidget from "@/components/widgets/ListWidget.vue";
 import { DB2Manager } from "@/classes/DB2Manager";
+import { MainManager } from "@/classes/MainManager";
 //import { v4 } from "uuid";
 
 RoutingManager.instance.registry(
@@ -135,7 +120,7 @@ const scaningController: ScaningController = new ScaningController(
 );
 
 let timerId = -1;
-let scaningSpeed = 1000;
+const isScaningAdded = ref(false);
 const listForRender: Ref<IScaning[]> = ref([]);
 
 const filteredByArticulController = new FilteredByArticulController(
@@ -156,6 +141,7 @@ const boxCount = computed(() => {
 
 function show() {
   seen.value = true;
+  listForRender.value = [...ShipmentManager.instance.currentScanings.value];
   startRenderList();
 }
 
@@ -172,6 +158,7 @@ async function onEnter() {
 }
 
 async function onScan(barcodeStr: string) {
+  isScaningAdded.value = false;
   if (barcodeStr === "") {
     return false;
   }
@@ -188,9 +175,9 @@ async function onScan(barcodeStr: string) {
       ShipmentManager.instance.currentScanings.value
     );
     scaningController.isWrongPaletScan(scaning, itPalet.value);
-    if (itPalet.value) {
-      itPalet.value = false;
-    }
+    // if (itPalet.value) {
+    //   itPalet.value = false;
+    // }
 
     return true;
   }
@@ -258,11 +245,12 @@ async function itemDelete(item: IScaning) {
 function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
   clearTimeout(timerId);
   timerId = setTimeout(() => {
+    isScaningAdded.value = true;
     listForRender.value = [...ShipmentManager.instance.currentScanings.value];
     DB2Manager.instance.shiping!.putScanings(listForRender.value.map((x) => toRaw(x)));
     if (afterUpdateCallBack) {
       afterUpdateCallBack();
     }
-  }, scaningSpeed);
+  }, MainManager.instance.scaningSpeed.value);
 }
 </script>

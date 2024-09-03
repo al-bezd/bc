@@ -69,6 +69,7 @@ export interface IScaningStoreController {
     deleteScaning(scaning: IScaning): Promise<void>,
     getScanings(): Promise<IScaning[]>,
     clearScanings(): Promise<void>
+    //cancel
 
 }
 
@@ -191,13 +192,10 @@ export class DB2Manager extends BaseManager {
                 return await this.store.add(scaning)
             },
             async setScanings(scanings: IScaning[]) {
-                //const store = (DB2Manager.instance.db! as Dexie & IShipmentScaningStore).shipmentCurrentScanings
                 await this.store.clear()
-                return await this.store.bulkAdd(scanings)
+                return await this.store.bulkPut(scanings)
             },
             async putScanings(scanings: IScaning[]) {
-                //const store = (DB2Manager.instance.db! as Dexie & IShipmentScaningStore).shipmentCurrentScanings
-                //await this.store.clear()
                 await this.store.bulkPut(scanings)
             },
             async deleteScaning(scaning: IScaning) {

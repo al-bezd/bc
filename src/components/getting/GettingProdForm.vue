@@ -1,9 +1,9 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <div class="row">
       <div class="col-12">
-        <h5 class="text-muted">{{ docName }}</h5>
+        <h6 class="text-muted">{{ docName }}</h6>
       </div>
       <!-- <div class="col-3">
         <h5>кол. {{ countScaning }}</h5>
@@ -11,17 +11,25 @@
       </div> -->
     </div>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
-    <input
-      type="text"
-      class="form-control bc_input mb-3"
-      placeholder="Введите штрихкод"
-      v-model="barcode"
-      @keyup.enter="onEnter"
-      id="getting_prod_form_bc"
-    />
+
+    <div class="input-group mb-2">
+      <input
+        type="text"
+        class="form-control bc_input mb-1"
+        placeholder="Введите штрихкод"
+        v-model="barcode"
+        @keyup.enter="onEnter"
+        id="getting_prod_form_bc"
+      />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
     <SortWidget @tap="onSort" :scan-count="listForRender.length" :box-count="boxCount" />
 
-    <div class="space">
+    <div v-if="isScaningAdded" class="space">
       <ListWidget key-field="IDSec" :list="listForRender">
         <template #default="{ item }">
           <ScaningItem
@@ -38,13 +46,16 @@
         </template>
       </ListWidget>
     </div>
+    <div v-else class="space">
+      Данные обрабатываются для отображения, продолжайте скаинрование
+    </div>
     <div class="row">
       <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
       <div class="col-6">Вес(ФАКТ): {{ weightScans }}</div>
     </div>
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
         <div class="btn-group w-100" role="group">
           <button
             type="button"
@@ -96,13 +107,16 @@ import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import { IРеквизит } from "@/interfaces/IDocument";
 import ListWidget from "@/components/widgets/ListWidget.vue";
 import { DB2Manager } from "@/classes/DB2Manager";
+import { MainManager } from "@/classes/MainManager";
+import { rounded } from "@/functions/rounded";
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionForm, show, close);
 const scaningController: ScaningController = new ScaningController(
   GettingManager.instance
 );
 
 let timerId = -1;
-let scaningSpeed = 500 * 2;
+const isScaningAdded = ref(false);
+
 const listForRender: Ref<IScaning[]> = ref([]);
 
 const filteredByArticulController = new FilteredByArticulController(
@@ -153,15 +167,25 @@ function close() {
 
 function show() {
   seen.value = true;
+  listForRender.value = [...GettingManager.instance.currentScanings.value];
   setTimeout(afterShow, 500);
 }
 
 function afterShow() {
   if (GettingManager.instance.currentDocument.value) {
-    weightInDoc.value = GetCount(
-      GettingManager.instance.currentDocument.value?.Товары,
-      "Количество"
-    );
+    let res = 0;
+    for (var i of GettingManager.instance.currentDocument.value?.Товары) {
+      if (i.Номенклатура.ЕдиницаИзмерения.Наименование == "шт") {
+        res += i.Количество * i.Номенклатура.ВесЧислитель;
+      } else {
+        res += i.Количество;
+      }
+    }
+    weightInDoc.value = rounded(res, 3);
+    // weightInDoc.value = GetCount(
+    //   GettingManager.instance.currentDocument.value?.Товары,
+    //   "Количество"
+    // );
   }
   startRenderList();
 }
@@ -185,6 +209,7 @@ const validators = [
 ];
 
 async function onScan(barcodeStr: string) {
+  isScaningAdded.value = false;
   if (barcodeStr === "") {
     return false;
   }
@@ -208,9 +233,9 @@ async function onScan(barcodeStr: string) {
     GettingManager.instance.currentScanings.value
   );
   scaningController.isWrongPaletScan(scaning, itPalet.value);
-  if (itPalet.value) {
-    itPalet.value = false;
-  }
+  // if (itPalet.value) {
+  //   itPalet.value = false;
+  // }
   return true;
 }
 
@@ -238,14 +263,11 @@ async function isWeightMoreWeightInChar(scan: IScaning): Promise<boolean> {
     (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
   );
   for (const i of res) {
-    if (scan.Количество > i.Значение * 1.2) {
+    var maxWeight = i.Значение * 1.2;
+    if (i.Значение != 1 && scan.Количество > maxWeight) {
       NotificationManager.instance.playError();
       var answer = await NotificationManager.showConfirm(
-        `Вес в характеристике ${scan.Характеристика.Наименование}\n${
-          i.Значение
-        }(максимально доступный вес ${i.Значение * 1.2}) больше чем вес в сканировании ${
-          scan.Количество
-        } Вы действительно хотите принять продукцию?`
+        `Вес в характеристике ${scan.Характеристика.Наименование}\n${i.Значение}(максимально доступный вес ${maxWeight}) больше чем вес в сканировании ${scan.Количество} Вы действительно хотите принять продукцию?`
       );
 
       // NotificationManager.swal(
@@ -270,11 +292,14 @@ function isLentaTanderRule(scan: IScaning): boolean {
   const con2 = scan.Характеристика.ДополнительныеРеквизиты.filter(
     (x: IРеквизит) => x.Свойство.Наименование === "Количество(хар)"
   );
-  if (con1 && con2.length && scan.Количество > con2[0].Значение) {
-    NotificationManager.swal(
-      `Вес в сканировании больше чем доступно в характеристике ${scan.Характеристика.Наименование} ${con2[0].Значение}\nвес в сканировании ${scan.Количество}`
-    );
+  if (con1 && con2.length && scan.Количество > con2[0].Значение * 1.2) {
+    const text = `Вес в сканировании больше чем доступно в характеристике ${scan.Характеристика.Наименование} ${con2[0].Значение}\nвес в сканировании ${scan.Количество}`;
+    // NotificationManager.swal(
+    //   text
+    // );
+    // NotificationManager.instance.playError();
     NotificationManager.instance.playError();
+    NotificationManager.showAlert(text);
     return false;
   }
   return true;
@@ -309,8 +334,8 @@ function isValidScaning(scan: IScaning): boolean {
     } else {
       text;
     }
-    NotificationManager.swal(text);
     NotificationManager.instance.playError();
+    NotificationManager.showAlert(text);
     return false;
   }
 
@@ -351,11 +376,12 @@ async function itemDelete(item: IScaning) {
 function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
   clearTimeout(timerId);
   timerId = setTimeout(() => {
+    isScaningAdded.value = true;
     listForRender.value = [...GettingManager.instance.currentScanings.value];
     DB2Manager.instance.getting!.putScanings(listForRender.value.map((x) => toRaw(x)));
     if (afterUpdateCallBack) {
       afterUpdateCallBack();
     }
-  }, scaningSpeed);
+  }, MainManager.instance.scaningSpeed.value);
 }
 </script>

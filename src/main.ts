@@ -28,10 +28,11 @@ import { RecycleScroller,DynamicScroller } from 'vue-virtual-scroller';
 
 
 const app = createApp(App);
-app.component('RecycleScroller', RecycleScroller)
-app.component('DynamicScroller', DynamicScroller)
-app.use(Vue3Toasity)
 app.use(VueVirtualScroller)
+//app.component('RecycleScroller', RecycleScroller)
+//app.component('DynamicScroller', DynamicScroller)
+app.use(Vue3Toasity)
+
 //const pinia = createPinia();
 DB2Manager.init()
 

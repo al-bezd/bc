@@ -1,6 +1,6 @@
 <template>
   <button
-    class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-3"
+    class="btn btn-info btn-lg btn-block text-uppercase w-100 mb-1"
     @click="
       () => {
         emit('tap');

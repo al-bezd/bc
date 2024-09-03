@@ -79,14 +79,17 @@ export class NotificationManager extends BaseManager implements ILoadableManager
   public static swal(message: string, mode:AlertMode='warning') {
     //alert(message);
     if(this.instance){
-      this.instance.emit('showAlert',[message, mode])
+      NotificationManager.showAlert(message);
+      //this.instance.emit('showAlert',[message, mode])
     }
   }
 
   public static error(message: string) {
+    
     //alert(message);
     if(this.instance){
-      this.instance.emit('showAlert',[message, 'error'])
+      NotificationManager.showAlert(message);
+      //this.instance.emit('showAlert',[message, 'error'])
     }
   }
 
@@ -182,7 +185,24 @@ export class NotificationManager extends BaseManager implements ILoadableManager
     return new Promise((resolve,reject)=>{
         try{
           
-          NotificationManager.instance.emit('showConfirm',[message,(result:boolean)=>{
+          NotificationManager.instance.emit('showConfirmWindow',[message,(result:boolean)=>{
+            if(result){
+              resolve(result)
+            }
+          }])
+        }catch(e){
+            reject(e)
+        }
+        
+        
+    })
+  }
+
+  public static async showAlert(message:string):Promise<boolean>{
+    return new Promise((resolve, reject)=>{
+        try{
+          
+          NotificationManager.instance.emit('showAlertWindow',[message,(result:boolean)=>{
             if(result){
               resolve(result)
             }

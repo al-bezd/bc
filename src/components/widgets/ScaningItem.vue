@@ -1,31 +1,46 @@
 <template>
-  <div :class="data.Палетная" role="alert" :name="data.ID" :id="data.IDSec.toString()">
-    <div class="row">
-      <div class="col-10">
-        <div
-          role="button"
-          :class="'articul' + data.Артикул"
-          @click="
-            () => {
-              emit('tap', data);
-            }
-          "
-        >
-          <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
-        </div>
-        <div>
-          {{ data.Характеристика.Наименование }}
-        </div>
-        <div>
-          {{ data.Серия.Наименование }}
-        </div>
-        <div>
+  <div
+    :class="data.Палетная + ' mb-1 p-1'"
+    role="alert"
+    :name="data.ID"
+    :id="data.IDSec.toString()"
+  >
+    <table>
+      <tr>
+        <td>
+          <div
+            role="button"
+            :class="'articul' + data.Артикул"
+            @click="
+              () => {
+                emit('tap', data);
+              }
+            "
+          >
+            <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
+            <b style="white-space: nowrap;">ПЛУ : {{ data.ПЛУ }}</b>
+            <hr class="mt-1 mb-1" />
+          </div>
+          <div>
+            {{ data.Характеристика.Наименование }}
+          </div>
+          <div>
+            {{ data.Серия.Наименование }}
+          </div>
+          <!-- <div>
           <b>ПЛУ : {{ data.ПЛУ }}</b>
-        </div>
-        <div>
-          <b>{{ Round(data.Количество, 3) }}</b> <b>кг</b>
-        </div>
-        <div>
+        </div> -->
+          <div>
+            <b>{{ Round(data.Количество, 3) }}</b> <b>кг</b> |
+            <b
+              ><span
+                >{{ Round(data.КоличествоВЕдиницахИзмерения, 3) }}
+                {{ data.ЕдиницаИзмерения }}</span
+              ></b
+            >
+            | <b>{{ GetCountBox(data) }}</b> <b>кор</b>
+          </div>
+          <!-- <div>
           <b
             ><span
               >{{ Round(data.КоличествоВЕдиницахИзмерения, 3) }}
@@ -35,22 +50,23 @@
         </div>
         <div>
           <b>{{ GetCountBox(data) }}</b> <b>кор</b>
-        </div>
-      </div>
-      <div class="col-2">
-        <button
-          type="button"
-          class="btn btn-danger"
-          @click="
-            () => {
-              emit('delete', data);
-            }
-          "
-        >
-          Х
-        </button>
-      </div>
-    </div>
+        </div> -->
+        </td>
+        <td style="text-align: right; vertical-align: top">
+          <button
+            type="button"
+            class="btn btn-danger"
+            @click="
+              () => {
+                emit('delete', data);
+              }
+            "
+          >
+            Х
+          </button>
+        </td>
+      </tr>
+    </table>
   </div>
 </template>
 

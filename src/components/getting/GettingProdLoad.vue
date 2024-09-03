@@ -1,10 +1,10 @@
 <template>
   <!-- Окно загрузки документа для приемки-->
-  <div class="reft_screen_form p-3" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>Отсканируйте ШК с сопроводительной накладной в поле</h6>
     <input
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="barcode"
       @keyup.enter="
@@ -43,6 +43,8 @@ import { ScanerManager } from "@/classes/ScanerManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { IGettingProductionDocument } from "@/managers/getting/interfaces";
+import { MainManager } from "@/classes/MainManager";
+import { IScaning } from "@/interfaces/IScaning";
 
 const seen = ref(false);
 RoutingManager.instance.registry(RoutingManager.route.gettingProductionLoad, show, close);
@@ -72,7 +74,35 @@ async function closeWithConfirm() {
 }
 
 function onEnter() {
-  getDocumentOrder(ScanerManager.instance.barcodeWrapper(barcode.value));
+  //getDocumentOrder(ScanerManager.instance.barcodeWrapper(barcode.value));
+  getDocumentByBarcode(ScanerManager.instance.barcodeWrapper(barcode.value));
+}
+
+async function getDocumentByBarcode(barcode: string) {
+  //get_document_order
+  ///ищем по ШК сначала в документах пользователя
+  const userDocs = await MainManager.instance.local.allUserDocs();
+  if (userDocs) {
+    for (const doc of userDocs) {
+      if (doc.ШК === barcode) {
+        setCurrentDocument(doc, doc.scanings ?? []);
+        return;
+      }
+    }
+  }
+  /// если не нашли документ в документах пользователя то получаем его с сервера или из списка ранее загруженных заказов
+  let document: IGettingProductionDocument | null = null;
+  document = await GettingManager.instance.getDocumentByBarcode(barcode);
+
+  if (document) {
+    setCurrentDocument(document);
+  }
+}
+
+function setCurrentDocument(document: IDocument, scans: IScaning[] = []) {
+  GettingManager.instance.setCurrentDocument(document as IGettingProductionDocument);
+  GettingManager.instance.setCurrentScanings(scans);
+  RoutingManager.instance.pushName(RoutingManager.route.gettingProductionForm);
 }
 
 /// Получить документ заказа
