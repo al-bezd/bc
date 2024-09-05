@@ -24,6 +24,7 @@
         @delete="deleteDocument"
       />
     </div>
+
     <button
       class="btn btn-warning btn-block text-uppercase w-100"
       @click="closeWithConfirm"

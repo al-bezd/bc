@@ -18,7 +18,7 @@
             "
           >
             <b>{{ data.Номенклатура.Артикул }}</b> {{ data.Номенклатура.Наименование }}
-            <b style="white-space: nowrap;">ПЛУ : {{ data.ПЛУ }}</b>
+            <b style="white-space: nowrap">ПЛУ : {{ data.ПЛУ }}</b>
             <hr class="mt-1 mb-1" />
           </div>
           <div>
@@ -30,7 +30,16 @@
           <!-- <div>
           <b>ПЛУ : {{ data.ПЛУ }}</b>
         </div> -->
-          <div>
+          <div
+            v-if="
+              data.ЕдиницаИзмерения == 'кг' &&
+              Round(data.КоличествоВЕдиницахИзмерения, 3) == Round(data.Количество, 3)
+            "
+          >
+            <b>{{ Round(data.Количество, 3) }}</b> <b>кг</b> |
+            <b>{{ GetCountBox(data) }}</b> <b>кор</b>
+          </div>
+          <div v-else>
             <b>{{ Round(data.Количество, 3) }}</b> <b>кг</b> |
             <b
               ><span
@@ -82,9 +91,9 @@ const emit = defineEmits(["delete", "tap"]);
 
 function GetCountBox(data: any) {
   return Math.max(
-    data.Грузоместа ?? 0,
-    data.ТекущееКоличествоГрузомест ?? 0,
-    data.КоличествоКоробок ?? 0
+    data.Грузоместа ?? 0
+    //data.ТекущееКоличествоГрузомест ?? 0,
+    //data.КоличествоКоробок ?? 0
   );
 }
 </script>

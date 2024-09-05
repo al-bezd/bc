@@ -3,7 +3,7 @@
     class="modal fade show"
     v-if="localSeen"
     tabindex="-1"
-    :style="`display: block; padding-bottom: 16px; height:${winHeight}px`"
+    :style="`display: block; padding-bottom: 16px; height:100%`"
     aria-modal="true"
     role="dialog"
   >
@@ -28,7 +28,7 @@ import { ref, watch } from "vue";
 /**<template v-slot:header>
         <h1>Custom Header</h1>
       </template> */
-const winHeight = window.screen.height;
+//const winHeight = window.screen.height;
 interface IModalWindow {
   seen: boolean;
 }

@@ -70,7 +70,14 @@ export class FilteredByArticulController extends Observable{
             this.items.value = GetGroupScans(
                 items, mode as RowKeyMode
             )
-            console.log(this.items.value.map(x=>toRaw(x)))
+            this.items.value.forEach(x=>{
+                const tmp = x as IScaningGroup
+                x.Количество = tmp.ТекущееКоличество;
+                x.КоличествоВЕдиницахИзмерения = tmp.ТекущееКоличествоВЕдиницахИзмерения
+                x.Грузоместа = tmp.ТекущееКоличествоГрузомест
+
+            })
+            //console.log(this.items.value.map(x=>toRaw(x)))
             return
         }
         

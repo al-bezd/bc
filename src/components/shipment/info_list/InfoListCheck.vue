@@ -105,6 +105,7 @@
             :key="item.key"
             :mode="currentMode"
             :show-procent="false"
+            :show-order="false"
             @tap="
               () => {
                 filteredByArticulController.filter(item);
@@ -211,7 +212,7 @@ const groupedScans: Ref<IScaningGroup[]> = ref([]);
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return GetCount(groupedScans.value, "КоличествоКоробок");
+  return GetCount(groupedScans.value, "ТекущееКоличествоГрузомест");
 });
 
 const ifSettingsFilled = computed(() => {
@@ -224,7 +225,7 @@ const ifSettingsFilled = computed(() => {
 });
 
 const weightCount = computed(() => {
-  return GetCount(groupedScans.value, "КоличествоВЕдиницахИзмерения");
+  return GetCount(groupedScans.value, "ТекущееКоличество");
 });
 
 async function afterShow() {

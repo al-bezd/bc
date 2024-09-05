@@ -9,10 +9,8 @@
         }
       "
     />
-
-    <!--  -->
-    <div class="space">
-      <div>
+    <div class="reft_screen_form">
+      <div class="space">
         <ListWidget key-field="IDSec" :list="controller.items.value">
           <template #default="{ item }">
             <ScaningItem
@@ -39,12 +37,14 @@
               </div>-->
       </div>
     </div>
+    <!--  -->
+
     <slot name="footer">
       <table>
         <tr>
           <td>
             <span class="mb"
-              >Количество <b>{{ count }}</b> Шт.</span
+              >Коробок <b>{{ count }}</b> Шт.</span
             >
           </td>
           <td>
@@ -76,6 +76,7 @@ import BootstrapModalWindow from "@/components/widgets/BootstrapModalWindow.vue"
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { GetCount } from "@/functions/GetCount";
 import ListWidget from "@/components/widgets/ListWidget.vue";
+import { GetCountBox } from "@/functions/GetCountBox";
 
 interface IProps {
   controller: FilteredByArticulController;
@@ -85,8 +86,14 @@ const emit = defineEmits(["delete", "tap"]);
 
 const count = computed(() => {
   //let Count = 0;
+
   if (props.controller.scaning) {
-    return props.controller.items.value.length;
+    const t = props.controller.items.value.map((x) => {
+      x.Грузоместа = GetCountBox(x);
+      return x;
+    });
+    return GetCount(t, "Грузоместа", 3);
+    //return props.controller.items.value.length;
   }
   return 0;
   //return Count;

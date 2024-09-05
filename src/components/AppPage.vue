@@ -62,6 +62,9 @@
   background-color: #f9a653;
   border-color: #e6d6c3;
 }
+.input-group {
+  z-index: 0;
+}
 </style>
 <template>
   <div>

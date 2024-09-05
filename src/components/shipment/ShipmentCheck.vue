@@ -29,6 +29,7 @@
             :data="item"
             @tap="openArticulScreen"
             :show-procent="true"
+            :show-order="true"
             :mode="currentViewMode"
           >
             <template v-slot:addButton>
@@ -58,14 +59,14 @@
           <b>НАЗАД</b>
         </button>
         <button type="button" class="btn btn-primary text-uppercase" @click="save">
-          <b>СОХРАНИТЬ</b>
+          <b>СОХР</b>
         </button>
         <button
           type="button"
           class="btn btn-success text-uppercase"
           @click="send({ Режим: 'проверка' })"
         >
-          <b>ОТПРАВИТЬ</b>
+          <b>ОТПР</b>
         </button>
       </div>
     </div>
@@ -108,6 +109,7 @@ import ContainersWidget from "@/components/shipment/containers/ContainersWidget.
 import FilteredByArticulScreen from "../modals/FilteredByArticulScreen.vue";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import ListWidget from "@/components/widgets/ListWidget.vue";
+import { FillCount } from "@/functions/FillCount";
 RoutingManager.instance.registry(RoutingManager.route.shipmentCheck, show, close);
 /// Контроллер сканирования, берет на себя работу пол получению сканирования, базовой валидации, удобно для расширения функционала
 const scaningController: ScaningController = new ScaningController(
@@ -183,10 +185,12 @@ function afterShow() {
 }
 
 function initAllItem() {
-  let t = GetGroupScans(
-    ShipmentManager.instance.currentDocument.value?.Товары ?? [],
-    currentViewMode.value
-  );
+  const bTable = ShipmentManager.instance.currentDocument.value?.Товары ?? [];
+  bTable.forEach((x) => {
+    x.Грузоместа = (x as any).рсГрузоместа;
+  });
+
+  let t = GetGroupScans(bTable, currentViewMode.value);
 
   allItem.value = fillCurrentResult(
     t,
@@ -349,9 +353,13 @@ async function send(mode: any) {
   sendIsStart.value = true;
   const doc = ShipmentManager.instance.currentDocument.value!;
 
-  const itemsForSendToServer = GetDataForSending("НомХарСер").map((x: IScaningGroup) =>
-    toRaw(x)
-  );
+  const itemsForSendToServer = GetDataForSending("НомХарСер").map((x: IScaningGroup) => {
+    const item = toRaw(x);
+    item.Грузоместа = item.ТекущееКоличествоГрузомест;
+    item.Количество = item.ТекущееКоличество;
+    item.КоличествоВЕдиницахИзмерения = item.ТекущееКоличествоВЕдиницахИзмерения;
+    return item;
+  });
 
   //doc = GetData("current_doc", "j");
   let params = {
@@ -419,13 +427,14 @@ function fillCurrentResult(
   for (const tableRow of tableTotal) {
     tableRow.ТекущееКоличество = 0;
     tableRow.ТекущееКоличествоВЕдиницахИзмерения = 0;
-    tableRow.КоличествоВЕдиницахИзмерения = 0;
-    tableRow.КоличествоКоробок = 0;
     tableRow.ТекущееКоличествоГрузомест = 0;
-    tableRow.Количество = 0;
-    tableRow.Грузоместа = 0;
-    //(tableRow as any).рсГрузоместа = 0;
-    (tableRow as any).ЕдиницаИзмерения = tableRow.Номенклатура.ЕдиницаИзмерения;
+    // tableRow.КоличествоВЕдиницахИзмерения = 0;
+    // //tableRow.КоличествоКоробок = 0;
+    // tableRow.ТекущееКоличествоГрузомест = 0;
+    // tableRow.Количество = 0;
+    // tableRow.Грузоместа = 0;
+    // //(tableRow as any).рсГрузоместа = 0;
+    //(tableRow as any).ЕдиницаИзмерения = tableRow.Номенклатура.ЕдиницаИзмерения;
   }
   /// заполняем таблицу насканированным
   for (const scan of scanings) {
@@ -436,34 +445,35 @@ function fillCurrentResult(
       if (tableRowKey === scanKey) {
         /// Заменяем серию из сканирований потому что нам нужна ссылка из сканирования а не из строки табличной части
         tableRow.Серия = scan.Серия;
+        FillCount(tableRow, scan);
         //tableRow.ТекущееКоличество += scan.Количество;
         //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
-        tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
-        tableRow.Количество += scan.Количество;
-        tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+        //tableRow.Количество += scan.Количество;
+        //tableRow.ТекущееКоличество = tableRow.Количество;
         ///
-        if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения,
-            0
-          );
-        } else {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения
-          );
-        }
+        // if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения,
+        //     0
+        //   );
+        // } else {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = Round(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения
+        //   );
+        // }
         ///
-        tableRow.КоличествоВЕдиницахИзмерения =
-          tableRow.Количество / Round(scan.Номенклатура.ВесЧислитель);
-        tableRow.КоличествоВЕдиницахИзмерения = Round(
-          tableRow.КоличествоВЕдиницахИзмерения
-        );
-        tableRow.КоличествоКоробок += scan.Грузоместа;
-        tableRow.ТекущееКоличествоГрузомест += scan.Грузоместа;
+        // tableRow.КоличествоВЕдиницахИзмерения =
+        //   tableRow.Количество / Round(scan.Номенклатура.ВесЧислитель);
+        // tableRow.КоличествоВЕдиницахИзмерения = Round(
+        //   tableRow.КоличествоВЕдиницахИзмерения
+        // );
+        //tableRow.КоличествоКоробок += scan.Грузоместа;
+        //tableRow.ТекущееКоличествоГрузомест += scan.Грузоместа;
 
-        tableRow.Количество = Round(tableRow.Количество, 3);
-        tableRow.ТекущееКоличество = Round(tableRow.ТекущееКоличество, 3);
-        tableRow.Грузоместа += scan.Грузоместа;
+        //tableRow.Количество = Round(tableRow.Количество, 3);
+        //tableRow.ТекущееКоличество = Round(tableRow.ТекущееКоличество, 3);
+        //tableRow.Грузоместа += scan.Грузоместа;
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;
       }
@@ -476,8 +486,12 @@ function fillCurrentResult(
   // });
 
   for (const tableTotalRow of tableTotal) {
+    // let ВПроцСоотношении = Math.round(
+    //   (100 / tableTotalRow.КоличествоУпаковок) *
+    //     tableTotalRow.ТекущееКоличествоВЕдиницахИзмерения
+    // );
     let ВПроцСоотношении = Math.round(
-      (100 / tableTotalRow.КоличествоУпаковок) *
+      (100 / tableTotalRow.ЗаказанноеКоличествоВЕдиницахИзмерения) *
         tableTotalRow.ТекущееКоличествоВЕдиницахИзмерения
     );
     if (String(ВПроцСоотношении) === "NaN") {

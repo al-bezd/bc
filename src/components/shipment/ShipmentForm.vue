@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-1" :style="`height:${winHeight}px;`" v-if="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-muted">{{ docName }}</h6>
 
     <div class="row">
@@ -54,7 +54,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
-            <b>ЗАКР<br />ДОК</b>
+            <b>ЗАКР</b>
           </button>
           <button
             type="button"
@@ -106,7 +106,7 @@ import { DB2Manager } from "@/classes/DB2Manager";
 
 RoutingManager.instance.registry(RoutingManager.route.shipmentForm, show, close);
 let timerId = -1;
-const winHeight = window.screen.height;
+//const winHeight = window.screen.height;
 const isScaningAdded = ref(false);
 const listForRender: Ref<IScaning[]> = ref([]);
 

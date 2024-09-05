@@ -170,10 +170,10 @@ export class ScaningController {
 
     /// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
     isValidScaning(scaning: IScaning, scanings: IScaning[]) {
-        console.log('isValidScaning scanings.length:', scanings.length)
+        //console.log('isValidScaning scanings.length:', scanings.length)
         if (scanings.length > 1) {
             if (scanings[1].bc === scaning.bc) {
-                console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc, scanings[1].bc, scaning.bc)
+                //console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc, scanings[1].bc, scaning.bc)
                 NotificationManager.instance.playRepeatArial();
                 return;
             }

@@ -1,10 +1,10 @@
 <template>
   <BootstrapModalWindow :seen="seen">
-    <h3>Список тары</h3>
+    <h6 class="text-center">Список тары</h6>
     <div class="space">
       <div class="">
         <div v-for="item in containers" :key="item.ИД" :id="item.ИД">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div view="Тара">
               <b class="d-block text-center">{{ item.Тара.Наименование }}</b>
               <div class="row">

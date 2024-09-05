@@ -1,8 +1,8 @@
 <template>
-  <div class="reft_modal" v-if="seen">
+  <div class="reft_modal p-1" v-if="seen">
     <h6>Панель администратора</h6>
     <div class="">
-      <div class="alert alert-info" role="alert">
+      <div class="alert alert-info p-1 mb-1" role="alert">
         <span
           >HOST:<b>{{ host }}</b></span
         ><br />
@@ -52,7 +52,7 @@
     <div class="tab-content">
       <div :class="getTabClass('nav-barcode')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <input type="file" id="file" /><br />
             <button
               class="btn btn-primary text-uppercase w-100 mt-3"
@@ -76,7 +76,7 @@
         </div>-->
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <button
               class="btn btn-primary text-uppercase w-100"
               @click="loadBarcodesFromServer"
@@ -87,7 +87,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <button
               role="button"
               class="btn btn-primary text-uppercase w-100"
@@ -100,24 +100,21 @@
       </div>
       <div :class="getTabClass('nav-app')">
         <div class="">
-          <div class="alert alert-info text-uppercase" role="alert">
+          <div class="alert alert-info p-1 mb-1 text-uppercase" role="alert">
             <div v-if="thisAndroid">
               <div class="btn btn-primary" @click="updateApp">Обновить приложение</div>
-              <br />
             </div>
 
-            <div class="text-uppercase" v-if="!thisAndroid">
+            <div class="text-uppercase mb-1" v-if="!thisAndroid">
               <a
                 class="btn btn-primary text-uppercase w-100"
                 :title="HttpManager.getAppLink()"
                 :href="HttpManager.getAppLink()"
                 download
-                style="margin-top: 15px"
                 >Обновить приложение (ссылка)</a
               >
             </div>
 
-            <br />
             <div>
               <button
                 class="btn btn-primary text-uppercase w-100"
@@ -130,7 +127,7 @@
         </div>
 
         <div class="" v-if="!isWindows">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <a class="btn btn-primary text-uppercase w-100" @click="openInWeb"
               >Открыть в браузере</a
             >
@@ -139,7 +136,7 @@
       </div>
       <div :class="getTabClass('nav-storage')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <BootstrapSwitcher
               label="Использовать локальное хранилище"
               v-model:value="UserManager.instance.useLocalDb.value"
@@ -149,7 +146,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div class="btn btn-danger text-uppercase w-100" @click="clearStorage">
               Очистить хранилище
             </div>
@@ -157,7 +154,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div class="btn btn-primary text-uppercase w-100" @click="testDB">
               Проверка функционирования БД
             </div>
@@ -166,7 +163,7 @@
       </div>
       <div :class="getTabClass('nav-orders')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <BootstrapSwitcher
               label="Использовать локальное хранилище для поиска заказов"
               v-model:value="UserManager.instance.useLocalOrders.value"
@@ -176,7 +173,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
               @click="showCountLoadedShipmentOrders()"
@@ -187,7 +184,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div
               class="btn btn-primary text-uppercase w-100"
               @click="MainManager.instance.uploadTorgovieSeti()"
@@ -199,7 +196,7 @@
       </div>
       <div :class="getTabClass('nav-scaner')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <BootstrapSwitcher
               label="Использовать буфер обмена для сканирования"
               v-model:value="ScanerManager.instance.useClipBoard.value"
@@ -209,7 +206,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <p>Сервисная кнопка после сканирования</p>
             <div class="form-group">
               <input
@@ -225,7 +222,7 @@
           </div>
         </div>
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <p>Задержка перед рендером (в мс)</p>
             <div class="form-group">
               <input
@@ -244,7 +241,7 @@
       </div>
       <div :class="getTabClass('nav-other')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <BootstrapSwitcher
               label="Контроль будущей даты
                     производства"
@@ -255,7 +252,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div class="form-floating mb-1">
               <label for="hostID">Адрес сервера</label>
               <input
@@ -306,7 +303,7 @@
         </div>
 
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <div class="form-group mb-1">
               <textarea class="form-control" rows="3" v-model="executeCommand"></textarea>
             </div>
@@ -321,7 +318,7 @@
       </div>
       <div :class="getTabClass('nav-log')">
         <div class="">
-          <div class="alert alert-info" role="alert">
+          <div class="alert alert-info p-1 mb-1" role="alert">
             <button
               class="btn btn-danger text-uppercase w-100"
               @click="

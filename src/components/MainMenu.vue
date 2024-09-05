@@ -1,11 +1,11 @@
 <template>
   <!-- Главное меню-->
   <div class="reft_screen_form p-1" id="form_menu" v-if="seen">
-    <div class="alert alert-success">
+    <div class="alert alert-success mb-1 p-1">
       <div class="panel-heading">
-        <h3 style="font-weight: bold; text-align: center; text-transform: uppercase">
+        <h5 style="font-weight: bold; text-align: center; text-transform: uppercase">
           {{ UserManager.instance.user.value?.ФИО }}
-        </h3>
+        </h5>
       </div>
     </div>
     <div class="d-grid gap-2">

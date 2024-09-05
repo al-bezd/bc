@@ -50,8 +50,8 @@
       Данные обрабатываются для отображения, продолжайте скаинрование
     </div>
     <div class="row">
-      <div class="col-6">Вес(ДОК): {{ weightInDoc }}</div>
-      <div class="col-6">Вес(ФАКТ): {{ weightScans }}</div>
+      <div class="col-12">Вес(ДОК/ФАКТ): {{ weightInDoc }} / {{ weightScans }}</div>
+      <!-- <div class="col-6">Вес(ФАКТ): {{ weightScans }}</div> -->
     </div>
     <div class="row">
       <div class="col-12">
@@ -62,7 +62,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
-            <b>ЗАКР<br />ДОК</b>
+            <b>ЗАКР</b>
           </button>
           <button
             type="button"

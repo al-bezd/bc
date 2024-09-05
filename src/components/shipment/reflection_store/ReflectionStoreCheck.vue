@@ -69,6 +69,7 @@
             :key="item.key"
             :mode="currentMode"
             :show-procent="false"
+            :show-order="false"
             @tap="
               () => {
                 filteredByArticulController.filter(item);
@@ -126,12 +127,12 @@ import { RoutingManager } from "@/classes/RoutingManager";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 //import { DBManager } from "@/classes/DBManager";
 import { IDocument } from "@/interfaces/IDocument";
-import { GetGroupScans, RowKeyMode } from "@/functions/GetGroupScans";
+import { GetGroupScans, getRowKey, RowKeyMode } from "@/functions/GetGroupScans";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
 import { UserManager } from "@/managers/user/UserManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
-import { IScaningGroup } from "@/interfaces/IScaning";
+import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
 import { MainManager } from "@/classes/MainManager";
 import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
@@ -168,7 +169,7 @@ const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
   //return GetCount(groupedScans.value, "Грузоместа");
-  return GetCount(groupedScans.value, "КоличествоКоробок");
+  return GetCount(groupedScans.value, "ТекущееКоличествоГрузомест");
 });
 
 const ifSettingsFilled = computed(() => {
@@ -176,7 +177,7 @@ const ifSettingsFilled = computed(() => {
 });
 
 const weightCount = computed(() => {
-  return GetCount(groupedScans.value, "КоличествоВЕдиницахИзмерения");
+  return GetCount(groupedScans.value, "ТекущееКоличество");
 });
 
 async function afterShow() {
@@ -198,10 +199,32 @@ async function afterShow() {
 }
 
 function initAllItem() {
-  groupedScans.value = GetGroupScans(
+  const table = GetGroupScans(
     ShipmentManager.instance.currentScanings.value,
     currentMode.value
   );
+
+  groupedScans.value = fillCurrentResult(
+    table,
+    ShipmentManager.instance.currentScanings.value,
+    currentMode.value
+  );
+}
+
+/// заполняем сгруппированные элементы
+function fillCurrentResult(
+  tableTotal: IScaningGroup[],
+  scanings: IScaning[],
+  mode: RowKeyMode
+) {
+  for (const tableRow of tableTotal) {
+    tableRow.ЗаказанноеКоличество = tableRow.ТекущееКоличество;
+    tableRow.ЗаказанноеКоличествоВЕдиницахИзмерения =
+      tableRow.ТекущееКоличествоВЕдиницахИзмерения;
+    tableRow.ЗаказанноеКоличествоГрузомест = tableRow.ТекущееКоличествоГрузомест;
+  }
+
+  return tableTotal;
 }
 
 function show() {
