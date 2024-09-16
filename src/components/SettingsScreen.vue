@@ -450,15 +450,20 @@ const isStartTest = ref(false);
 
 async function testConnectionToServer() {
   if (isStartTest.value) return;
-  isStartTest.value = true;
-  const params = {
-    test_connection: "HelloWorld",
-  };
-  const response = await HttpManager.get("/execute", params);
-  isStartTest.value = false;
-  if (response.success) {
-    connectionStatus.value = response.data;
-  } else {
+  try {
+    isStartTest.value = true;
+    const params = {
+      test_connection: "HelloWorld",
+    };
+    const response = await HttpManager.get("/execute", params);
+    isStartTest.value = false;
+    if (response.success) {
+      connectionStatus.value = response.data;
+    } else {
+      connectionStatus.value = "ОШИБКА";
+    }
+  } catch (e) {
+    isStartTest.value = false;
     connectionStatus.value = "ОШИБКА";
   }
 }

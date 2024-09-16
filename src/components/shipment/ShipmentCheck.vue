@@ -337,14 +337,15 @@ async function send(mode: any) {
       if (!answer) {
         return;
       }
-    } else {
-      answer = await NotificationManager.showConfirm(
-        "Вы уверенны что хотите записать заказ? "
-      );
-      if (!answer) {
-        return;
-      }
     }
+    // else {
+    //   answer = await NotificationManager.showConfirm(
+    //     "Вы уверенны что хотите записать заказ? "
+    //   );
+    //   if (!answer) {
+    //     return;
+    //   }
+    // }
   }
   if (sendIsStart.value) {
     NotificationManager.info("Операция записи документа еще выполняется");
