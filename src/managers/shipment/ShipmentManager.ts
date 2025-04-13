@@ -37,7 +37,7 @@ export class ShipmentManager extends BaseManager {
   public currentScanings: Ref<IScaning[]> = ref(markRaw([]))
  
 
-  load() {
+  load() { 
     this.asyncLoad()
     // this.mainOrder = LocalStorageManager.get("main_order", true);
     // if (this.mainOrder === null) {
