@@ -3,19 +3,16 @@
     class="modal fade show"
     v-if="localSeen"
     tabindex="-1"
-    style="display: block"
+    :style="`display: block; padding-bottom: 16px; height:100%`"
     aria-modal="true"
     role="dialog"
   >
-    <div
-      class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"
-      role="document"
-    >
+    <div class="modal-dialog h-100" role="document">
       <div class="modal-content h-100">
         <!-- <div class="modal-header"></div> -->
         <slot name="header"> </slot>
 
-        <div class="modal-body" style="display: flex; flex-direction: column">
+        <div class="modal-body p-1" style="display: flex; flex-direction: column">
           <slot></slot>
         </div>
       </div>
@@ -31,7 +28,7 @@ import { ref, watch } from "vue";
 /**<template v-slot:header>
         <h1>Custom Header</h1>
       </template> */
-
+//const winHeight = window.screen.height;
 interface IModalWindow {
   seen: boolean;
 }

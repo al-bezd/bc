@@ -1,32 +1,38 @@
 <template>
   <!-- Форма проверки для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <div>
-      <h5 class="text-muted">{{ docName }}: Проверка</h5>
+      <h6 class="text-muted">{{ docName }}: Проверка</h6>
       <span>Поддон № {{ оитНомерПалета }}</span>
     </div>
     <div class="space">
-      <ScaningGroupItem
-        v-for="item in allItem"
-        :key="item.рсУИД"
-        :data="item"
-        :show-procent="true"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
-      />
+      <ListWidget key-field="key" :list="allItem">
+        <template #default="{ item }">
+          <ScaningGroupItem
+            mode="НомХар"
+            :key="item.key"
+            :data="item"
+            :show-procent="true"
+            :show-order="true"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+          />
+        </template>
+      </ListWidget>
     </div>
 
     <div class="">
-      <h5>
+      <h6>
         <b>Итог {{ boxCount }} Кор. из {{ оитКоличествоКоробок }}</b>
-      </h5>
-      <h5>
-        <b>Итог {{ weightCount }} Кг. из {{ weightFromDocument }}</b>
-      </h5>
+      </h6>
+      <h6>
+        <b>Итог {{ weightCount }} Кг.</b>
+        <!-- <b>Итог {{ weightCount }} Кг. из {{ weightFromDocument }}</b> -->
+      </h6>
     </div>
 
     <div class="btn-group w-100" role="group">
@@ -45,7 +51,10 @@
       </button>
     </div>
 
-    <FilteredByArticulScreen :controller="filteredByArticulController" />
+    <FilteredByArticulScreen
+      :controller="filteredByArticulController"
+      @delete="itemDelete"
+    />
   </div>
   <!--Форма проверки для приемки-->
 </template>
@@ -64,13 +73,14 @@ import {
   IGettingProductionDocument,
   IGettingProductionProductTotalItem,
 } from "@/managers/getting/interfaces";
-import { rounded } from "@/functions/rounded";
+
 import { UserManager } from "@/managers/user/UserManager";
 import { HttpManager } from "@/classes/HttpManager";
 import { GetGroupScans, getRowKey } from "@/functions/GetGroupScans";
 import ScaningGroupItem from "@/components/widgets/ScaningGroupItem.vue";
 import { MainManager } from "@/classes/MainManager";
-
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { FillCount } from "@/functions/FillCount";
 RoutingManager.instance.registry(
   RoutingManager.route.gettingProductionCheck,
   show,
@@ -99,9 +109,9 @@ const weightCount = computed(() => {
   return GetCount(GettingManager.instance.currentScanings.value, "Количество");
 });
 
-const weightFromDocument = computed(() => {
-  return GetCount(currentDoc.value?.Товары ?? [], "Количество");
-});
+// const weightFromDocument = computed(() => {
+//   return GetCount(currentDoc.value?.Товары ?? [], "Количество");
+// });
 
 const docName = computed(() => {
   if (currentDoc.value) {
@@ -127,12 +137,13 @@ function close() {
 
 function show() {
   seen.value = true;
-  setTimeout(initGroupScaning, 500);
+  setTimeout(initAllItem, 500);
 
   //console.log("allItem ", toRaw(allItem.value));
 }
 
-function initGroupScaning() {
+function initAllItem() {
+  //console.log("Товары ", currentDoc.value?.Товары);
   tableTotal.value = GetGroupScans(
     currentDoc.value?.Товары ?? []
   ) as IGettingProductionProductTotalItem[];
@@ -205,12 +216,9 @@ async function send() {
     );
     return;
   }
-  const countKG = GetCount(
-    GettingManager.instance.currentScanings.value,
-    "Количество",
-    3
-  );
-  const countKGInDoc = GetCount(doc.Товары, "Количество", 3);
+  const countKG = GetCount(GettingManager.instance.currentScanings.value, "Количество");
+  //const countKGInDoc = GetCount(doc.Товары, "Количество");
+  const countKGInDoc = GetCount(allItem.value, "ТекущееКоличество");
   if (countKG !== countKGInDoc) {
     NotificationManager.swal(
       `Количество в сопроводительной(${countKGInDoc} кг) отличается от количества в сканированиях (${countKG} кг)`
@@ -252,33 +260,64 @@ function fillCurrentResult(
   tableTotal: IGettingProductionProductTotalItem[],
   scanings: IScaning[]
 ) {
+  for (const tableRow of tableTotal) {
+    tableRow.ТекущееКоличество = 0;
+    tableRow.ТекущееКоличествоВЕдиницахИзмерения = 0;
+    tableRow.ТекущееКоличествоГрузомест = 0;
+  }
   for (const scan of scanings) {
     const scanKey = getRowKey(scan);
     for (const tableRow of tableTotal) {
       const tableRowKey = getRowKey(tableRow);
+
       if (tableRowKey == scanKey) {
         tableRow.Серия = scan.Серия;
+        FillCount(tableRow, scan);
         //tableRow.ТекущееКоличество += scan.Количество;
+        //tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+        //tableRow.ТекущееКоличествоГрузомест += scan.Грузоместа;
+        // tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+        // tableRow.ТекущееКоличество = scan.Количество;
+
+        // if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование == "шт") {
+        //   //если штучная продукция то количество у нее не в кг а в ее ед изм а надо перевести в кг а вед изм заполнить ед изм
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.Количество;
+        //   tableRow.ТекущееКоличество +=
+        //     scan.Количество * tableRow.Номенклатура.ВесЧислитель;
+        // } else {
+        //   let КоличествоВЕдиницахИзмерения = scan.КоличествоВЕдиницахИзмерения ?? 0;
+        //   const Количество = scan.Количество ?? 0;
+
+        //   tableRow.Количество += Количество;
+        //   КоличествоВЕдиницахИзмерения =
+        //     КоличествоВЕдиницахИзмерения == 0 ? Количество : КоличествоВЕдиницахИзмерения;
+        //   tableRow.КоличествоВЕдиницахИзмерения += КоличествоВЕдиницахИзмерения;
+        // }
+
         //tableRow.ТекущееКоличество = rounded(tableRow.ТекущееКоличество);
-        tableRow.ТекущееКоличествоВЕдиницахИзмерения += scan.КоличествоВЕдиницахИзмерения;
+
         ///
-        if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения,
-            0
-          );
-        } else {
-          tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
-            tableRow.ТекущееКоличествоВЕдиницахИзмерения
-          );
-        }
+        // if (tableRow.Номенклатура.ЕдиницаИзмерения.Наименование === "шт") {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения,
+        //     0
+        //   );
+        // } else {
+        //   tableRow.ТекущееКоличествоВЕдиницахИзмерения = rounded(
+        //     tableRow.ТекущееКоличествоВЕдиницахИзмерения
+        //   );
+        // }
         ///
-        tableRow.КоличествоВЕдиницахИзмерения =
-          tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
-        tableRow.КоличествоВЕдиницахИзмерения = rounded(
-          tableRow.КоличествоВЕдиницахИзмерения
-        );
-        tableRow.КоличествоКоробок += scan.Грузоместа;
+        // tableRow.КоличествоВЕдиницахИзмерения =
+        //   tableRow.Количество / rounded(scan.Номенклатура.ВесЧислитель);
+        // tableRow.КоличествоВЕдиницахИзмерения = rounded(
+        //   tableRow.КоличествоВЕдиницахИзмерения
+        // );
+        //console.log("scan", scan);
+        //console.log("tableRow", tableRow);
+
+        //tableRow.КоличествоКоробок += scan.Грузоместа;
+        //tableRow.Грузоместа += scan.Грузоместа;
         //this.box_count+=y.Грузоместа
         //scan.ВЗаказе = true;
       }
@@ -293,8 +332,12 @@ function fillCurrentResult(
   );
 
   for (const tableTotalRow of tableTotal) {
+    // let ВПроцСоотношении = Math.round(
+    //   (100 / tableTotalRow.КоличествоУпаковок) *
+    //     tableTotalRow.ТекущееКоличествоВЕдиницахИзмерения
+    // );
     let ВПроцСоотношении = Math.round(
-      (100 / tableTotalRow.КоличествоУпаковок) *
+      (100 / tableTotalRow.ЗаказанноеКоличествоВЕдиницахИзмерения) *
         tableTotalRow.ТекущееКоличествоВЕдиницахИзмерения
     );
     if (String(ВПроцСоотношении) === "NaN") {
@@ -320,5 +363,17 @@ function fillCurrentResult(
     //this.weight_count+=i.ТекущееКоличество
   }
   return tableTotal;
+}
+
+async function itemDelete(item: IScaning) {
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+      ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
+  const answerIsTrue = await NotificationManager.showConfirm(text);
+  if (answerIsTrue) {
+    GettingManager.instance.deleteScaning(item).then(() => {
+      initAllItem();
+      filteredByArticulController.emit("afterDelete");
+    });
+  }
 }
 </script>

@@ -2,8 +2,9 @@
 import { DB2Manager } from "@/classes/DB2Manager";
 import { HttpManager, IResponse } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
+import { ScanerManager } from "@/classes/ScanerManager";
 import { Date1C } from "@/functions/Date1C";
-import { FindGM } from "@/functions/FindGruzoMesta";
+import { FindGM, IsBarcodePalet } from "@/functions/FindGruzoMesta";
 import { GetCountFromBarcode } from "@/functions/GetCountFromBarcode";
 import { IНоменклатура, IСерия, IХарактеристика } from "@/interfaces/IDocument";
 import { IScaning } from "@/interfaces/IScaning";
@@ -22,8 +23,8 @@ interface IBarcodeStructure {
 }
 
 export class ScaningController {
-    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager| SohGettingManager, isFree = false) {
-        
+    constructor(manager: ShipmentManager | GettingManager | SohShipmentManager | SohGettingManager, isFree = false) {
+
         this.isFree = isFree
         this.manager = manager
     }
@@ -31,6 +32,8 @@ export class ScaningController {
     /// параметр отвечающий за привязку к документу
     public isFree = false
     public manager: ShipmentManager | GettingManager | SohShipmentManager | SohGettingManager
+
+    public itPalet = false;
 
 
     /// Получаем разобранную структура штрих кода
@@ -48,8 +51,8 @@ export class ScaningController {
     }
 
     /// получаем новое сканирование по переданному штрихкоду
-    async getScaning(barcode: string, itPalet:boolean): Promise<IScaning | null> {
-        const barcodeValue = barcode;
+    async getScaning(barcode: string, itPalet: boolean): Promise<IScaning | null> {
+        const barcodeValue = ScanerManager.instance.barcodeWrapper(barcode);
         const barcodeStruct: IBarcodeStructure = this.getBarcodeStructure(barcode)
 
 
@@ -60,6 +63,8 @@ export class ScaningController {
                 barcodeStruct.Штрихкод
             );
             if (!barcodeFromDB) {
+                NotificationManager.instance.playError()
+                NotificationManager.swal("Продукция не найдена");
                 return null
             }
             return this.createScaning(
@@ -78,7 +83,7 @@ export class ScaningController {
             const httpResult = await this.getBarcodeDataFromServer(barcodeValue, this.isFree)
 
             if (!httpResult.success) {
-                NotificationManager.swal(JSON.stringify(httpResult.error));
+                //NotificationManager.swal(JSON.stringify(httpResult.error));
                 return null
             }
             if (!httpResult.data.РезультатПроверки) {
@@ -120,15 +125,14 @@ export class ScaningController {
         const Серия: IСерия = {
             Наименование: Date1C(ДатаПроизводства, ГоденДо),
             Ссылка: `${ДатаПроизводства}${ГоденДо}`,
-            ДатаПроизводства:ДатаПроизводства,
-            ГоденДо:ГоденДо
+            ДатаПроизводства: ДатаПроизводства,
+            ГоденДо: ГоденДо
         };
 
-        
+
         if (itPalet) {
             Грузоместа = FindGM(ПолныйШК);
             Палетная = "alert alert-warning";
-
         }
 
 
@@ -159,22 +163,35 @@ export class ScaningController {
             ШтрихкодПродукции: ШтрихкодПродукции,
             bc: ПолныйШК,
             free: this.isFree,
-            itPalet:itPalet
+            itPalet: itPalet
         };
         return response;
     }
 
     /// Проверка валидности сканирования, по типу что бы рядом друг с другом не было идентичных сканирований
     isValidScaning(scaning: IScaning, scanings: IScaning[]) {
-        console.log('isValidScaning scanings.length:', scanings.length)
+        //console.log('isValidScaning scanings.length:', scanings.length)
         if (scanings.length > 1) {
             if (scanings[1].bc === scaning.bc) {
-                console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc,scanings[1].bc, scaning.bc)
+                //console.log('scanings[1].bc === scaning.bc', scanings[1].bc === scaning.bc, scanings[1].bc, scaning.bc)
                 NotificationManager.instance.playRepeatArial();
                 return;
             }
         }
         NotificationManager.instance.playGood();
+    }
+
+
+
+    /// уведомляем пользователя если он случайно отсканировал палетную этикетку
+    isWrongPaletScan(scan: IScaning, isPalet: boolean): boolean {
+        if (!isPalet && IsBarcodePalet(scan.bc)) {
+            const text = `Данное сканирование является сканированием палетной этикетки, но признак стоит что это обычная этикетка`
+            //NotificationManager.swal( text );
+            NotificationManager.showAlert(text)
+            NotificationManager.instance.playError();
+        }
+        return true;
     }
 
     /// получаем структуру ШК с сервера
@@ -196,8 +213,14 @@ export class ScaningController {
                 Ссылка: loadDoc.Ссылка.Ссылка,
             };
         }
+        try {
+            return await HttpManager.get("/scaning_barcode", params);
+        } catch (e) {
+            NotificationManager.instance.playError()
+            NotificationManager.swal("Продукция не найдена");
+            return { success: false, error: "", data: e }
+        }
 
-        return await HttpManager.get("/scaning_barcode", params);
     }
 }
 

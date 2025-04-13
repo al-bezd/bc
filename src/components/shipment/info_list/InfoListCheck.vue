@@ -1,6 +1,6 @@
 <template>
   <!-- Форма проверки сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-center">Создание Инфо. листа: Проверка</h6>
 
     <!-- <ModeWidget :mode="currentMode" @tap="showWithMode" /> -->
@@ -22,7 +22,7 @@
       </div>
       <div v-if="settingsIsShow">
         <div class="">
-          <div class="mb-3">
+          <div class="mb-1">
             <label for="Склад" class="form-label">Склад</label>
             <select
               class="form-control"
@@ -47,7 +47,7 @@
         </div>
 
         <div class="">
-          <div class="mb-3">
+          <div class="mb-1">
             <label for="Сеть" class="form-label">Сеть</label>
             <select
               class="form-control"
@@ -74,7 +74,7 @@
           </div>
         </div>
 
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-1">
           <div class="col-6">
             <label for="НомерПоддона" class="form-label">Номер поддона</label>
             <input
@@ -98,29 +98,33 @@
     </div>
 
     <div class="space">
-      <ScaningGroupItem
-        v-for="item in groupedScans"
-        :data="item"
-        :key="item.Номенклатура.Ссылка.Ссылка"
-        :mode="currentMode"
-        :show-procent="false"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
-      />
+      <ListWidget key-field="key" :list="groupedScans">
+        <template #default="{ item }">
+          <ScaningGroupItem
+            :data="item"
+            :key="item.key"
+            :mode="currentMode"
+            :show-procent="false"
+            :show-order="false"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+          />
+        </template>
+      </ListWidget>
     </div>
 
     <div>
       <div class="">
-        <h5>
+        <h6>
           <b>Итог {{ boxCount }} Коробок</b>
-        </h5>
-        <h5>
+        </h6>
+        <h6>
           <b>Итог {{ weightCount }} Кг. </b>
-        </h5>
+        </h6>
       </div>
 
       <div class="btn-group w-100" role="group">
@@ -144,7 +148,10 @@
     </div>
   </div>
 
-  <FilteredByArticulScreen :controller="filteredByArticulController" />
+  <FilteredByArticulScreen
+    :controller="filteredByArticulController"
+    @delete="itemDelete"
+  />
   <!-- Форма проверки сканирования (без документа)-->
 </template>
 <script setup lang="ts">
@@ -164,6 +171,8 @@ import { LocalStorageManager } from "@/classes/LocalStorageManager";
 import { StringToBool } from "@/functions/StringToBoolean";
 import { FilteredByArticulController } from "@/controllers/FilteredByArticulController";
 import { DB2Manager } from "@/classes/DB2Manager";
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { GetCount } from "@/functions/GetCount";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListCheck,
@@ -203,7 +212,7 @@ const groupedScans: Ref<IScaningGroup[]> = ref([]);
 const isSaveStart = ref(false);
 
 const boxCount = computed(() => {
-  return groupedScans.value.reduce((sum, scan) => sum + scan.Грузоместа, 0);
+  return GetCount(groupedScans.value, "ТекущееКоличествоГрузомест");
 });
 
 const ifSettingsFilled = computed(() => {
@@ -216,10 +225,7 @@ const ifSettingsFilled = computed(() => {
 });
 
 const weightCount = computed(() => {
-  return groupedScans.value.reduce(
-    (sum, scan) => sum + scan.КоличествоВЕдиницахИзмерения,
-    0
-  );
+  return GetCount(groupedScans.value, "ТекущееКоличество");
 });
 
 async function afterShow() {
@@ -250,6 +256,10 @@ async function afterShow() {
     selectedSklad.value = selectedSkladRes;
   }
 
+  initGroupList();
+}
+
+function initGroupList() {
   groupedScans.value = GetGroupScans(
     ShipmentManager.instance.currentScanings.value,
     currentMode.value
@@ -314,7 +324,7 @@ async function saveIn1C() {
     return;
   }
   const error = (response as IResponse).error;
-  console.log(error);
+  //console.log(error);
   NotificationManager.error(error);
 }
 
@@ -336,4 +346,16 @@ function clear() {
 ShipmentManager.instance.connect("InfoListClear", () => {
   clear();
 });
+
+async function itemDelete(item: IScaning) {
+  const text = `Вы уверены что хотите удалить  ${item.Номенклатура.Наименование}
+      ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
+  const answerIsTrue = await NotificationManager.showConfirm(text);
+  if (answerIsTrue) {
+    ShipmentManager.instance.deleteScaning(item).then(() => {
+      initGroupList();
+      filteredByArticulController.emit("afterDelete");
+    });
+  }
+}
 </script>

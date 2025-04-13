@@ -1,19 +1,30 @@
+import { Observable } from "@/classes/BaseManager";
 import { GetGroupScans, RowKeyMode } from "@/functions/GetGroupScans";
 import { IScaning, IScaningGroup } from "@/interfaces/IScaning";
-import { Ref, ref } from "vue";
+import { Ref, ref, toRaw } from "vue";
 
-export class FilteredByArticulController {
-    constructor(originalItems: Ref<IScaning[] | IScaningGroup[]>, mode: Ref<RowKeyMode>,showProcent=false) {
+export type FilteredByArticulTypes = RowKeyMode | "Кор";
+
+
+export class FilteredByArticulController extends Observable{
+    constructor(originalItems: Ref<IScaning[] | IScaningGroup[]>, mode: Ref<FilteredByArticulTypes>,showProcent=false) {
+        super()
         this.originalItems = originalItems
         this.mode = mode
         this.showProcent.value = showProcent
     }
     public seen = ref(false);
     public originalItems: Ref<IScaning[] | IScaningGroup[]> = ref([]);
-    public items: Ref<IScaningGroup[]> = ref([]);
+    public items: Ref<IScaning[] | IScaningGroup[]> = ref([]);
+  
+
+
+
     public scaning: IScaning | null = null
-    public mode: Ref<RowKeyMode> = ref("НомХарСер")
+    public mode: Ref<FilteredByArticulTypes> = ref("НомХарСер")
     public showProcent = ref(false)
+    
+
 
     show() {
         this.seen.value = true
@@ -23,9 +34,16 @@ export class FilteredByArticulController {
         this.seen.value = false
     }
 
+    refresh() {
+        this.setMode(this.mode.value)
+    }
 
+    onAfterDelete(callback:()=>void){
+        callback()
+    }
+    
 
-    filter(scaning: IScaning, mode: RowKeyMode | null = null) {
+    filter(scaning: IScaning, mode: FilteredByArticulTypes | null = null) {
         this.scaning = scaning
         if (mode == null) {
             mode = this.mode.value
@@ -48,14 +66,30 @@ export class FilteredByArticulController {
             );
 
         }
+        if(this.mode.value != "Кор"){
+            this.items.value = GetGroupScans(
+                items, mode as RowKeyMode
+            )
+            this.items.value.forEach(x=>{
+                const tmp = x as IScaningGroup
+                x.Количество = tmp.ТекущееКоличество;
+                x.КоличествоВЕдиницахИзмерения = tmp.ТекущееКоличествоВЕдиницахИзмерения
+                x.Грузоместа = tmp.ТекущееКоличествоГрузомест
 
-        this.items.value = GetGroupScans(
-            items, mode
-        )
-        //console.log('this.items.value ', this.items.value)
+            })
+            //console.log(this.items.value.map(x=>toRaw(x)))
+            return
+        }
+        
+        this.items.value = items;
+        //this.items.value = items;
+         
+        
     }
 
-    setMode(value: RowKeyMode) {
+
+
+    setMode(value: FilteredByArticulTypes) {
         if (!this.scaning) {
             return
         }

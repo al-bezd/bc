@@ -1,5 +1,5 @@
 <template>
-  <div class="btn-group w-100 mb-3" role="group">
+  <div class="btn-group w-100 mb-1" role="group">
     <button
       class="btn btn-primary btn-sm text-uppercase"
       @click="
@@ -8,7 +8,7 @@
         }
       "
     >
-      по Артикулу
+      АРТ
     </button>
     <button
       class="btn btn-primary btn-sm text-uppercase"
@@ -18,14 +18,14 @@
         }
       "
     >
-      по Истории
+      ИСТ
     </button>
     <button disabled class="btn btn-primary btn-sm text-uppercase">
-      Кол.кор {{ boxCount }}
+      кор {{ boxCount }}
     </button>
 
     <button disabled class="btn btn-primary btn-sm text-uppercase">
-      Кол.скан {{ scanCount }}
+      скан {{ scanCount }}
     </button>
   </div>
 </template>

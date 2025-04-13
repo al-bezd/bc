@@ -1,36 +1,50 @@
 <template>
   <!-- Форма сканирования (без документа)-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>{{ pageTitle }}</h6>
     <BootstrapSwitcher label="Палетная" v-model:value="itPalet" />
-    <input
-      type="text"
-      class="form-control bc_input mb-3"
-      placeholder="Введите штрихкод"
-      v-model="barcode"
-      @keyup.enter="onEnter()"
-      id="form_doc_bc_free"
-    />
-    <SortWidget :box-count="boxCount" :scan-count="items.length" @tap="onSort" />
 
-    <div class="space">
-      <ScaningItem
-        v-for="item in items"
-        :key="item.ID"
-        :data="item"
-        @delete="itemDelete"
-        @tap="
-          () => {
-            filteredByArticulController.filter(item);
-            filteredByArticulController.show();
-          }
-        "
+    <div class="input-group mb-2">
+      <input
+        type="text"
+        class="form-control bc_input mb-1"
+        placeholder="Введите штрихкод"
+        v-model="barcode"
+        @keyup.enter="onEnter()"
+        id="form_doc_bc_free"
       />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
+    <SortWidget :box-count="boxCount" :scan-count="listForRender.length" @tap="onSort" />
+
+    <div v-if="isScaningAdded" class="space">
+      <ListWidget key-field="IDSec" :list="listForRender">
+        <template #default="{ item }">
+          <ScaningItem
+            :key="item.IDSec"
+            :data="item"
+            @delete="itemDelete"
+            @tap="
+              () => {
+                filteredByArticulController.filter(item);
+                filteredByArticulController.show();
+              }
+            "
+          />
+        </template>
+      </ListWidget>
+    </div>
+    <div v-else class="space">
+      Данные обрабатываются для отображения, продолжайте скаинрование
     </div>
 
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
 
         <div class="btn-group w-100" role="group">
           <button
@@ -38,7 +52,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithQuest()"
           >
-            <b>ЗАКРЫТЬ</b>
+            <b>ЗАКР</b>
           </button>
           <button
             type="button"
@@ -54,13 +68,16 @@
             attr="check"
             @click="goToCheck()"
           >
-            <b>ПРОВЕРИТЬ</b>
+            <b>ПРОВ</b>
           </button>
         </div>
       </div>
     </div>
   </div>
-  <FilteredByArticulScreen :controller="filteredByArticulController" />
+  <FilteredByArticulScreen
+    :controller="filteredByArticulController"
+    @delete="itemDelete"
+  />
   <!-- Форма сканирования (без документа)-->
 </template>
 <script setup lang="ts">
@@ -70,7 +87,7 @@ import { NotificationManager } from "@/classes/NotificationManager";
 import { RoutingManager } from "@/classes/RoutingManager";
 import { ScanerManager } from "@/classes/ScanerManager";
 import { ShipmentManager } from "@/managers/shipment/ShipmentManager";
-import { computed, ref } from "vue";
+import { computed, Ref, ref, toRaw } from "vue";
 import BootstrapSwitcher from "@/components/widgets/BootstrapSwitcher.vue";
 import { IScaning } from "@/interfaces/IScaning";
 import ScaningItem from "@/components/widgets/ScaningItem.vue";
@@ -78,12 +95,22 @@ import { GetListSortBy, OrderByType } from "@/functions/OrderBy";
 import SortWidget from "@/components/widgets/SortWidget.vue";
 import { ScaningController } from "@/controllers/ScaningController";
 import AddManualScaningButton from "@/components/widgets/AddManualScaningButton.vue";
+import { GetCount } from "@/functions/GetCount";
+import ListWidget from "@/components/widgets/ListWidget.vue";
+import { DB2Manager } from "@/classes/DB2Manager";
+import { MainManager } from "@/classes/MainManager";
 
 RoutingManager.instance.registry(
   RoutingManager.route.shipmentCreateInfoListForm,
   show,
   close
 );
+
+let timerId = -1;
+const listForRender: Ref<IScaning[]> = ref([]);
+
+const isScaningAdded = ref(false);
+
 ScanerManager.instance.onScan((value) => {
   if (!seen.value) {
     return;
@@ -98,7 +125,7 @@ const scaningController: ScaningController = new ScaningController(
 );
 
 const filteredByArticulController: FilteredByArticulController = new FilteredByArticulController(
-  ShipmentManager.instance.currentScanings,
+  listForRender,
   ref("НомХар")
 );
 
@@ -106,20 +133,18 @@ const pageTitle = ref("Создание Инфо. листа");
 const seen = ref(false);
 const itPalet = ref(false);
 const barcode = ref("");
-const items = ShipmentManager.instance.currentScanings;
 
 /// Валидаторы сканирования
-const validators: ((scan: IScaning) => boolean)[] = [isPaletScan];
+const validators: ((scan: IScaning) => boolean)[] = [];
 
 const boxCount = computed(() => {
-  return ShipmentManager.instance.currentScanings.value.reduce(
-    (sum, scan) => sum + scan.Грузоместа,
-    0
-  );
+  return GetCount(listForRender.value, "Грузоместа");
 });
 
 function show() {
   seen.value = true;
+  listForRender.value = [...ShipmentManager.instance.currentScanings.value];
+  startRenderList();
 }
 
 function close() {
@@ -127,16 +152,20 @@ function close() {
 }
 
 async function onEnter() {
-  const resScan = await onScan(barcode.value);
+  const resScan = await onScan(ScanerManager.instance.barcodeWrapper(barcode.value));
+
+  startRenderList();
   if (resScan) {
     barcode.value = "";
   }
 }
 
 async function onScan(barcodeStr: string) {
+  isScaningAdded.value = false;
   if (barcodeStr === "") {
     return false;
   }
+  scaningController.itPalet = itPalet.value;
   const scaning = await scaningController.getScaning(barcodeStr, itPalet.value);
   if (!scaning) {
     return false;
@@ -148,26 +177,16 @@ async function onScan(barcodeStr: string) {
       return false;
     }
   }
-
-  if (itPalet.value) {
-    itPalet.value = false;
-  }
   await ShipmentManager.instance.addScaning(scaning);
+
   scaningController.isValidScaning(
     scaning,
     ShipmentManager.instance.currentScanings.value
   );
-  return true;
-}
-
-/// уведомляем пользователя если он случайно отсканировал палетную этикетку
-function isPaletScan(scan: IScaning): boolean {
-  if (!itPalet.value && scan.itPalet) {
-    NotificationManager.swal(
-      `Данное сканирование является сканированием палетной этикетки`
-    );
-    NotificationManager.instance.playError();
-  }
+  scaningController.isWrongPaletScan(scaning, itPalet.value);
+  // if (itPalet.value) {
+  //   itPalet.value = false;
+  // }
   return true;
 }
 
@@ -179,6 +198,7 @@ function goToCheck() {
 function clear() {
   ShipmentManager.instance.clear();
   ShipmentManager.instance.emit("InfoListClear");
+  startRenderList();
 }
 
 async function clearWithQuest() {
@@ -191,10 +211,7 @@ async function clearWithQuest() {
 }
 
 function onSort(mode: OrderByType) {
-  ShipmentManager.instance.currentScanings.value = GetListSortBy(
-    ShipmentManager.instance.currentScanings.value,
-    mode
-  );
+  listForRender.value = GetListSortBy(listForRender.value, mode);
 }
 
 async function closeWithQuest() {
@@ -213,7 +230,7 @@ async function addManualScaning() {
   const result = await ScanerManager.showAddManualScaning();
 
   if (result) {
-    onScan(result);
+    onScan(result).then(() => startRenderList());
   }
 }
 
@@ -222,7 +239,23 @@ async function itemDelete(item: IScaning) {
     ${item.Характеристика.Наименование} ${item.Серия.Наименование} ${item.Количество}?`;
   const answerIsTrue = await NotificationManager.showConfirm(text);
   if (answerIsTrue) {
-    ShipmentManager.instance.deleteScaning(item);
+    ShipmentManager.instance.deleteScaning(item).then(() => {
+      startRenderList(() => {
+        filteredByArticulController.emit("afterDelete");
+      });
+    });
   }
+}
+
+function startRenderList(afterUpdateCallBack: (() => void) | undefined = undefined) {
+  clearTimeout(timerId);
+  timerId = setTimeout(() => {
+    isScaningAdded.value = true;
+    listForRender.value = [...ShipmentManager.instance.currentScanings.value];
+    DB2Manager.instance.shiping!.putScanings(listForRender.value.map((x) => toRaw(x)));
+    if (afterUpdateCallBack) {
+      afterUpdateCallBack();
+    }
+  }, MainManager.instance.scaningSpeed.value);
 }
 </script>

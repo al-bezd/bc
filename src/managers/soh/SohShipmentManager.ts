@@ -85,7 +85,9 @@ export class SohShipmentManager extends BaseManager {
 
   addScaning(data: IScaning) {
     this.currentScanings.value.unshift(data)
+
     this.dbController?.addScaning(data)
+
     //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
     const tmp = [this.currentScanings.value, data]
     this.emit('addScaning', tmp)

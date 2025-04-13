@@ -20,6 +20,8 @@ export class MainManager extends BaseManager implements ILoadableManager {
   static instance: MainManager;
   public cordova: any; /// Объект cordova
 
+  public scaningSpeed = ref(1000 * 1.7); /// время задержки перед рендерингом списка сканирований
+
   static keys = {
     torgovieSeti: 'torgovieSeti',
     barcodes: 'barcodes',
@@ -97,10 +99,18 @@ export class MainManager extends BaseManager implements ILoadableManager {
 
   static load: () => Promise<void> = async () => {
     /// сюда надо добавить код для загрузки
-
+    const t = LocalStorageManager.get('scaningSpeed')
+    if(t){
+      MainManager.instance.scaningSpeed.value = Number(t)
+    }else{
+      MainManager.instance.scaningSpeed.value = 1.7
+    }
   }
 
-
+  setScaningSpeed(value: number) {
+    this.scaningSpeed.value = value
+    LocalStorageManager.set('scaningSpeed', value)
+  }
 
 
 
@@ -121,7 +131,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
     const response = await HttpManager.get('/execute', params)
     if (response.success) {
       const t2 = ((Date.now() - t1) / 1000) / 60;
-      console.log(`база загружена за ${t2.toFixed(2)} мин.`);
+      //console.log(`база загружена за ${t2.toFixed(2)} мин.`);
       NotificationManager.info(`База обновлена за ${t2.toFixed(2)} мин.`);
       await DB2Manager.instance.barcodes!.setAll(response.data)
       // const data:IDBDataRecord[] = response.data.map((x:any)=>{
@@ -179,7 +189,7 @@ export class MainManager extends BaseManager implements ILoadableManager {
       // torgovie_seti = response.data
       // check_doc_free.torgovie_seti = torgovie_seti
     } else {
-      console.log("SetTorgovieSeti ", response.error);
+      //console.log("SetTorgovieSeti ", response.error);
       NotificationManager.error("Ошибка при загрузке торговых сетей");
     }
     // axios.get(url_to_base + '/barcode2020/hs/barcode/execute', { params: params })

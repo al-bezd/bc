@@ -1,6 +1,6 @@
 <template>
   <!-- Форма сканирования для приемки-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6 class="text-muted">СОХ Отгрузка: {{ docName }}: Форма</h6>
 
     <!-- <div class="row">
@@ -12,20 +12,27 @@
       </div>
     </div> -->
 
-    <input
-      type="text"
-      class="form-control bc_input mb-3"
-      placeholder="Введите штрихкод"
-      v-model="barcode"
-      @keyup.enter="onEnter"
-      id="form_bc"
-    />
+    <div class="input-group mb-2">
+      <input
+        type="text"
+        class="form-control bc_input mb-1"
+        placeholder="Введите штрихкод"
+        v-model="barcode"
+        @keyup.enter="onEnter"
+        id="form_bc"
+      />
+      <div class="input-group-prepend">
+        <button class="btn btn-info text-uppercase w-100 mb-1" @click="addManualScaning">
+          +
+        </button>
+      </div>
+    </div>
     <SortWidget @tap="onSort" :scan-count="items.length" :box-count="boxCount" />
 
     <div class="space">
       <ScaningItem
         v-for="item in items"
-        :key="item.ID"
+        :key="item.IDSec"
         :data="item"
         @delete="itemDelete"
         @tap="filterByArticul(item)"
@@ -33,7 +40,7 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <AddManualScaningButton @tap="addManualScaning" />
+        <!-- <AddManualScaningButton @tap="addManualScaning" /> -->
 
         <div class="btn-group w-100" role="group">
           <button
@@ -41,7 +48,7 @@
             class="btn btn-warning text-uppercase fs-6"
             @click="closeWithConfirm"
           >
-            <b>ЗАКРЫТЬ<br />ДОКУМЕНТ</b>
+            <b>ЗАКР<br />ДОК</b>
           </button>
           <button
             type="button"
@@ -55,7 +62,7 @@
             class="btn btn-success text-uppercase fs-6"
             @click="goCheck()"
           >
-            <b>ПРОВЕРИТЬ</b>
+            <b>ПРОВ</b>
           </button>
         </div>
       </div>
@@ -187,13 +194,12 @@ async function onScan(barcode: string) {
       }
     }
 
+    currentManager.value.addScaning(scan);
+    scaningController.isValidScaning(scan, currentManager.value.currentScanings.value);
+    scaningController.isWrongPaletScan(scan, itPalet.value);
     if (itPalet.value) {
       itPalet.value = false;
     }
-
-    currentManager.value.addScaning(scan);
-    scaningController.isValidScaning(scan, currentManager.value.currentScanings.value);
-
     return;
   }
   NotificationManager.swal("Продукция с таким штрих кодом не найдена");

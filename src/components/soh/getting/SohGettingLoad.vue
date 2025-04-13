@@ -1,15 +1,15 @@
 <template>
   <!-- Окно загрузки документа СОХ-->
-  <div class="reft_screen_form p-3" v-show="seen">
+  <div class="reft_screen_form p-1" v-if="seen">
     <h6>СОХ Приемка: Отсканируйте ШК в поле: Загрузка</h6>
     <input
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="barcode"
       @keyup.enter="onEnter()"
     />
-    <!-- <div class="d-grid gap-2 mb-3">
+    <!-- <div class="d-grid gap-2 mb-1">
       <button
         type="button"
         class="btn btn-primary btn-lg btn-block text-uppercase"
@@ -73,7 +73,7 @@ ScanerManager.instance.onScan((value) => {
 });
 
 async function onEnter() {
-  await getDocumentByBarcode(barcode.value);
+  await getDocumentByBarcode(ScanerManager.instance.barcodeWrapper(barcode.value));
   barcode.value = "";
   initSavedDocuments();
 }
@@ -103,7 +103,7 @@ async function onDeleteDocument(document: IDocument) {
   );
   if (resultQuest) {
     const response = await currentManager.value.deleteDocument(document);
-    console.log(document, document.Ссылка.Ссылка);
+    //console.log(document, document.Ссылка.Ссылка);
     if (response) {
       initSavedDocuments();
       return;

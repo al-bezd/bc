@@ -22,10 +22,12 @@
     "uuid": "^10.0.0",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
+    "vue-virtual-scroller": "^2.0.0-beta.8",
     "vue3-toastify": "^0.2.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.7",
+    "@types/vue-virtual-scroller": "npm:@vsme/vue-virtual-scroller@^1.0.1",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",

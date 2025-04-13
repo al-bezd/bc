@@ -55,7 +55,14 @@
       <button
         type="button"
         class="btn btn-primary btn-block text-uppercase"
-        @click="LoadOrdersExecute(MainManager.keys.infoSheets)"
+        @click="
+          () => {
+            isLoadingOrders = true;
+            LoadOrdersExecute(MainManager.keys.infoSheets).then(() => {
+              isLoadingOrders = false;
+            });
+          }
+        "
       >
         <b>Загрузить инфо. листы</b>
       </button>
@@ -70,6 +77,24 @@
       <b>Закрыть</b>
     </button>
   </BootstrapModalWindow>
+  <div
+    class="reft_modal"
+    v-show="isLoadingOrders"
+    style="
+      background: rgba(1, 1, 1, 0.8);
+      color: white;
+      display: flex;
+      justify-content: center; /* Центрирование по горизонтали */
+      align-items: center; /* Центрирование по вертикали */
+      height: 100vh; /* Высота в 100% от видимой части экрана */
+      margin: 0;
+      z-index: 3000;
+    "
+  >
+    <div class="spacer">
+      <h6>Выполняется загрузка заказов</h6>
+    </div>
+  </div>
 </template>
 <script setup lang="ts">
 import DatePicker from "@/components/widgets/DatePicker.vue";
@@ -85,6 +110,7 @@ import {
 } from "@/functions/GetCurrentDateByDatePickerFormat";
 import { DB2Manager } from "@/classes/DB2Manager";
 import { IInfoList } from "@/interfaces/IInfoList";
+import { HttpManager } from "@/classes/HttpManager";
 
 interface IAddOrdersModel {
   ДатаНачала: string;
@@ -99,6 +125,8 @@ interface IProps {
 const props = defineProps<IProps>();
 const emit = defineEmits(["update:seen"]);
 //const seen = ref(false);
+
+const isLoadingOrders = ref(false);
 
 const addOrders: Ref<IAddOrdersModel> = ref(getEmptyAddOrdersModel());
 
@@ -127,6 +155,7 @@ function close() {
 }
 
 async function LoadOrdersExecute(type: string) {
+  //debugger;
   if (addOrders.value.ДатаОкончания == "") {
     addOrders.value.ДатаОкончания = addOrders.value.ДатаНачала;
   }
@@ -138,7 +167,7 @@ async function LoadOrdersExecute(type: string) {
 
   if (type == MainManager.keys.orders) {
     NotificationManager.info("ИДЕТ ЗАГРУЗКА ЗАКАЗОВ!");
-
+    isLoadingOrders.value = true;
     const documents = await ShipmentManager.instance.getOrdersFromServer(
       getCurrentDateFromDatePickerFormat(addOrders.value.ДатаНачала).getTime(),
       getCurrentDateFromDatePickerFormat(addOrders.value.ДатаОкончания).getTime(),
@@ -152,6 +181,7 @@ async function LoadOrdersExecute(type: string) {
       // await DBManager.WriteDataInDB(MainManager.keys.orders, data);
       await DB2Manager.instance.orders!.setAll(documents);
       NotificationManager.success(`В систему загруженно ${documents.length} заказа(ов)`);
+      isLoadingOrders.value = false;
       return;
     }
   } else if (type == MainManager.keys.infoSheets) {

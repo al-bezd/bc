@@ -3,7 +3,7 @@ import { BaseManager } from "@/classes/BaseManager";
 
 import { HttpManager } from "@/classes/HttpManager";
 import { NotificationManager } from "@/classes/NotificationManager";
-import { Ref, ref, toRaw } from "vue";
+import { markRaw, Ref, ref, toRaw } from "vue";
 import { IGettingProductionDocument } from "./interfaces";
 import { IScaning } from "@/interfaces/IScaning";
 import { DB2Manager } from "@/classes/DB2Manager";
@@ -21,7 +21,7 @@ export class GettingManager extends BaseManager {
   protected currentScaningsKey = "GettingManager__currentScanings"
 
   //public documents: any[] = [];
-  public currentScanings: Ref<IScaning[]> = ref([])
+  public currentScanings: Ref<IScaning[]> = ref(markRaw([]))
   public currentDocument: Ref<IGettingProductionDocument | null> = ref(null)
 
   static init() {
@@ -64,6 +64,7 @@ export class GettingManager extends BaseManager {
     const key = this.currentScaningsKey
     if(val==null){
       this.currentScanings.value = []
+      DB2Manager.instance.getting?.clearScanings()
       DB2Manager.removeData(key)
       return
     }
@@ -74,21 +75,21 @@ export class GettingManager extends BaseManager {
 
   addScaning(data:IScaning){
     this.currentScanings.value.unshift(data)
-    DB2Manager.instance.getting?.addScaning(data)
+    //DB2Manager.instance.getting?.addScaning(data)
     //DB2Manager.setData(key, this.currentScanings.value.map(x=>toRaw(x)) )
-    const tmp = [this.currentScanings.value, data]
-    this.emit('addScaning', tmp)
+    //const tmp = [this.currentScanings.value, data]
+    //this.emit('addScaning', tmp)
     //console.log('addScaning', tmp)
   }
 
-  deleteScaning(data:IScaning) {
+  async deleteScaning(data:IScaning) {
     for (const i of this.currentScanings.value) {
       if(i.IDSec === data.IDSec) {
         this.currentScanings.value.splice(this.currentScanings.value.indexOf(i), 1)
         break
       }
     }
-    DB2Manager.instance.getting!.deleteScaning(data)
+    await DB2Manager.instance.getting!.deleteScaning(data)
     this.emit('deleteScaning', [this.currentScanings.value, data])
   }
 

@@ -9,7 +9,7 @@
     <input
       v-if="!much"
       type="text"
-      class="form-control bc_input mb-3"
+      class="form-control bc_input mb-1"
       placeholder="Введите штрихкод"
       v-model="ШК"
       @keyup.enter="onEnter"

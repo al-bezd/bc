@@ -1,14 +1,12 @@
 <template>
-  <div class="btn-group w-100 mb-3" role="group">
+  <div class="btn-group w-100 mb-1" role="group">
     <button
       v-for="item in items"
       :key="item"
-      :class="`btn btn-primary text-uppercase ${mode == item ? 'disabled' : ''}`"
+      :class="`btn btn-primary px-1 text-uppercase ${mode == item ? 'disabled' : ''}`"
       @click="showWithMode(item)"
     >
-      <span v-if="item == 'Ном'">НОМ</span>
-      <span v-else-if="item == 'НомХар'">НОМ+ХАР</span>
-      <span v-else-if="item == 'НомХарСер'">НОМ+ХАР+СЕР</span>
+      <span style="font-size: 0.8rem">{{ GetLabel(item) }}</span>
     </button>
     <!-- <button
       :class="`btn btn-primary text-uppercase ${mode == 'Ном' ? 'disabled' : ''}`"
@@ -35,16 +33,16 @@
 import { RowKeyMode } from "@/functions/GetGroupScans";
 
 interface IProps {
-  mode: RowKeyMode;
-  items: RowKeyMode[];
+  mode: RowKeyMode | string;
+  items: RowKeyMode[] | string[];
 }
-const props = withDefaults(defineProps<IProps>(), {
+withDefaults(defineProps<IProps>(), {
   items: () => ["НомХар", "НомХарСер"],
 });
 
 const emit = defineEmits(["tap"]);
 
-function showWithMode(mode: RowKeyMode) {
+function showWithMode(mode: RowKeyMode | string) {
   emit("tap", mode);
   //   currentMode.value = mode;
   //   LocalStorageManager.set(currentModeKey, currentMode.value);
@@ -52,5 +50,18 @@ function showWithMode(mode: RowKeyMode) {
   //     ShipmentManager.instance.currentScanings.value,
   //     currentMode.value
   //   );
+}
+
+function GetLabel(item: RowKeyMode | string) {
+  switch (item) {
+    case "Ном":
+      return "НОМ";
+    case "НомХар":
+      return "НОМ+ХАР";
+    case "НомХарСер":
+      return "НОМ+ХАР+СЕР";
+    default:
+      return ("" + item).toUpperCase();
+  }
 }
 </script>

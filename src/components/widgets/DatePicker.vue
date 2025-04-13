@@ -28,7 +28,7 @@
   </BootstrapModalWindow>
   <BootstrapModalWindow v-model:seen="daySeen">
     <h6 class="text-center">Выберите день</h6>
-    <div class="space mb-3">
+    <div class="space mb-1">
       <button
         type="button"
         :class="`btn btn-${
@@ -61,7 +61,7 @@
   <BootstrapModalWindow v-model:seen="monthSeen"
     ><h6 class="text-center">Выберите месяц</h6>
 
-    <div class="space mb-3">
+    <div class="space mb-1">
       <button
         type="button"
         :class="`btn btn-${
@@ -93,7 +93,7 @@
   </BootstrapModalWindow>
   <BootstrapModalWindow v-model:seen="yearSeen"
     ><h6 class="text-center">Выберите год</h6>
-    <div class="space mb-3">
+    <div class="space mb-1">
       <button
         type="button"
         :class="`btn btn-${

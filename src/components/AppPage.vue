@@ -17,6 +17,7 @@
   display: flex;
   flex-direction: column;
   background-color: white;
+  overflow: hidden;
 }
 .reft_modal {
   height: 100vh;
@@ -61,6 +62,9 @@
   background-color: #f9a653;
   border-color: #e6d6c3;
 }
+.input-group {
+  z-index: 0;
+}
 </style>
 <template>
   <div>
@@ -94,6 +98,8 @@
     <SettingsScreen />
 
     <AddManualFormScreen />
+
+    <LoaderScreenHolder />
     <ConfirmScreen />
     <NotificationListener />
   </div>
@@ -129,6 +135,8 @@ import SohShipingCheck from "@/components/soh/shiping/SohShipingCheck.vue";
 import SohGettingLoad from "@/components/soh/getting/SohGettingLoad.vue";
 import SohGettingForm from "@/components/soh/getting/SohGettingForm.vue";
 import SohGettingCheck from "@/components/soh/getting/SohGettingCheck.vue";
+
+import LoaderScreenHolder from "@/components/modals/LoaderScreenHolder.vue";
 
 // onMounted(() => {
 //   RoutingManager.instance.afterReload();

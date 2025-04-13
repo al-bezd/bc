@@ -4,10 +4,12 @@ import { UserManager } from "@/managers/user/UserManager";
 import { NotificationManager } from "@/classes/NotificationManager";
 import { IDocument } from "@/interfaces/IDocument";
 import { IShipmentDocument } from "@/managers/shipment/interfaces";
-import { Ref, ref, toRaw } from "vue";
+import { markRaw, Ref, ref, toRaw } from "vue";
 import { IScaning } from "@/interfaces/IScaning";
 import { HttpManager } from "@/classes/HttpManager";
 import { DB2Manager } from "@/classes/DB2Manager";
+
+
 
 export class ShipmentManager extends BaseManager {
   static instance: ShipmentManager;
@@ -32,9 +34,10 @@ export class ShipmentManager extends BaseManager {
   //public mainOrderName = "Основной склад не назначен";
 
   public currentDocument: Ref<IShipmentDocument | null> = ref(null)
-  public currentScanings: Ref<IScaning[]> = ref([])
+  public currentScanings: Ref<IScaning[]> = ref(markRaw([]))
+ 
 
-  load() {
+  load() { 
     this.asyncLoad()
     // this.mainOrder = LocalStorageManager.get("main_order", true);
     // if (this.mainOrder === null) {
@@ -144,7 +147,7 @@ export class ShipmentManager extends BaseManager {
   }
 
   setCurrentScanings(value: IScaning[] | null) {
-    const key = this.currentScaningsKey
+    //const key = this.currentScaningsKey
     //console.log('setCurrentScanings ',value)
     if (value == null) {
       this.currentScanings.value.length = 0
@@ -156,7 +159,7 @@ export class ShipmentManager extends BaseManager {
     //DBManager.setData(key, value.map(x => toRaw(x)))
     DB2Manager.instance.shiping!.setScanings(value.map(x => toRaw(x)))
     //DB2Manager.instance.setScanings(this,value.map(x => toRaw(x)))
-    this.emit('setCurrentScanings', [value])
+    //this.emit('setCurrentScanings', [value])
     
   }
 
@@ -170,19 +173,25 @@ export class ShipmentManager extends BaseManager {
   }
 
   addScaning(scaning: IScaning) {
-    const key = this.currentScaningsKey
+    //const key = this.currentScaningsKey
     this.currentScanings.value.unshift(scaning)
     //const dataForWriteInDB = this.currentScanings.value.map(x=> toRaw(x))
     //DBManager.setData(key, dataForWriteInDB)
     //DB2Manager.instance.addScaning(this,toRaw(scaning))
-    DB2Manager.instance.shiping!.addScaning(toRaw(scaning))
-    const tmp = [this.currentScanings.value, scaning]
-    this.emit('addScaning', tmp)
+
+    // закоментили ради проверки скорости
+    //DB2Manager.instance.shiping!.addScaning(toRaw(scaning))
+
+
+    //const tmp = [this.currentScanings.value, scaning]
+    // закоментили ради проверки скорости
+    //this.emit('addScaning', tmp)
+
     //console.log('addScaning', tmp, dataForWriteInDB)
   }
 
   async deleteScaning(scaning: IScaning) {
-    const key = this.currentScaningsKey
+    //const key = this.currentScaningsKey
 
     for (const i of this.currentScanings.value) {
       if (i.IDSec === scaning.IDSec) {
@@ -191,7 +200,7 @@ export class ShipmentManager extends BaseManager {
       }
     }
     //const dataForWriteInDB = this.currentScanings.value.map(x=> toRaw(x))
-    this.emit('deleteScaning', [this.currentScanings.value, scaning])
+    //this.emit('deleteScaning', [this.currentScanings.value, scaning])
     //const res = await DBManager.setData(key, dataForWriteInDB)
     //DB2Manager.instance.deleteScaning(this,scaning)
     DB2Manager.instance.shiping!.deleteScaning(scaning)

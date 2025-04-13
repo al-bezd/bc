@@ -2,9 +2,39 @@
   <div>
     <div
       v-if="!document.completed"
-      :class="`alert alert-${document.completed ? 'success' : 'info'}`"
+      :class="`alert alert-${document.completed ? 'success' : 'info'} p-1`"
     >
-      <div class="row">
+      <table>
+        <tr>
+          <td>
+            <div class="fs-6">
+              <b
+                >{{ document.Ссылка.Наименование }}
+                <span v-if="document.completed">СОБРАН!</span></b
+              >
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="d-flex">
+              <button
+                class="btn btn-info text-uppercase mr-1"
+                @click="emit('tap', document)"
+              >
+                Продолжить
+              </button>
+              <button
+                class="btn btn-danger text-uppercase"
+                @click="emit('delete', document)"
+              >
+                Закрыть
+              </button>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <!-- <div class="row">
         <div class="col fs-6">
           <b
             >{{ document.Ссылка.Наименование }}
@@ -22,7 +52,7 @@
         <button class="btn btn-danger text-uppercase" @click="emit('delete', document)">
           Закрыть
         </button>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

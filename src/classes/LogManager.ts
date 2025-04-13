@@ -23,9 +23,11 @@ export class LogManager extends BaseManager implements ILoadableManager {
 
     public customLog: Ref<ILogItem[]> = ref([])
     public maxSizeLog = 1000
+    private isStartingClear = false;
 
 
     async load() {
+        return
         this.customLog.value = (await DB2Manager.instance.log?.getAll())??[]
         const old_function_log = console.log
 
@@ -71,8 +73,18 @@ export class LogManager extends BaseManager implements ILoadableManager {
         })
     }
     async clear() {
-        this.customLog.value.length = 0
-        await DB2Manager.instance.log!.clear()
+        if(this.isStartingClear){
+            return;
+        }
+        this.isStartingClear = true;
+        try{
+            this.customLog.value.length = 0
+            await DB2Manager.instance.log!.clear()
+        }catch(e){
+//
+        }
+        this.isStartingClear = false;
+        
     }
     async add(item: ILogItem) {
         this.customLog.value.unshift(item)
